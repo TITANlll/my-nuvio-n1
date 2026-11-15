@@ -25,6 +25,7 @@ from urllib.error import HTTPError
 from http.client import IncompleteRead
 from browse_catalogs import build_browse_catalogs
 from shahid_home_rows import build_shahid_home_rows
+from netflix_home_rows import build_netflix_home_rows
 
 ROOT = Path(__file__).parent
 OUT = ROOT / 'site'
@@ -37,7 +38,7 @@ ALL = json.loads((ROOT / 'catalogs.json').read_text())
 VERIFIED = json.loads((ROOT / 'data' / 'verified.json').read_text())
 BETTERPOSTERS_PATTERN = os.getenv('BETTERPOSTERS_POSTER_PATTERN','').strip()
 CACHE = {}
-ADDON_VERSION = '1.4.0'
+ADDON_VERSION = '1.5.0'
 
 
 def catalog_plan():
@@ -46,10 +47,13 @@ def catalog_plan():
     # Add homepage-inspired Shahid rows near the existing Shahid catalogs.
     # Preserve all original 58 definitions and their relative order.
     additions = build_shahid_home_rows()
+    netflix_additions = build_netflix_home_rows()
     after = {
         'shahid_top_arabic_series': additions[:2],
         'shahid_top_arabic_movies': additions[2:4],
         'shahid_trending_arabic': additions[4:],
+        'netflix_sa_popular_movies': netflix_additions[:3],
+        'netflix_sa_new': netflix_additions[3:],
     }
     plan = []
     for row in original:
@@ -292,6 +296,35 @@ def discover_turkish(spec):
     return results, ''
 
 
+def discover_netflix(spec):
+    """TMDB-discovery rows for titles listed on Netflix Saudi Arabia.
+
+    Netflix official weekly chart rankings come from get_netflix_rows(), not
+    this provider catalog. Its 'new' filter means original premiere only.
+    """
+    kind = media_type(spec)
+    params = dict(spec['params'])
+    date_field = 'primary_release_date' if kind == 'movie' else 'first_air_date'
+    params[date_field + '.lte'] = str(TODAY)
+    if spec.get('release_window_days'):
+        params[date_field + '.gte'] = str(
+            TODAY - timedelta(days=spec['release_window_days']))
+    _, candidates = fetch_discover({**spec, 'params': params},
+                                   max_pages=5, pool_size=max(100, LIMIT * 5))
+    found = []
+    seen = set()
+    for item in candidates:
+        poster = preview(kind, item, verified_note=spec.get('note'))
+        if poster and poster['id'] not in seen:
+            seen.add(poster['id'])
+            found.append(poster)
+        if len(found) >= LIMIT:
+            break
+    if len(found) < 5:
+        return [], 'Fewer than five Netflix Saudi titles with reliable IMDb poster metadata'
+    return found, ''
+
+
 def fetch_keyword(spec, **discovery_options):
     params = dict(spec.get('params', {}))
     keywords=[]
@@ -353,6 +386,44 @@ def fetch_verified(spec):
     return rows[:LIMIT]
 
 
+def netflix_chart_search_queries(kind, title):
+    """Allow conservative season/collection suffix removal for TV chart items.
+
+    Netflix uses 'Show: Season 2' in its weekly chart, whereas TMDB usually
+    indexes the parent series as 'Show'. Never strip movie sequel names.
+    """
+    queries = [title]
+    if kind == 'series':
+        base = re.sub(
+            r'\s*[:\-–]\s*(?:season\s+\d+|limited\s+series|collection\s+\d+)\s*$',
+            '', title, flags=re.IGNORECASE).strip()
+        if base and base != title:
+            queries.append(base)
+    return queries
+
+
+def match_netflix_chart_title(kind, title):
+    """Match by an exact display/original title; never guess a Netflix rank."""
+    target = 'movie' if kind == 'movie' else 'tv'
+    title_keys = ('title', 'original_title') if kind == 'movie' else ('name', 'original_name')
+    for query in netflix_chart_search_queries(kind, title):
+        matches = tmdb('/search/' + target, {'query': query}).get('results', [])
+        expected = norm(query)
+        strong = {
+            candidate['id']: candidate
+            for candidate in matches[:20]
+            if candidate.get('id') and any(
+                expected == norm(candidate.get(field, ''))
+                for field in title_keys)
+        }
+        if len(strong) > 1:
+            # Different productions share this exact name; do not guess.
+            return None
+        if len(strong) == 1:
+            return next(iter(strong.values()))
+    return None
+
+
 def get_netflix_rows():
     """Get latest SA country movie and TV chart rows from official TSV file.
 
@@ -392,20 +463,11 @@ def get_netflix_rows():
         for r in recent:
             title=r['show_title'].strip()
             target='movie' if kind=='movie' else 'tv'
-            matches=tmdb('/search/'+target,{'query':title}).get('results',[])
-            # Only accept reliable name matches; do not invent a match.
-            expected=norm(title)
-            strong=[]
-            for cand in matches[:10]:
-                actual=norm(cand.get('title' if target=='movie' else 'name',''))
-                if expected and actual==expected:
-                    strong.append(cand)
-            # A title shared by multiple productions is ambiguous without
-            # a year in Netflix's TSV. Skip rather than misidentify it.
-            if len(strong)!=1:
+            best=match_netflix_chart_title(kind, title)
+            if best is None:
                 continue
-            best=strong[0]
-            p=preview(target,best,source_rank=r['weekly_rank'],source_week=last)
+            p=preview(target,best,source_rank=r['weekly_rank'],
+                      source_week=last, verified_note='Netflix chart: '+title)
             if p:
                 collected.append(p)
         if not collected:
@@ -535,6 +597,8 @@ def catalog(spec, netflix=None):
         return discover_shahid(spec)
     if mode=='discover' and spec.get('group')=='Turkish Content':
         return discover_turkish(spec)
+    if mode=='netflix_discover' and spec.get('group')=='Netflix Saudi':
+        return discover_netflix(spec)
     if mode=='netflix_official':
         rows=(netflix or {}).get(spec['kind'],[])
         return rows,('Official Netflix data unavailable or unmatched' if not rows else '')
@@ -629,7 +693,8 @@ def main():
         write_json(stage/'manifest.json',manifest)
         write_json(stage/'status.json',{'built_utc':datetime.now(timezone.utc).isoformat(),
             'planned':len(planned),'original_planned':len(ALL),
-            'browse_planned':40,'shahid_home_planned':len(build_shahid_home_rows()),'active':len(active),'catalogs':status})
+            'browse_planned':40,'shahid_home_planned':len(build_shahid_home_rows()),
+            'netflix_home_planned':len(build_netflix_home_rows()),'active':len(active),'catalogs':status})
         # Apps that support collections can use this as a planning guide; Stremio
         # protocol itself does not define nested catalog folders.
         folders={}
