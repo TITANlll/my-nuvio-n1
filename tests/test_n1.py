@@ -210,7 +210,8 @@ class BuildTests(unittest.TestCase):
 
         with patch.object(g, 'shahid_provider_id', return_value=777), \
                 patch.object(g, 'fetch_discover', return_value=('tv', items)) as discover, \
-                patch.object(g, 'preview', side_effect=poster):
+                patch.object(g, 'preview', side_effect=poster), \
+                patch.object(g, 'shahid_arabic_poster', return_value=None):
             rows, reason = g.catalog(spec)
         self.assertEqual(len(rows), min(g.LIMIT, 20))
         self.assertEqual(reason, '')
@@ -232,7 +233,8 @@ class BuildTests(unittest.TestCase):
         with patch.object(g, 'shahid_provider_id', return_value=777), \
                 patch.object(g, 'fetch_discover', return_value=('movie', [{'id': 1}])), \
                 patch.object(g, 'preview', return_value={
-                    'id': 'tt1234567', 'type': 'movie', 'name': 'Test'}):
+                    'id': 'tt1234567', 'type': 'movie', 'name': 'Test'}), \
+                patch.object(g, 'shahid_arabic_poster', return_value=None):
             rows, reason = g.catalog(spec)
         self.assertEqual(rows, [])
         self.assertIn('Fewer than five', reason)
