@@ -54,27 +54,42 @@
   },
   {
     "id": "shahid_top_arabic_series",
-    "name": "Shahid · Arabic Exclusive Series (verified, unranked)",
+    "name": "Shahid Saudi · Popular Series (TMDB / JustWatch)",
     "type": "series",
     "group": "Shahid Arabic Exclusives",
-    "mode": "verified",
-    "tag": "shahid_arabic_series"
+    "mode": "discover_provider",
+    "provider": "shahid",
+    "params": {
+      "sort_by": "popularity.desc",
+      "include_adult": "false"
+    },
+    "note": "Titles listed as available on Shahid in Saudi Arabia; TMDB popularity is not Shahid's official viewing ranking"
   },
   {
     "id": "shahid_top_arabic_movies",
-    "name": "Shahid · Arabic Exclusive Movies (verified, unranked)",
+    "name": "Shahid Saudi · Popular Movies (TMDB / JustWatch)",
     "type": "movie",
     "group": "Shahid Arabic Exclusives",
-    "mode": "verified",
-    "tag": "shahid_arabic_movies"
+    "mode": "discover_provider",
+    "provider": "shahid",
+    "params": {
+      "sort_by": "popularity.desc",
+      "include_adult": "false"
+    },
+    "note": "Titles listed as available on Shahid in Saudi Arabia; TMDB popularity is not Shahid's official viewing ranking"
   },
   {
     "id": "shahid_trending_arabic",
-    "name": "Shahid · Arabic Exclusives (verified popularity)",
+    "name": "Shahid Saudi · Recently Produced Series (TMDB / JustWatch)",
     "type": "series",
     "group": "Shahid Arabic Exclusives",
-    "mode": "verified",
-    "tag": "shahid_trending_arabic"
+    "mode": "discover_provider",
+    "provider": "shahid",
+    "params": {
+      "sort_by": "first_air_date.desc",
+      "include_adult": "false"
+    },
+    "note": "Recently first-aired series listed as available on Shahid Saudi; NOT the date they arrived on Shahid or an official Shahid trending chart"
   },
   {
     "id": "shahid_vip_new",
