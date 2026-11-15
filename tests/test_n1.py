@@ -74,16 +74,46 @@ class BuildTests(unittest.TestCase):
         self.assertEqual(marker.read_text(), 'previous')
 
     def test_exception_secrets_never_reach_status_or_logs(self):
+        # A failed refresh must not replace the last published site with
+        # a partial set of catalogs or leak credentials into logs.
+        self.out.mkdir()
+        marker = self.out / 'manifest.json'
+        marker.write_text('last verified publication')
+
         def handler(spec, netflix):
             if spec == g.ALL[0]:
                 return [{'id': 'tt1234567', 'type': 'movie', 'name': 'Test'}], ''
             raise HTTPError('https://api.example/?api_key=test-secret', 401,
                             'test-secret', {}, None)
-        log = self.build(handler)
+
+        log = io.StringIO()
+        with patch.object(g, 'get_netflix_rows', return_value={}), \
+                patch.object(g, 'catalog', side_effect=handler), \
+                contextlib.redirect_stdout(log), self.assertRaises(SystemExit) as failed:
+            g.main()
         public = ''.join(p.read_text() for p in self.out.rglob('*') if p.is_file())
-        self.assertNotIn('test-secret', log + public)
-        self.assertIn('HTTPError (HTTP 401)', log)
+        self.assertNotIn('test-secret', log.getvalue() + str(failed.exception) + public)
+        self.assertIn('HTTPError (HTTP 401)', str(failed.exception))
+        self.assertEqual(marker.read_text(), 'last verified publication')
         self.assertEqual(g.safe_error(RuntimeError('test-secret')), 'RuntimeError')
+
+    def test_successful_refresh_replaces_previous_site_atomically(self):
+        self.out.mkdir()
+        marker = self.out / 'obsolete.json'
+        marker.write_text('old publication')
+
+        def handler(spec, netflix):
+            if spec['mode'] == 'external':
+                return None, 'Separate addon'
+            return [{'id': 'tt1234567', 'type': spec['type'], 'name': 'Test title'}], ''
+
+        self.build(handler)
+        self.assertFalse(marker.exists())
+        manifest = json.loads((self.out / 'manifest.json').read_text())
+        self.assertEqual(manifest['version'], g.ADDON_VERSION)
+        self.assertEqual(len(manifest['catalogs']), len(g.catalog_plan()) -
+                         sum(s['mode'] == 'external' for s in g.catalog_plan()))
+        self.assertFalse(self.out.with_name(self.out.name + '.previous').exists())
 
     def test_netflix_exception_is_safe(self):
         log = io.StringIO()
