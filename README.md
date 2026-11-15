@@ -9,11 +9,11 @@ GitHub Pages serves the generated `site/` directory. The manifest lists only pop
 - All **58 approved catalog definitions** are preserved in `catalogs.json` and grouped by network/topic.
 - **10 BetterPosters discovery rows** remain with the BetterPosters addon you already installed; publishing duplicate copies would clutter Nuvio.
 - **3 personalized For You rows** remain with a separately connected personalization addon/account. This project does not access your viewing history.
-- **12 genres and 8 moods** in `browsing-folders.json` now generate **40 additional catalog rows**: one Movies and one Series row per label. Folder navigation remains a Nuvio/collection-manager feature; these are working catalog rows, not automatically installed folders.
+- **12 genres and 8 moods** in `browsing-folders.json` generate **40 additional catalog rows**: one Movies and one Series row per label. Folder navigation remains a Nuvio/collection-manager feature; these are working catalog rows, not automatically installed folders.
 - The generator publishes each **additional catalog only if it can produce justified, identifiable entries**. Held catalogs are explained in `status.json` after build, rather than filled with fabricated rankings or false subscription/subtitle claims.
 - Uses **official Netflix Saudi weekly Top 10** from the published country dataset. In some cases Netflix title names cannot be matched unambiguously to IMDb IDs; those chart entries are skipped, and the original rank is preserved in the description. If the data is inaccessible, it is held, *not* replaced with a fake Top 10.
 - Uses **TMDB** for clearly attributed movie/TV discovery and for correctly identified movie/series IDs. Some topic-based or release-date catalogs are necessarily *curated/approximate*, not original service lists.
-- Curated source-verified awards and mature animation entries are seeded in `data/verified.json`. Shahid exclusives and Turkish Arabic-subtitle titles are intentionally withheld until each title is documented with source URLs; there is **no fabricated Shahid Top 10**.
+- Curated source-verified awards and mature animation entries are seeded in `data/verified.json`. Three Shahid Saudi discovery rows now use TMDB/JustWatch provider availability; the separate *exclusives and originals* rows still require individual source verification. There is **no fabricated Shahid Top 10**.
 - Source-backed starter entries now include Rashash for Saudi Originals, Arabic Exclusive Series and Gulf Exclusives; The Protector for Netflix Turkish Series and Turkish Streaming Originals; Last Call for Istanbul for Netflix Turkish Movies; and Oppenheimer for Golden Globes & BAFTA. These are small curated selections, not complete service libraries. Arabic subtitles are documented on Netflix Saudi title pages; a separate playback addon must provide usable streams/subtitles in Nuvio.
 - **Playback remains separate:** AIOStreams, Turkish streaming addons, subtitle addons and Nuvio itself handle streams, subtitles, Library and Continue Watching.
 
@@ -36,7 +36,7 @@ GitHub Pages serves the generated `site/` directory. The manifest lists only pop
 |---|---|
 | Netflix Saudi weekly Top 10 movies and TV | Official TSV, names mapped conservatively to IMDb; not real-time daily |
 | Netflix Saudi other discovery | TMDB Saudi availability/popularity and recent *production* dates, not an exact Netflix “Newly Added” feed |
-| Shahid Arabic exclusives and VIP | Source-backed Rashash starter entry for three series rows; movie, trending and new VIP rows still require specific evidence |
+| Shahid Saudi discovery and exclusives | Three multi-title TMDB/JustWatch provider availability rows (popular movies, popular series, recently produced series) are distinct from verified Shahid originals and exclusives. They do **not** represent an official Shahid popularity chart or actual date added to Shahid. Sparse curated rows with fewer than five titles remain held |
 | Turkish content with Arabic subtitles | Netflix Saudi subtitle evidence for The Protector and Last Call for Istanbul; ranking/new-release rows still need qualifying entries |
 | BetterPosters 10 discovery catalogs | Kept separate; already provided by BetterPosters |
 | Family & Kids | Strict G/TV-Y-type ratings when available; age labels alone cannot guarantee suitability, and filtering isn't parental control |
@@ -79,7 +79,7 @@ To generate locally, set `TMDB_BEARER_TOKEN` and `PAGE_URL` to the actual public
 
 ### Missing-row fixes and remaining setup
 
-All 58 definitions in `catalogs.json` remain unchanged. The source additions make seven previously empty rows eligible for publication if TMDB can map their IMDb IDs. This is not a claim that all 58 rows are live: only a successful production build and its `status.json` establish the active count.
+The 58 original catalog IDs and the 40 generated browse IDs remain intact. Three previously sparse Shahid IDs now use Saudi provider discovery instead of one-title curated entries. Source-backed Shahid originals/exclusives remain independently verified, and sparse curated rows are hidden instead of showing one repeated poster. The other source additions remain eligible if TMDB can map their IMDb IDs. This is not a claim that all 58 rows are live: only a successful production build and its `status.json` establish the active count.
 
 Shahid and Turkish subtitle evidence now includes `verified_on` and expires after 90 days; recheck the linked official sources before updating that date. Netflix-specific Turkish entries additionally require provider `netflix` and region `SA`. Streaming-original entries require a separate original-production source. Do not tag older titles as new, trending, or top-ranked without evidence for that specific claim.
 
@@ -100,6 +100,14 @@ BetterPosters Discovery is first in `grouping-plan.json` and the complete saved 
 The official country TSV is about 32 MB. An interrupted transfer raises `http.client.IncompleteRead`, which is not an `OSError` and previously bypassed the retry loop. The downloader now retries the entire response, discards partial bytes, and gives this large source up to five attempts with a 120-second timeout per attempt. Normal API requests retain their existing timeout.
 
 Before mapping titles, validate the required columns and the latest Saudi movie and TV charts, each with ten unique ranks from 1 through 10. At least one reliably mapped title is required in each feed. Original ranks and chart week remain in descriptions; ambiguous matches are skipped. Exhausted downloads, invalid charts or unmappable feeds stop publication instead of silently removing the Netflix rows. No request URLs or exception messages are logged.
+
+### Shahid Saudi multi-poster discovery (version 1.2.2)
+
+The Shahid rows had only one source-verified title (**Rashash**), so Nuvio displayed one repeated poster and made the catalog appear broken. Three Shahid row IDs now use the TMDB watch-provider registry to find **Shahid VIP** titles listed as available in **Saudi Arabia** via JustWatch data, with poster and IMDb mapping. The rows provide **Popular Series**, **Popular Movies**, and **Recently Produced Series**, up to 15 unique mapped titles each. Rows with fewer than five reliable title IDs remain unpublished.
+
+Popularity ordering comes from **TMDB**, not Shahid's internal views. “Recently produced” means first air date, not “newly added to Shahid.” The addon does not claim real-time Shahid Top 10 rankings, exclusivity, playback availability, or Arabic subtitles. Provider catalogs and source-backed exclusive catalogs have separate verification rules; the latter are hidden until at least five independently documented titles are available. The release-date cutoffs are calculated on each build, not hardcoded.
+
+If TMDB does not list Shahid VIP for a given media type or fewer than five valid items are found, the row is held with an explicit reason in `status.json`. GitHub preserves the last published site if the refresh raises an upstream error. The external SC+ addon remains separate.
 
 ### Attribution
 
