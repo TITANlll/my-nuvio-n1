@@ -128,6 +128,67 @@ class BuildTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'no entries'):
                 verify_site.verify('https://example.org/addon')
 
+    def test_blank_saudi_certification_falls_back_to_us(self):
+        movie = {'results': [
+            {'iso_3166_1': 'SA', 'release_dates': [{'certification': ' '}]},
+            {'iso_3166_1': 'US', 'release_dates': [{'certification': 'G'}]}
+        ]}
+        with patch.object(g, 'tmdb', return_value=movie):
+            self.assertTrue(g.rating_eligible('movie', {'id': 1}, ['G']))
+        movie['results'][0]['release_dates'][0]['certification'] = 'R'
+        with patch.object(g, 'tmdb', return_value=movie):
+            self.assertFalse(g.rating_eligible('movie', {'id': 1}, ['G']))
+        tv = {'results': [{'iso_3166_1': 'SA', 'rating': ''},
+                          {'iso_3166_1': 'US', 'rating': 'TV-Y'}]}
+        with patch.object(g, 'tmdb', return_value=tv):
+            self.assertTrue(g.rating_eligible('tv', {'id': 1}, ['TV-Y']))
+
+    def test_discover_can_search_past_small_candidate_pool(self):
+        def source(path, params):
+            return {'results': [{'id': params['page'] * 100 + i, 'poster_path': '/p.jpg'}
+                                for i in range(20)]}
+        with patch.object(g, 'tmdb', side_effect=source) as tmdb:
+            _, rows = g.fetch_discover({'type': 'movie'}, max_pages=8, pool_size=100)
+            self.assertEqual(len(rows), 100)
+            self.assertEqual(tmdb.call_count, 5)
+
+    def test_returning_season_searches_announcements_beyond_this_week(self):
+        spec = next(s for s in g.ALL if s['id'] == 'returning_seasons')
+        episode = {'air_date': str(g.TODAY + g.timedelta(days=30)),
+                   'episode_number': 1, 'season_number': 2}
+        with patch.object(g, 'fetch_discover', return_value=('tv', [{'id': 1}])) as discover, \
+                patch.object(g, 'details', return_value={'next_episode_to_air': episode}), \
+                patch.object(g, 'preview', return_value={'id': 'tt1234567'}):
+            self.assertEqual(len(g.fetch_episodes(spec, 'returning')), 1)
+            self.assertEqual(discover.call_args.args[0]['params']['air_date.lte'],
+                             str(g.TODAY + g.timedelta(days=60)))
+            episode['episode_number'] = 2
+            self.assertEqual(g.fetch_episodes(spec, 'returning'), [])
+
+    def test_seeded_sources_unlock_seven_previously_missing_rows(self):
+        ids = ['golden_bafta', 'shahid_saudi_originals', 'shahid_top_arabic_series',
+               'shahid_gulf', 'netflix_turkish_movies', 'netflix_turkish_series',
+               'turkish_streaming_originals']
+        with patch.object(g, 'TODAY', g.date(2026, 11, 15)), \
+                patch.object(g, 'enrich_from_imdb', side_effect=lambda imdb, kind: {
+                    'id': imdb, 'type': kind, 'name': 'Source-mapped title'}):
+            for catalog_id in ids:
+                spec = next(s for s in g.ALL if s['id'] == catalog_id)
+                self.assertTrue(g.fetch_verified(spec), catalog_id)
+
+    def test_subtitle_evidence_expires_and_requires_saudi_provider(self):
+        spec = next(s for s in g.ALL if s['id'] == 'netflix_turkish_movies')
+        entry = dict(next(e for e in g.VERIFIED if spec['tag'] in e['tags']))
+        with patch.object(g, 'VERIFIED', [entry]), \
+                patch.object(g, 'enrich_from_imdb', return_value={'id': entry['imdb_id']}):
+            for age in (-1, 91):
+                with patch.object(g, 'TODAY', g.date.fromisoformat(entry['verified_on']) + g.timedelta(days=age)):
+                    self.assertEqual(g.fetch_verified(spec), [])
+            with patch.object(g, 'TODAY', g.date.fromisoformat(entry['verified_on'])):
+                self.assertTrue(g.fetch_verified(spec))
+                entry['region'] = 'US'
+                self.assertEqual(g.fetch_verified(spec), [])
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -18,11 +18,11 @@ Base: `7e32f6592caabce78d4c0368c7bb80270beeb484`.
 - Derive PAGE_URL from configure-pages; scope Pages/OIDC write permissions to deployment.
 - Verify the published manifest and every catalog route after deployment.
 - Add 10 regression tests, a credential-free live verifier, generated-file ignores, and corrected documentation.
-- Preserve catalogs.json, browsing-folders.json, and data/verified.json byte for byte.
+- Preserve catalogs.json and browsing-folders.json byte for byte. Preserve existing verified records and append documented source entries for seven previously missing rows.
 
 ## Validation
 
-- `python -m unittest discover -s tests -v`: 10 tests passed.
+- `python -m unittest discover -s tests -v`: 15 tests passed, including the missing-row filters and source-evidence guards.
 - Workflow YAML parsed; dependencies inspected; `git diff --check` passed before commit.
 - `python verify_site.py https://ahmedalazahrani.github.io/my-nuvio-n1`: manifest and all 25 catalog routes verified over HTTPS.
 - Live status.json: 58 planned, 25 active.
@@ -33,3 +33,12 @@ Base: `7e32f6592caabce78d4c0368c7bb80270beeb484`.
 The live install URL is https://ahmedalazahrani.github.io/my-nuvio-n1/manifest.json . The existing deployment returned HTTP 200 and valid addon JSON during preparation.
 
 This review branch does not deploy. Merging the reviewed PR to main activates the updated production workflow. Live verification checks endpoint validity; status.json remains the feed-level record of populated and held catalogs.
+
+## Catalog completion changes
+
+- Append official source evidence for Rashash, The Protector, Last Call for Istanbul, and Oppenheimer's BAFTA/Golden Globe wins. Together these qualify seven previously held rows when IMDb-to-TMDB mapping succeeds. The seeded lists are deliberately small and do not establish new/trending claims.
+- Require recent (90-day) evidence for Shahid/subtitle availability; verify Saudi provider scope for Netflix-specific rows and original-production evidence for streaming originals.
+- Ignore blank Saudi ratings before the existing US fallback, retaining Saudi precedence when a rating exists; increase the certification candidate pool.
+- Search returning-season announcements across 60 days and confirm the next episode is a returning season premiere.
+- Add stable catalog IDs/types to status.json and bump the addon version to 1.1.0.
+- The 13 external-addon rows cannot be completed by changing a public static manifest. They require the corresponding addon installation or account connection in Nuvio. Several new/trending/ranked verified rows still lack qualifying evidence. No placeholder or fabricated entries are published.
