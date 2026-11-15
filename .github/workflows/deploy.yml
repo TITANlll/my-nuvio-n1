@@ -87,4 +87,12 @@ jobs:
       - name: Verify live manifest and catalog routes
         env:
           PAGE_URL: ${{ steps.deployment.outputs.page_url }}
-        run: python verify_site.py "$PAGE_URL"
+        run: |
+          version=$(python -c 'import generate; print(generate.ADDON_VERSION)')
+          for attempt in 1 2 3 4; do
+            if python verify_site.py "$PAGE_URL" --expected-version "$version"; then
+              exit 0
+            fi
+            if [ "$attempt" = 4 ]; then exit 1; fi
+            sleep 15
+          done

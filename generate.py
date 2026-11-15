@@ -21,6 +21,7 @@ from pathlib import Path
 from urllib.parse import urlencode, quote
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
+from browse_catalogs import build_browse_catalogs
 
 ROOT = Path(__file__).parent
 OUT = ROOT / 'site'
@@ -33,6 +34,13 @@ ALL = json.loads((ROOT / 'catalogs.json').read_text())
 VERIFIED = json.loads((ROOT / 'data' / 'verified.json').read_text())
 BETTERPOSTERS_PATTERN = os.getenv('BETTERPOSTERS_POSTER_PATTERN','').strip()
 CACHE = {}
+ADDON_VERSION = '1.2.0'
+
+
+def catalog_plan():
+    labels = json.loads((ROOT / 'browsing-folders.json').read_text())
+    original = sorted(ALL, key=lambda row: row['group'] != 'BetterPosters Discovery')
+    return original + build_browse_catalogs(labels, TODAY)
 
 
 def fetch(url, *, headers=None, retries=3):
@@ -141,6 +149,7 @@ def fetch_keyword(spec, **discovery_options):
     params = dict(spec.get('params', {}))
     keywords=[]
     for phrase in spec['keyword'].split('|'):
+        phrase=phrase.strip()
         matches=tmdb('/search/keyword',{'query':phrase.strip()}).get('results',[])
         exact=next((x for x in matches if x.get('name','').casefold()==phrase.casefold()), None)
         if exact:
@@ -374,7 +383,13 @@ def catalog(spec, netflix=None):
                 'primary_release_date.gte':str(TODAY-timedelta(days=120)),
                 'primary_release_date.lte':str(TODAY)}}
         kind,items=(fetch_discover(spec) if mode=='discover' else fetch_keyword(spec))
-        rows=[p for x in items if (p:=preview(kind,x,verified_note=spec.get('note')))][:LIMIT]
+        rows=[]
+        for item in items:
+            p=preview(kind,item,verified_note=spec.get('note'))
+            if p:
+                rows.append(p)
+            if len(rows)>=LIMIT:
+                break
         return rows,'' if rows else 'No reliable IMDb-mapped titles returned'
     if mode=='kids':
         rows=fetch_kids(spec)
@@ -423,7 +438,8 @@ def main():
         netflix={}
     active=[]
     status=[]
-    for spec in ALL:
+    planned=catalog_plan()
+    for spec in planned:
         try:
             rows,reason=catalog(spec,netflix)
             if rows:
@@ -442,22 +458,23 @@ def main():
             print('HELD',spec['name'],safe_error(err),flush=True)
     if not active:
         raise SystemExit('No catalogs could be populated; keeping previous website untouched')
-    manifest={'id':'com.mynuvio.buildn1','version':'1.1.0','name':'My Nuvio · Build N1',
+    manifest={'id':'com.mynuvio.buildn1','version':ADDON_VERSION,'name':'My Nuvio · Build N1',
       'description':'Personal discovery catalogs. Genuine Netflix weekly positions, TMDB classifications, verified-only exclusives. No playback or subtitle streams. BetterPosters remains separate.',
       'types':['movie','series'],'resources':['catalog'],
       'catalogs':active,'behaviorHints':{'configurable':False}}
     write_json(OUT/'manifest.json',manifest)
     write_json(OUT/'status.json',{'built_utc':datetime.now(timezone.utc).isoformat(),
-        'planned':len(ALL),'active':len(active),'catalogs':status})
+        'planned':len(planned),'original_planned':len(ALL),
+        'browse_planned':len(planned)-len(ALL),'active':len(active),'catalogs':status})
     # Apps that support collections can use this as a planning guide; Stremio
     # protocol itself does not define nested catalog folders.
     folders={}
-    for x in ALL:
+    for x in planned:
         folders.setdefault(x['group'],[]).append(x['id'])
     write_json(OUT/'grouping-plan.json',folders)
     html='''<!DOCTYPE html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>My Nuvio Build N1</title><style>body{font:16px system-ui;background:#10131a;color:#f6f6f9;max-width:800px;margin:auto;padding:24px}a{color:#9bd1ff}code{background:#262d39;padding:8px;border-radius:6px;display:block;overflow-wrap:anywhere}</style><h1>My Nuvio · Build N1</h1><p>Catalog-only addon. Stream and subtitle addons remain separate.</p><h2>Install URL</h2><code>'''+BASE+'''/manifest.json</code><p><a href="manifest.json">Open manifest</a> · <a href="status.json">See feed status and skipped catalogs</a> · <a href="grouping-plan.json">Grouping plan</a></p><p>Official Netflix weekly country charts where mapped; other feeds are labeled by source. Exclusive and Arabic-subtitle-only catalogs are held until verified. TMDB attribution: This product uses the TMDB API but is not endorsed or certified by TMDB.</p></html>'''
     (OUT/'index.html').write_text(html,encoding='utf-8')
-    print('BUILT',len(active),'active of',len(ALL),'planned; manifest',BASE+'/manifest.json')
+    print('BUILT',len(active),'active of',len(planned),'planned; manifest',BASE+'/manifest.json')
 
 if __name__=='__main__':
     main()
