@@ -85,6 +85,40 @@ class NetflixChartTests(unittest.TestCase):
                 self.assertIn(f'Chart week ending {WEEK}', item['description'])
         self.assertEqual(fetch.call_args.kwargs, {'retries': 5, 'timeout': 120})
 
+    def test_season_suffix_is_matched_to_parent_series_without_renumbering(self):
+        rows = chart_rows()
+        for row in rows:
+            if row['category'] == 'TV' and row['weekly_rank'] == '3':
+                row['show_title'] = 'Show 3: Season 2'
+        def search(path, params):
+            if params['query'] == 'Show 3: Season 2':
+                return {'results': []}
+            return search_result(path, params)
+        charts, _ = self.mapped_chart(rows, search)
+        self.assertEqual(len(charts['series']), 10)
+        self.assertEqual(charts['series'][2]['name'], 'Show 3')
+        self.assertIn('Original chart position #3', charts['series'][2]['description'])
+        self.assertIn('Netflix chart: Show 3: Season 2',
+                      charts['series'][2]['description'])
+
+    def test_sequel_movie_names_are_not_stripped(self):
+        self.assertEqual(g.netflix_chart_search_queries('movie', 'Film: Part 2'),
+                         ['Film: Part 2'])
+        self.assertEqual(g.netflix_chart_search_queries('series',
+                                                       'Mystery Show: Limited Series'),
+                         ['Mystery Show: Limited Series', 'Mystery Show'])
+        self.assertEqual(g.netflix_chart_search_queries('series', 'Show: Season 5'),
+                         ['Show: Season 5', 'Show'])
+
+    def test_original_title_fallback_and_ambiguous_match_rejection(self):
+        candidate = {'id': 777, 'name': 'Localized Name', 'original_name': 'Drama'}
+        with patch.object(g, 'tmdb', return_value={'results': [candidate]}):
+            match = g.match_netflix_chart_title('series', 'Drama')
+            self.assertEqual(match['id'], 777)
+        with patch.object(g, 'tmdb', return_value={'results': [
+                {'id': 1, 'name': 'Drama'}, {'id': 2, 'name': 'Drama'}]}):
+            self.assertIsNone(g.match_netflix_chart_title('series', 'Drama'))
+
     def test_missing_schema_is_rejected(self):
         with patch.object(g, 'fetch', return_value=b'week\tshow_title\n2026-11-08\tMovie\n'), \
                 patch.object(g, 'tmdb') as tmdb:
