@@ -14,7 +14,7 @@ GitHub Pages serves the generated `site/` directory. The manifest lists only pop
 - Uses **official Netflix Saudi weekly Top 10** from the published country dataset. In some cases Netflix title names cannot be matched unambiguously to IMDb IDs; those chart entries are skipped, and the original rank is preserved in the description. If the data is inaccessible, it is held, *not* replaced with a fake Top 10.
 - Uses **TMDB** for clearly attributed movie/TV discovery and for correctly identified movie/series IDs. Some topic-based or release-date catalogs are necessarily *curated/approximate*, not original service lists.
 - Curated source-verified awards and mature animation entries are seeded in `data/verified.json`. Three Shahid Saudi discovery rows now use TMDB/JustWatch provider availability; the separate *exclusives and originals* rows still require individual source verification. There is **no fabricated Shahid Top 10**.
-- Source-backed starter entries now include Rashash for Saudi Originals, Arabic Exclusive Series and Gulf Exclusives; The Protector for Netflix Turkish Series and Turkish Streaming Originals; Last Call for Istanbul for Netflix Turkish Movies; and Oppenheimer for Golden Globes & BAFTA. These are small curated selections, not complete service libraries. Arabic subtitles are documented on Netflix Saudi title pages; a separate playback addon must provide usable streams/subtitles in Nuvio.
+- Source-backed starter entries include Rashash for Saudi Originals and Oppenheimer for Golden Globes & BAFTA. Two historically verified Turkish Netflix entries (The Protector and Last Call for Istanbul) remain in `data/verified.json` as evidence examples, but are **not** the source of the new live Turkish discovery rows. A separate playback addon must provide usable streams/subtitles in Nuvio.
 - **Playback remains separate:** AIOStreams, Turkish streaming addons, subtitle addons and Nuvio itself handle streams, subtitles, Library and Continue Watching.
 
 ## Publish free with GitHub Pages
@@ -37,7 +37,7 @@ GitHub Pages serves the generated `site/` directory. The manifest lists only pop
 | Netflix Saudi weekly Top 10 movies and TV | Official TSV, names mapped conservatively to IMDb; not real-time daily |
 | Netflix Saudi other discovery | TMDB Saudi availability/popularity and recent *production* dates, not an exact Netflix “Newly Added” feed |
 | Shahid Saudi discovery and exclusives | Three multi-title TMDB/JustWatch provider availability rows (popular movies, popular series, recently produced series) are distinct from verified Shahid originals and exclusives. They do **not** represent an official Shahid popularity chart or actual date added to Shahid. Sparse curated rows with fewer than five titles remain held |
-| Turkish content with Arabic subtitles | Netflix Saudi subtitle evidence for The Protector and Last Call for Istanbul; ranking/new-release rows still need qualifying entries |
+| Turkish discovery (TMDB) | Eleven multi-poster discovery rows for Turkish-language movies and series: popular, comedy, drama, crime, rated, recent premieres/releases and recently aired episodes. Netflix Saudi rows use provider availability filters; Arabic subtitles are a separate playback concern |
 | BetterPosters 10 discovery catalogs | Kept separate; already provided by BetterPosters |
 | Family & Kids | Strict G/TV-Y-type ratings when available; age labels alone cannot guarantee suitability, and filtering isn't parental control |
 | Awards/Adult animation | Curated examples with evidence; expand the verified list over time |
@@ -51,7 +51,7 @@ GitHub Pages serves the generated `site/` directory. The manifest lists only pop
 - `browsing-folders.json` — the 20 approved genre/mood labels, organized under two folder concepts.
 - `browse_catalogs.py` — generates the 40 movie/series browsing definitions without editing the original 58 catalogs.
 - `shahid_home_rows.py` — generates six Saudi Shahid provider discovery rows inspired by identifiable Arabic homepage themes; does not scrape Shahid's personalized homepage.
-- `data/verified.json` — curated, source-attributed IMDb items; expand only after real verification. For Turkish titles also include `origin_country: "TR"`, `original_language: "tr"`, `arabic_subtitles_verified: true`, and a `subtitle_source_url`. For Shahid, verify `original_language: "ar"` and `shahid_exclusive_verified: true` with a source.
+- `data/verified.json` — curated, source-attributed IMDb examples and exclusivity claims; if adding a **subtitle-verified** item, record `origin_country: "TR"`, `original_language: "tr"`, `arabic_subtitles_verified: true`, and `subtitle_source_url`. Live Turkish *discovery* rows do not read this allowlist or promise subtitles. For Shahid exclusives, verify `original_language: "ar"` and `shahid_exclusive_verified: true` with a source.
 - `generate.py` — static catalog builder using TMDB and the official Netflix TSV.
 - `.github/workflows/deploy.yml` — daily automatic generation and GitHub Pages deployment.
 - `tests/test_n1.py` — tests for manifest schema, 58-item plan and verification guards.
@@ -82,7 +82,7 @@ To generate locally, set `TMDB_BEARER_TOKEN` and `PAGE_URL` to the actual public
 
 The 58 original catalog IDs and the 40 generated browse IDs remain intact. Three previously sparse Shahid IDs now use Saudi provider discovery instead of one-title curated entries. Source-backed Shahid originals/exclusives remain independently verified, and sparse curated rows are hidden instead of showing one repeated poster. The other source additions remain eligible if TMDB can map their IMDb IDs. This is not a claim that all 58 rows are live: only a successful production build and its `status.json` establish the active count.
 
-Shahid and Turkish subtitle evidence now includes `verified_on` and expires after 90 days; recheck the linked official sources before updating that date. Netflix-specific Turkish entries additionally require provider `netflix` and region `SA`. Streaming-original entries require a separate original-production source. Do not tag older titles as new, trending, or top-ranked without evidence for that specific claim.
+Curated Shahid exclusivity and historical Turkish subtitle evidence has a `verified_on` date and expires after 90 days if referenced by an evidence-only catalog. The live Turkish discovery rows instead use TMDB metadata, never claim subtitle verification or streaming originality, and calculate recent-release/episode windows on each build. Do not label TMDB popularity as any Turkish channel's official Top 10.
 
 The kids filter ignores blank Saudi certifications before considering US ratings, while a nonblank Saudi rating still takes precedence. It searches a larger pool without loosening the configured ratings. Returning Seasons searches upcoming air dates over 60 days, then checks that the announced episode is episode 1 of season 2 or later. Both rows may legitimately remain empty.
 
@@ -127,6 +127,14 @@ Six extra Shahid discovery rows were added: Arabic drama, Egyptian series, Turki
 ### Shahid availability coverage (version 1.3.1)
 
 Shahid Saudi provider-discovery rows now use TMDB's supported watch monetization categories `flatrate|free|ads` with the existing Saudi (`SA`) provider filter, instead of subscription-only `flatrate`. The pipe means **OR** in TMDB discover. This may include more titles indexed as free/ad-supported in addition to Shahid VIP, without adding extra rows or any paid API. Coverage is still limited by the provider records that TMDB/JustWatch exposes. This does **not** make Shahid VIP content free or establish access rights; free availability and subscription requirements must be checked on Shahid itself. Rankings remain TMDB popularity, not Shahid's official Top 10. FlixPatrol has not been integrated and requires no subscription.
+
+### Turkish multi-poster discovery (version 1.4.0)
+
+Eleven original Turkish catalog IDs are preserved for existing Nuvio installs, but their former single-title `verified` feeds are now real TMDB `discover` feeds. Categories include popular Turkish movies and series, comedy films, drama and crime series, top-rated movies (at least 30 TMDB votes), movies/series first released in the previous two years, Turkish TV shows with episode air dates in the previous 14 days, and Turkish-language movies and series listed on Netflix in Saudi Arabia by TMDB/JustWatch. Every discovery row filters original language `tr`, excludes adult catalog content, and checks the release/premiere cutoff against the current build date.
+
+Popularity and average review scores are **TMDB metrics, not official Turkish network ratings**. The recent-episodes row uses TMDB episode broadcast dates, not proof an episode is available to stream. Original release dates do not mean the title was newly added to Netflix. Netflix Saudi availability is sourced from TMDB/JustWatch region/provider metadata and can lag the actual service. Arabic subtitle selection remains a feature of the playback/subtitle provider; the discovery rows neither check nor guarantee Arabic subtitles, so they can show many more relevant posters.
+
+Each row requests up to six pages of TMDB candidates, deduplicates IMDb IDs and displays up to 15 distinct titles. When a feed has fewer than five reliably mapped titles, its row is held rather than showing one poster. The existing personalized SC+ Turkish addon remains separate and is not copied into the public repository. Historical subtitle evidence in `data/verified.json` remains for documentation and future explicitly verified features; it no longer controls Turkish discovery.
 
 ### Attribution
 
