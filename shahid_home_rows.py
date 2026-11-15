@@ -33,7 +33,7 @@ def build_shahid_home_rows():
             'shahid_home_syrian_classics', 'شاهد · كلاسيكيات سورية (حسب TMDB)', 'series',
             {'sort_by': 'popularity.desc', 'with_origin_country': 'SY',
              'first_air_date.lte': '2016-12-31'},
-            'Syrian series first aired by the end of 2016 and listed for Shahid '
+            'Syrian series identified by TMDB as first aired by the end of 2016 and listed for Shahid '
             'Saudi; editorial classics approximation, not Shahid curation',
         ),
         (
