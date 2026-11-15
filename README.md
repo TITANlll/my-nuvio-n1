@@ -90,7 +90,7 @@ Ten BetterPosters rows and three personal recommendation rows require their resp
 
 ### Genre and mood browsing (version 1.2.0)
 
-The 12 genre labels and 8 mood labels each get separate movie and series rows, such as `Genre · Action · Movies`, `Genre · Action · Series`, and `Mood · Feel-Good · Movies`. They follow the original addon rows in the manifest. The 58 original definitions are preserved; `status.json` reports `original_planned: 58`, `browse_planned: 40`, `shahid_home_planned: 6`, and `planned: 104`. Only populated rows appear in the manifest.
+The 12 genre labels and 8 mood labels each get separate movie and series rows, such as `Genre · Action · Movies`, `Genre · Action · Series`, and `Mood · Feel-Good · Movies`. They follow the original addon rows in the manifest. The 58 original definitions are preserved; `status.json` reports `original_planned: 58`, `browse_planned: 40`, `shahid_home_planned: 6`, `netflix_home_planned: 6`, and `planned: 110`. Only populated rows appear in the manifest.
 
 Movies use TMDB movie genres. Series use TV genres, with exact keyword matches where a movie genre has no TV equivalent or TMDB combines two TV genres. If no matching keyword exists, the row stays held instead of becoming an unrelated general catalog. Moods use editorial genre, keyword, rating and runtime filters; they are subjective discovery lists, not age classifications or streaming-availability claims.
 
@@ -135,6 +135,14 @@ Eleven original Turkish catalog IDs are preserved for existing Nuvio installs, b
 Popularity and average review scores are **TMDB metrics, not official Turkish network ratings**. The recent-episodes row uses TMDB episode broadcast dates, not proof an episode is available to stream. Original release dates do not mean the title was newly added to Netflix. Netflix Saudi availability is sourced from TMDB/JustWatch region/provider metadata and can lag the actual service. Arabic subtitle selection remains a feature of the playback/subtitle provider; the discovery rows neither check nor guarantee Arabic subtitles, so they can show many more relevant posters.
 
 Each row requests up to six pages of TMDB candidates, deduplicates IMDb IDs and displays up to 15 distinct titles. When a feed has fewer than five reliably mapped titles, its row is held rather than showing one poster. The existing personalized SC+ Turkish addon remains separate and is not copied into the public repository. Historical subtitle evidence in `data/verified.json` remains for documentation and future explicitly verified features; it no longer controls Turkish discovery.
+
+### Netflix Saudi: fuller discovery and chart matching (version 1.5.0)
+
+Six free Netflix Saudi discovery catalogs were added without modifying the original 58 catalog definitions: Popular Series, Highly Rated Movies, Highly Rated Series, Recently Premiered Series (first aired within the preceding 2 years), Arabic Series and Crime Series. All six use TMDB/JustWatch Netflix subscription availability in **Saudi Arabia**, with TMDB-specific popularity, vote score and genre filters. Each can show up to 15 unique IMDb-mapped titles; rows with fewer than five confidently mapped titles are withheld. These are **not Netflix's internal daily Top 10, exclusive originals, or newly-added-to-service dates**.
+
+The separate two official Saudi Top 10 rows still use Netflix's weekly publicly published country TSV and preserve original chart positions. Matching now cautiously handles season and collection suffixes for *series only* (for instance, `Show: Season 2` may map to the TMDB series `Show`) and checks TMDB's original as well as display title. Ambiguous matches are never guessed, and there is no rank renumbering. Actual match counts can be below 10, depending on TMDB's available IDs and aliases.
+
+The original four Netflix Saudi rows remain. TMDB/JustWatch availability can be delayed or incomplete, and subtitle/playback availability is still the job of the separately installed playback and subtitle addons. The six new rows are inserted next to the existing Netflix discovery rows. Total plans: 58 original + 40 browse + six Shahid + six Netflix = 110. Only catalog feeds that successfully populate are published.
 
 ### Attribution
 
