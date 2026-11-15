@@ -1,0 +1,539 @@
+[
+  {
+    "id": "netflix_sa_top_movies",
+    "name": "Netflix Saudi · Top 10 Movies (official weekly)",
+    "type": "movie",
+    "group": "Netflix Saudi",
+    "mode": "netflix_official",
+    "kind": "movie",
+    "limit": 10
+  },
+  {
+    "id": "netflix_sa_top_series",
+    "name": "Netflix Saudi · Top 10 Series (official weekly)",
+    "type": "series",
+    "group": "Netflix Saudi",
+    "mode": "netflix_official",
+    "kind": "series",
+    "limit": 10
+  },
+  {
+    "id": "netflix_sa_popular_movies",
+    "name": "Netflix Saudi · Popular Movies (TMDB)",
+    "type": "movie",
+    "group": "Netflix Saudi",
+    "mode": "discover",
+    "params": {
+      "with_watch_providers": "8",
+      "watch_region": "SA",
+      "with_watch_monetization_types": "flatrate",
+      "sort_by": "popularity.desc"
+    }
+  },
+  {
+    "id": "netflix_sa_new",
+    "name": "Netflix Saudi · Recent Movies",
+    "type": "movie",
+    "group": "Netflix Saudi",
+    "mode": "discover",
+    "params": {
+      "with_watch_providers": "8",
+      "watch_region": "SA",
+      "with_watch_monetization_types": "flatrate",
+      "sort_by": "primary_release_date.desc"
+    },
+    "note": "Latest productions available on Netflix Saudi; not an exact first-added date"
+  },
+  {
+    "id": "shahid_saudi_originals",
+    "name": "Shahid · Saudi Originals",
+    "type": "series",
+    "group": "Shahid Arabic Exclusives",
+    "mode": "verified",
+    "tag": "shahid_saudi_originals"
+  },
+  {
+    "id": "shahid_top_arabic_series",
+    "name": "Shahid · Arabic Exclusive Series (verified, unranked)",
+    "type": "series",
+    "group": "Shahid Arabic Exclusives",
+    "mode": "verified",
+    "tag": "shahid_arabic_series"
+  },
+  {
+    "id": "shahid_top_arabic_movies",
+    "name": "Shahid · Arabic Exclusive Movies (verified, unranked)",
+    "type": "movie",
+    "group": "Shahid Arabic Exclusives",
+    "mode": "verified",
+    "tag": "shahid_arabic_movies"
+  },
+  {
+    "id": "shahid_trending_arabic",
+    "name": "Shahid · Arabic Exclusives (verified popularity)",
+    "type": "series",
+    "group": "Shahid Arabic Exclusives",
+    "mode": "verified",
+    "tag": "shahid_trending_arabic"
+  },
+  {
+    "id": "shahid_vip_new",
+    "name": "Shahid VIP · New Arabic Exclusives",
+    "type": "series",
+    "group": "Shahid Arabic Exclusives",
+    "mode": "verified",
+    "tag": "shahid_vip_new"
+  },
+  {
+    "id": "shahid_gulf",
+    "name": "Shahid · Saudi & Gulf Exclusives",
+    "type": "series",
+    "group": "Shahid Arabic Exclusives",
+    "mode": "verified",
+    "tag": "shahid_gulf"
+  },
+  {
+    "id": "turkish_top_movies",
+    "name": "Top Turkish Movies · Arabic Sub Verified",
+    "type": "movie",
+    "group": "Turkish Content",
+    "mode": "verified",
+    "tag": "turkish_top_movies"
+  },
+  {
+    "id": "turkish_trending_movies",
+    "name": "Trending Turkish Movies · Arabic Sub Verified",
+    "type": "movie",
+    "group": "Turkish Content",
+    "mode": "verified",
+    "tag": "turkish_trending_movies"
+  },
+  {
+    "id": "turkish_new_movies",
+    "name": "New Turkish Movies · Arabic Sub Verified",
+    "type": "movie",
+    "group": "Turkish Content",
+    "mode": "verified",
+    "tag": "turkish_new_movies"
+  },
+  {
+    "id": "turkish_rated_movies",
+    "name": "Top Rated Turkish Movies · Arabic Sub Verified",
+    "type": "movie",
+    "group": "Turkish Content",
+    "mode": "verified",
+    "tag": "turkish_rated_movies"
+  },
+  {
+    "id": "turkish_top_series",
+    "name": "Top Turkish Series · Arabic Sub Verified",
+    "type": "series",
+    "group": "Turkish Content",
+    "mode": "verified",
+    "tag": "turkish_top_series"
+  },
+  {
+    "id": "turkish_trending_series",
+    "name": "Trending Turkish Series · Arabic Sub Verified",
+    "type": "series",
+    "group": "Turkish Content",
+    "mode": "verified",
+    "tag": "turkish_trending_series"
+  },
+  {
+    "id": "turkish_new_series",
+    "name": "New Turkish Series · Arabic Sub Verified",
+    "type": "series",
+    "group": "Turkish Content",
+    "mode": "verified",
+    "tag": "turkish_new_series"
+  },
+  {
+    "id": "turkish_new_episodes",
+    "name": "New Turkish Episodes · Arabic Sub Verified",
+    "type": "series",
+    "group": "Turkish Content",
+    "mode": "verified",
+    "tag": "turkish_new_episodes"
+  },
+  {
+    "id": "turkish_streaming_originals",
+    "name": "Turkish Streaming Originals · Arabic Sub Verified",
+    "type": "series",
+    "group": "Turkish Content",
+    "mode": "verified",
+    "tag": "turkish_streaming_originals"
+  },
+  {
+    "id": "netflix_turkish_movies",
+    "name": "Netflix Saudi · Turkish Movies · Arabic Sub Verified",
+    "type": "movie",
+    "group": "Turkish Content",
+    "mode": "verified",
+    "tag": "netflix_turkish_movies"
+  },
+  {
+    "id": "netflix_turkish_series",
+    "name": "Netflix Saudi · Turkish Series · Arabic Sub Verified",
+    "type": "series",
+    "group": "Turkish Content",
+    "mode": "verified",
+    "tag": "netflix_turkish_series"
+  },
+  {
+    "id": "better_trending_movies",
+    "name": "BetterPosters · Trending Movies",
+    "type": "movie",
+    "group": "BetterPosters Discovery",
+    "mode": "external"
+  },
+  {
+    "id": "better_trending_series",
+    "name": "BetterPosters · Trending Series",
+    "type": "series",
+    "group": "BetterPosters Discovery",
+    "mode": "external"
+  },
+  {
+    "id": "better_popular_movies",
+    "name": "BetterPosters · Popular Movies",
+    "type": "movie",
+    "group": "BetterPosters Discovery",
+    "mode": "external"
+  },
+  {
+    "id": "better_popular_series",
+    "name": "BetterPosters · Popular Series",
+    "type": "series",
+    "group": "BetterPosters Discovery",
+    "mode": "external"
+  },
+  {
+    "id": "better_top25_movies",
+    "name": "BetterPosters · Top 25 Movies",
+    "type": "movie",
+    "group": "BetterPosters Discovery",
+    "mode": "external"
+  },
+  {
+    "id": "better_top25_series",
+    "name": "BetterPosters · Top 25 Series",
+    "type": "series",
+    "group": "BetterPosters Discovery",
+    "mode": "external"
+  },
+  {
+    "id": "better_latest_movies",
+    "name": "BetterPosters · Latest Movies",
+    "type": "movie",
+    "group": "BetterPosters Discovery",
+    "mode": "external"
+  },
+  {
+    "id": "better_latest_series",
+    "name": "BetterPosters · Latest Series",
+    "type": "series",
+    "group": "BetterPosters Discovery",
+    "mode": "external"
+  },
+  {
+    "id": "better_coming_movies",
+    "name": "BetterPosters · Coming Soon Movies",
+    "type": "movie",
+    "group": "BetterPosters Discovery",
+    "mode": "external"
+  },
+  {
+    "id": "better_coming_series",
+    "name": "BetterPosters · Coming Soon Series",
+    "type": "series",
+    "group": "BetterPosters Discovery",
+    "mode": "external"
+  },
+  {
+    "id": "adult_animation",
+    "name": "Adult Animation · Curated",
+    "type": "series",
+    "group": "Adult Animation",
+    "mode": "verified",
+    "tag": "adult_animation"
+  },
+  {
+    "id": "documentary_movies",
+    "name": "Documentary Movies",
+    "type": "movie",
+    "group": "Documentaries & Reality",
+    "mode": "discover",
+    "params": {
+      "with_genres": "99",
+      "sort_by": "popularity.desc"
+    }
+  },
+  {
+    "id": "documentary_series",
+    "name": "Documentary Series",
+    "type": "series",
+    "group": "Documentaries & Reality",
+    "mode": "discover",
+    "params": {
+      "with_genres": "99",
+      "sort_by": "popularity.desc"
+    }
+  },
+  {
+    "id": "science_nature",
+    "name": "Science, Space & Nature Documentaries",
+    "type": "movie",
+    "group": "Documentaries & Reality",
+    "mode": "discover_keyword",
+    "keyword": "space|nature|astronomy|wildlife",
+    "params": {
+      "with_genres": "99",
+      "sort_by": "popularity.desc"
+    }
+  },
+  {
+    "id": "true_crime",
+    "name": "True Crime Documentaries",
+    "type": "series",
+    "group": "Documentaries & Reality",
+    "mode": "discover_keyword",
+    "keyword": "true crime",
+    "params": {
+      "with_genres": "99",
+      "sort_by": "popularity.desc"
+    }
+  },
+  {
+    "id": "reality_competition",
+    "name": "Reality & Competition",
+    "type": "series",
+    "group": "Documentaries & Reality",
+    "mode": "discover",
+    "params": {
+      "with_genres": "10764",
+      "sort_by": "popularity.desc"
+    }
+  },
+  {
+    "id": "food_travel",
+    "name": "Food, Travel & Adventure Shows",
+    "type": "series",
+    "group": "Documentaries & Reality",
+    "mode": "discover_keyword",
+    "keyword": "cooking|travel|food",
+    "params": {
+      "sort_by": "popularity.desc"
+    }
+  },
+  {
+    "id": "oscar_winners",
+    "name": "Oscar Winners · Curated",
+    "type": "movie",
+    "group": "Awards & Collections",
+    "mode": "verified",
+    "tag": "oscar_winners"
+  },
+  {
+    "id": "emmy_winners",
+    "name": "Emmy Winners · Curated",
+    "type": "series",
+    "group": "Awards & Collections",
+    "mode": "verified",
+    "tag": "emmy_winners"
+  },
+  {
+    "id": "golden_bafta",
+    "name": "Golden Globes & BAFTA · Curated",
+    "type": "movie",
+    "group": "Awards & Collections",
+    "mode": "verified",
+    "tag": "golden_bafta"
+  },
+  {
+    "id": "cannes_winners",
+    "name": "Cannes Winners · Curated",
+    "type": "movie",
+    "group": "Awards & Collections",
+    "mode": "verified",
+    "tag": "cannes_winners"
+  },
+  {
+    "id": "cinema_classics",
+    "name": "Cinema Classics · Curated Selection",
+    "type": "movie",
+    "group": "Awards & Collections",
+    "mode": "discover",
+    "params": {
+      "primary_release_date.lte": "1999-12-31",
+      "vote_average.gte": "7.5",
+      "vote_count.gte": "500",
+      "sort_by": "vote_average.desc"
+    }
+  },
+  {
+    "id": "franchises",
+    "name": "Movie Franchises & Sagas",
+    "type": "movie",
+    "group": "Awards & Collections",
+    "mode": "collections",
+    "collection_ids": [
+      10,
+      1241,
+      119,
+      10194
+    ]
+  },
+  {
+    "id": "hidden_gems",
+    "name": "Hidden Gems & Nostalgia · Editorial Filter",
+    "type": "movie",
+    "group": "Awards & Collections",
+    "mode": "discover",
+    "params": {
+      "vote_average.gte": "7.2",
+      "vote_count.gte": "200",
+      "vote_count.lte": "1500",
+      "sort_by": "vote_average.desc"
+    }
+  },
+  {
+    "id": "preschool",
+    "name": "Preschool Cartoons · Strict Ratings",
+    "type": "series",
+    "group": "Family & Kids",
+    "mode": "kids",
+    "params": {
+      "with_genres": "10762",
+      "sort_by": "popularity.desc"
+    },
+    "ratings": [
+      "TV-Y",
+      "TV-Y7"
+    ]
+  },
+  {
+    "id": "kids_6_9",
+    "name": "Kids 6–9 · Strict Ratings",
+    "type": "series",
+    "group": "Family & Kids",
+    "mode": "kids",
+    "params": {
+      "with_genres": "10762",
+      "sort_by": "popularity.desc"
+    },
+    "ratings": [
+      "TV-Y7",
+      "TV-G"
+    ]
+  },
+  {
+    "id": "family_movie_night",
+    "name": "Family Movie Night · G Rated",
+    "type": "movie",
+    "group": "Family & Kids",
+    "mode": "kids",
+    "params": {
+      "with_genres": "10751",
+      "sort_by": "popularity.desc"
+    },
+    "ratings": [
+      "G"
+    ]
+  },
+  {
+    "id": "animated_movies",
+    "name": "Animated Movies · G Rated",
+    "type": "movie",
+    "group": "Family & Kids",
+    "mode": "kids",
+    "params": {
+      "with_genres": "16,10751",
+      "sort_by": "popularity.desc"
+    },
+    "ratings": [
+      "G"
+    ]
+  },
+  {
+    "id": "new_for_kids",
+    "name": "New for Kids · G Rated",
+    "type": "movie",
+    "group": "Family & Kids",
+    "mode": "kids",
+    "params": {
+      "with_genres": "10751",
+      "sort_by": "primary_release_date.desc"
+    },
+    "ratings": [
+      "G"
+    ]
+  },
+  {
+    "id": "learning_nature",
+    "name": "Learning & Nature · Strict Ratings",
+    "type": "series",
+    "group": "Family & Kids",
+    "mode": "kids",
+    "params": {
+      "with_genres": "10762|99",
+      "sort_by": "popularity.desc"
+    },
+    "ratings": [
+      "TV-Y",
+      "TV-Y7",
+      "TV-G"
+    ],
+    "keyword": "nature|science|animals|space"
+  },
+  {
+    "id": "for_you_movies",
+    "name": "For You · Recommended Movies",
+    "type": "movie",
+    "group": "For You",
+    "mode": "external"
+  },
+  {
+    "id": "for_you_series",
+    "name": "For You · Recommended Series",
+    "type": "series",
+    "group": "For You",
+    "mode": "external"
+  },
+  {
+    "id": "because_you_watched",
+    "name": "For You · Because You Watched",
+    "type": "series",
+    "group": "For You",
+    "mode": "external"
+  },
+  {
+    "id": "airing_now",
+    "name": "Currently Airing · Series",
+    "type": "series",
+    "group": "Currently Airing",
+    "mode": "airing",
+    "path": "/tv/on_the_air"
+  },
+  {
+    "id": "new_episodes_week",
+    "name": "New Episodes This Week · Scheduled",
+    "type": "series",
+    "group": "Currently Airing",
+    "mode": "episodes"
+  },
+  {
+    "id": "returning_seasons",
+    "name": "Returning Seasons · Announced",
+    "type": "series",
+    "group": "Currently Airing",
+    "mode": "returning"
+  },
+  {
+    "id": "new_series_premieres",
+    "name": "New Series Premieres · Scheduled",
+    "type": "series",
+    "group": "Currently Airing",
+    "mode": "premieres"
+  }
+]
