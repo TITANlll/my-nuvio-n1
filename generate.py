@@ -37,7 +37,7 @@ ALL = json.loads((ROOT / 'catalogs.json').read_text())
 VERIFIED = json.loads((ROOT / 'data' / 'verified.json').read_text())
 BETTERPOSTERS_PATTERN = os.getenv('BETTERPOSTERS_POSTER_PATTERN','').strip()
 CACHE = {}
-ADDON_VERSION = '1.3.0'
+ADDON_VERSION = '1.3.1'
 
 
 def catalog_plan():
@@ -222,7 +222,9 @@ def discover_shahid(spec):
     params.update({
         'watch_region': 'SA',
         'with_watch_providers': str(provider_id),
-        'with_watch_monetization_types': 'flatrate',
+        # TMDB supports OR-separated monetization types; keep VIP alongside
+        # separately indexed free/ad-supported offers, not just subscriptions.
+        'with_watch_monetization_types': 'flatrate|free|ads',
     })
     _, items = fetch_discover({**spec, 'params': params}, max_pages=6, pool_size=180)
     results = []
