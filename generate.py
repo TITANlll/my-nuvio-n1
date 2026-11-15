@@ -12,6 +12,7 @@ import json
 import os
 import re
 import shutil
+import tempfile
 import sys
 import time
 import unicodedata
@@ -445,48 +446,64 @@ def main():
     except Exception as err:
         raise SystemExit('Netflix official source unavailable: ' + safe_error(err) +
                          '; build stopped to preserve the previous website') from None
-    if OUT.exists():
-        shutil.rmtree(OUT)
-    OUT.mkdir()
-    active=[]
-    status=[]
-    planned=catalog_plan()
-    for spec in planned:
+    # Generate in a temporary directory; do not touch the existing site on failure.
+    with tempfile.TemporaryDirectory(prefix='nuvio-build-', dir=OUT.parent) as staging_dir:
+        stage = Path(staging_dir)
+        active=[]
+        status=[]
+        planned=catalog_plan()
+        for spec in planned:
+            try:
+                rows,reason=catalog(spec,netflix)
+                if rows:
+                    path=stage/'catalog'/spec['type']/(spec['id']+'.json')
+                    write_json(path,{'metas':rows})
+                    active.append({'type':spec['type'],'id':spec['id'],'name':spec['name']})
+                    state='active'
+                else:
+                    state='external' if spec['mode']=='external' else 'held'
+                status.append({'id':spec['id'],'type':spec['type'],'section':spec['group'],'catalog':spec['name'],'status':state,
+                               'entries':len(rows or []),'reason':reason})
+                print(f"{state:8} {spec['name']}: {len(rows or [])}",flush=True)
+            except Exception as err:
+                # A transient TMDB/network error is not an empty catalog.
+                # Fail the whole build so GitHub Pages keeps the last verified site.
+                raise SystemExit(
+                    'Catalog update failed (' + spec['id'] + '): ' + safe_error(err) +
+                    '; build stopped to preserve the previously published site'
+                ) from None
+        if not active:
+            raise SystemExit('No catalogs could be populated; keeping previous website untouched')
+        manifest={'id':'com.mynuvio.buildn1','version':ADDON_VERSION,'name':'My Nuvio · Build N1',
+          'description':'Personal discovery catalogs. Genuine Netflix weekly positions, TMDB classifications, verified-only exclusives. No playback or subtitle streams. BetterPosters remains separate.',
+          'types':['movie','series'],'resources':['catalog'],
+          'catalogs':active,'behaviorHints':{'configurable':False}}
+        write_json(stage/'manifest.json',manifest)
+        write_json(stage/'status.json',{'built_utc':datetime.now(timezone.utc).isoformat(),
+            'planned':len(planned),'original_planned':len(ALL),
+            'browse_planned':len(planned)-len(ALL),'active':len(active),'catalogs':status})
+        # Apps that support collections can use this as a planning guide; Stremio
+        # protocol itself does not define nested catalog folders.
+        folders={}
+        for x in planned:
+            folders.setdefault(x['group'],[]).append(x['id'])
+        write_json(stage/'grouping-plan.json',folders)
+        html='''<!DOCTYPE html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>My Nuvio Build N1</title><style>body{font:16px system-ui;background:#10131a;color:#f6f6f9;max-width:800px;margin:auto;padding:24px}a{color:#9bd1ff}code{background:#262d39;padding:8px;border-radius:6px;display:block;overflow-wrap:anywhere}</style><h1>My Nuvio · Build N1</h1><p>Catalog-only addon. Stream and subtitle addons remain separate.</p><h2>Install URL</h2><code>'''+BASE+'''/manifest.json</code><p><a href="manifest.json">Open manifest</a> · <a href="status.json">See feed status and skipped catalogs</a> · <a href="grouping-plan.json">Grouping plan</a></p><p>Official Netflix weekly country charts where mapped; other feeds are labeled by source. Exclusive and Arabic-subtitle-only catalogs are held until verified. TMDB attribution: This product uses the TMDB API but is not endorsed or certified by TMDB.</p></html>'''
+        (stage/'index.html').write_text(html,encoding='utf-8')
+        previous = OUT.with_name(OUT.name + '.previous')
+        if previous.exists():
+            shutil.rmtree(previous)
+        if OUT.exists():
+            OUT.rename(previous)
         try:
-            rows,reason=catalog(spec,netflix)
-            if rows:
-                path=OUT/'catalog'/spec['type']/(spec['id']+'.json')
-                write_json(path,{'metas':rows})
-                active.append({'type':spec['type'],'id':spec['id'],'name':spec['name']})
-                state='active'
-            else:
-                state='external' if spec['mode']=='external' else 'held'
-            status.append({'id':spec['id'],'type':spec['type'],'section':spec['group'],'catalog':spec['name'],'status':state,
-                           'entries':len(rows or []),'reason':reason})
-            print(f"{state:8} {spec['name']}: {len(rows or [])}",flush=True)
-        except Exception as err:
-            status.append({'id':spec['id'],'type':spec['type'],'section':spec['group'],'catalog':spec['name'],
-                           'status':'held','entries':0,'reason':safe_error(err)})
-            print('HELD',spec['name'],safe_error(err),flush=True)
-    if not active:
-        raise SystemExit('No catalogs could be populated; keeping previous website untouched')
-    manifest={'id':'com.mynuvio.buildn1','version':ADDON_VERSION,'name':'My Nuvio · Build N1',
-      'description':'Personal discovery catalogs. Genuine Netflix weekly positions, TMDB classifications, verified-only exclusives. No playback or subtitle streams. BetterPosters remains separate.',
-      'types':['movie','series'],'resources':['catalog'],
-      'catalogs':active,'behaviorHints':{'configurable':False}}
-    write_json(OUT/'manifest.json',manifest)
-    write_json(OUT/'status.json',{'built_utc':datetime.now(timezone.utc).isoformat(),
-        'planned':len(planned),'original_planned':len(ALL),
-        'browse_planned':len(planned)-len(ALL),'active':len(active),'catalogs':status})
-    # Apps that support collections can use this as a planning guide; Stremio
-    # protocol itself does not define nested catalog folders.
-    folders={}
-    for x in planned:
-        folders.setdefault(x['group'],[]).append(x['id'])
-    write_json(OUT/'grouping-plan.json',folders)
-    html='''<!DOCTYPE html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>My Nuvio Build N1</title><style>body{font:16px system-ui;background:#10131a;color:#f6f6f9;max-width:800px;margin:auto;padding:24px}a{color:#9bd1ff}code{background:#262d39;padding:8px;border-radius:6px;display:block;overflow-wrap:anywhere}</style><h1>My Nuvio · Build N1</h1><p>Catalog-only addon. Stream and subtitle addons remain separate.</p><h2>Install URL</h2><code>'''+BASE+'''/manifest.json</code><p><a href="manifest.json">Open manifest</a> · <a href="status.json">See feed status and skipped catalogs</a> · <a href="grouping-plan.json">Grouping plan</a></p><p>Official Netflix weekly country charts where mapped; other feeds are labeled by source. Exclusive and Arabic-subtitle-only catalogs are held until verified. TMDB attribution: This product uses the TMDB API but is not endorsed or certified by TMDB.</p></html>'''
-    (OUT/'index.html').write_text(html,encoding='utf-8')
-    print('BUILT',len(active),'active of',len(planned),'planned; manifest',BASE+'/manifest.json')
+            stage.rename(OUT)
+        except Exception:
+            if previous.exists():
+                previous.rename(OUT)
+            raise
+        if previous.exists():
+            shutil.rmtree(previous)
+        print('BUILT',len(active),'active of',len(planned),'planned; manifest',BASE+'/manifest.json')
 
 if __name__=='__main__':
     main()
