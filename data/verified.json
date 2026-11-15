@@ -28,5 +28,71 @@
     "imdb_id":"tt0149460","type":"series","tags":["adult_animation"],
     "verified":true,"label":"Adult animation",
     "source_url":"https://www.hulu.com/hub/tv/collections/2729"
+  },
+  {
+    "imdb_id": "tt15398776",
+    "type": "movie",
+    "tags": [
+      "golden_bafta"
+    ],
+    "verified": true,
+    "label": "2024 BAFTA Best Film and Golden Globe Best Motion Picture (Drama) winner",
+    "source_url": "https://www.bafta.org/awards/film/?award-year=2024",
+    "additional_source_urls": [
+      "https://goldenglobes.com/film/oppenheimer/"
+    ]
+  },
+  {
+    "imdb_id": "tt13773600",
+    "type": "series",
+    "tags": [
+      "shahid_saudi_originals",
+      "shahid_arabic_series",
+      "shahid_gulf"
+    ],
+    "verified": true,
+    "verified_on": "2026-11-15",
+    "label": "Rashash · Saudi Arabic Shahid Original; exclusivity documented by MBC Studios; availability can change",
+    "source_url": "https://www.mbcstudios.com/news/biggest-saudi-drama-produced-by-mbc-studios-to-date-and-the-biggest-production-by-a-streaming-platform-in-the-region-so-far-rashash-arrives-on-shahid-vip-this-month/",
+    "availability_source_url": "https://shahid.mbc.net/en/series/Rashash-Season-1/season-827617-827618",
+    "origin_country": "SA",
+    "original_language": "ar",
+    "shahid_exclusive_verified": true
+  },
+  {
+    "imdb_id": "tt7668518",
+    "type": "series",
+    "tags": [
+      "netflix_turkish_series",
+      "turkish_streaming_originals"
+    ],
+    "verified": true,
+    "verified_on": "2026-11-15",
+    "label": "The Protector · Arabic subtitles listed on Netflix Saudi; separate playback addon required",
+    "source_url": "https://www.netflix.com/sa-en/title/80189829",
+    "origin_country": "TR",
+    "original_language": "tr",
+    "arabic_subtitles_verified": true,
+    "subtitle_source_url": "https://www.netflix.com/sa-en/title/80189829",
+    "provider": "netflix",
+    "region": "SA",
+    "original_source_url": "https://about.netflix.com/news/netflix-introduces-the-world-of-the-protector-the-first-turkish-original-series"
+  },
+  {
+    "imdb_id": "tt23334616",
+    "type": "movie",
+    "tags": [
+      "netflix_turkish_movies"
+    ],
+    "verified": true,
+    "verified_on": "2026-11-15",
+    "label": "Last Call for Istanbul · Arabic subtitles listed on Netflix Saudi; separate playback addon required",
+    "source_url": "https://www.netflix.com/sa-en/title/81610272",
+    "origin_country": "TR",
+    "original_language": "tr",
+    "arabic_subtitles_verified": true,
+    "subtitle_source_url": "https://www.netflix.com/sa-en/title/81610272",
+    "provider": "netflix",
+    "region": "SA"
   }
 ]

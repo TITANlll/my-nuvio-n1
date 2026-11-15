@@ -121,21 +121,23 @@ def enrich_from_imdb(imdb, expected_type):
     return preview(kind, choices[0])
 
 
-def fetch_discover(spec):
+def fetch_discover(spec, *, max_pages=3, pool_size=None):
     kind = media_type(spec)
     path = '/discover/' + kind
     params = dict(spec.get('params', {}))
     items = []
     # Pool multiple pages to compensate for titles without IMDb IDs.
-    for page in (1, 2, 3):
+    for page in range(1, max_pages + 1):
         rows = tmdb(path, {**params, 'page':page}).get('results', [])
+        if not rows:
+            break
         items.extend(x for x in rows if x.get('poster_path') and x.get('id'))
-        if len(items) >= LIMIT + 20:
+        if len(items) >= (pool_size if pool_size is not None else LIMIT + 20):
             break
     return kind, items
 
 
-def fetch_keyword(spec):
+def fetch_keyword(spec, **discovery_options):
     params = dict(spec.get('params', {}))
     keywords=[]
     for phrase in spec['keyword'].split('|'):
@@ -146,7 +148,7 @@ def fetch_keyword(spec):
     if not keywords:
         return media_type(spec), []
     params['with_keywords'] = '|'.join(keywords)
-    return fetch_discover({**spec,'params':params})
+    return fetch_discover({**spec,'params':params}, **discovery_options)
 
 
 def fetch_verified(spec):
@@ -163,6 +165,20 @@ def fetch_verified(spec):
             if entry.get('origin_country')!='TR' or entry.get('original_language')!='tr':
                 continue
             if entry.get('arabic_subtitles_verified') is not True or not entry.get('subtitle_source_url'):
+                continue
+            if spec['id']=='turkish_streaming_originals' and not entry.get('original_source_url'):
+                continue
+            if spec['id'].startswith('netflix_') and (
+                    entry.get('provider') != 'netflix' or entry.get('region') != 'SA'):
+                continue
+        if spec['group'] in ('Turkish Content', 'Shahid Arabic Exclusives'):
+            # Availability and subtitle evidence can expire; never keep these
+            # claims indefinitely based on a historical announcement.
+            try:
+                checked = date.fromisoformat(entry.get('verified_on', ''))
+            except ValueError:
+                continue
+            if not 0 <= (TODAY - checked).days <= 90:
                 continue
         if spec['group']=='Shahid Arabic Exclusives':
             if entry.get('original_language')!='ar' or entry.get('shahid_exclusive_verified') is not True:
@@ -245,14 +261,16 @@ def rating_eligible(kind, item, allowed):
             for r in results:
                 if r.get('iso_3166_1')!=country:
                     continue
-                vals += [x.get('certification','').strip().upper() for x in r.get('release_dates',[])]
+                vals += [v for x in r.get('release_dates',[])
+                         if (v := x.get('certification','').strip().upper())]
             if vals:
                 return any(v in allowed for v in vals)
         return False
     data=tmdb(f'/tv/{media_id}/content_ratings')
     results=data.get('results',[])
     for country in ('SA','US'):
-        vals=[x.get('rating','').strip().upper() for x in results if x.get('iso_3166_1')==country]
+        vals=[v for x in results if x.get('iso_3166_1')==country
+              and (v := x.get('rating','').strip().upper())]
         if vals:
             return any(v in allowed for v in vals)
     return False
@@ -264,7 +282,10 @@ def fetch_kids(spec):
         params['primary_release_date.gte']=str(TODAY-timedelta(days=365))
         params['primary_release_date.lte']=str(TODAY)
     row={**spec,'params':params}
-    kind,items=fetch_keyword(row) if spec.get('keyword') else fetch_discover(row)
+    # Strict certification checks discard many candidates. A small popularity
+    # pool previously left New for Kids empty before eligible films were seen.
+    options={'max_pages':8, 'pool_size':max(100, LIMIT * 5)}
+    kind,items=fetch_keyword(row, **options) if spec.get('keyword') else fetch_discover(row, **options)
     result=[]
     for item in items:
         if len(result)>=LIMIT:
@@ -299,11 +320,19 @@ def fetch_airing(spec):
 
 
 def fetch_episodes(spec, mode):
-    rows=tmdb('/tv/on_the_air').get('results',[])
-    rows+=tmdb('/tv/on_the_air',{'page':2}).get('results',[])
     out=[]
     start=TODAY
-    end=TODAY+timedelta(days=7)
+    end=TODAY+timedelta(days=60 if mode=='returning' else 7)
+    if mode=='returning':
+        # A returning season announced several weeks ahead is usually absent
+        # from the two-page "on the air" sample used for weekly episodes.
+        _,rows=fetch_discover({'type':'series','params':{
+            'air_date.gte':str(start), 'air_date.lte':str(end),
+            'first_air_date.lte':str(start), 'sort_by':'popularity.desc'
+        }}, max_pages=5, pool_size=100)
+    else:
+        rows=tmdb('/tv/on_the_air').get('results',[])
+        rows+=tmdb('/tv/on_the_air',{'page':2}).get('results',[])
     for x in rows:
         dt=details('tv',x['id'])
         ep=dt.get('next_episode_to_air') or {}
@@ -370,6 +399,14 @@ def write_json(filename,data):
     filename.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
 
 
+def safe_error(err):
+    # Exception messages can contain request URLs with TMDB API keys.
+    # Publish only the exception class and, for HTTP failures, the status code.
+    if isinstance(err, HTTPError):
+        return f'HTTPError (HTTP {err.code})'
+    return type(err).__name__
+
+
 def main():
     if not BASE.startswith('https://'):
         raise SystemExit('PAGE_URL must be your real public HTTPS website URL')
@@ -382,7 +419,7 @@ def main():
     try:
         netflix=get_netflix_rows()
     except Exception as err:
-        print('Netflix official source unavailable:',str(err),flush=True)
+        print('Netflix official source unavailable:',safe_error(err),flush=True)
         netflix={}
     active=[]
     status=[]
@@ -396,16 +433,16 @@ def main():
                 state='active'
             else:
                 state='external' if spec['mode']=='external' else 'held'
-            status.append({'section':spec['group'],'catalog':spec['name'],'status':state,
+            status.append({'id':spec['id'],'type':spec['type'],'section':spec['group'],'catalog':spec['name'],'status':state,
                            'entries':len(rows or []),'reason':reason})
             print(f"{state:8} {spec['name']}: {len(rows or [])}",flush=True)
         except Exception as err:
-            status.append({'section':spec['group'],'catalog':spec['name'],
-                           'status':'held','entries':0,'reason':str(err)[:300]})
-            print('HELD',spec['name'],type(err).__name__,str(err)[:200],flush=True)
+            status.append({'id':spec['id'],'type':spec['type'],'section':spec['group'],'catalog':spec['name'],
+                           'status':'held','entries':0,'reason':safe_error(err)})
+            print('HELD',spec['name'],safe_error(err),flush=True)
     if not active:
         raise SystemExit('No catalogs could be populated; keeping previous website untouched')
-    manifest={'id':'com.mynuvio.buildn1','version':'1.0.0','name':'My Nuvio · Build N1',
+    manifest={'id':'com.mynuvio.buildn1','version':'1.1.0','name':'My Nuvio · Build N1',
       'description':'Personal discovery catalogs. Genuine Netflix weekly positions, TMDB classifications, verified-only exclusives. No playback or subtitle streams. BetterPosters remains separate.',
       'types':['movie','series'],'resources':['catalog'],
       'catalogs':active,'behaviorHints':{'configurable':False}}

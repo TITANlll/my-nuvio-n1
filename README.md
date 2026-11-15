@@ -1,6 +1,8 @@
 # My Nuvio — Build N1 (catalog-only addon)
 
-**Status: project created and unit-tested; NOT live yet.** This zip is **not an install URL**. A working URL requires publishing the `site/` directory to a real HTTPS web host. The recommended free path is GitHub Pages. Do not paste `manifest.preview.json` or this ZIP into Nuvio.
+**Published install URL:** https://ahmedalazahrani.github.io/my-nuvio-n1/manifest.json
+
+GitHub Pages serves the generated `site/` directory. The manifest lists only populated catalogs; all 58 catalog definitions remain in `catalogs.json`. Check the [live status](https://ahmedalazahrani.github.io/my-nuvio-n1/status.json) for held feeds and their reasons.
 
 ## Build N1 contents
 
@@ -12,6 +14,7 @@
 - Uses **official Netflix Saudi weekly Top 10** from the published country dataset. In some cases Netflix title names cannot be matched unambiguously to IMDb IDs; those chart entries are skipped, and the original rank is preserved in the description. If the data is inaccessible, it is held, *not* replaced with a fake Top 10.
 - Uses **TMDB** for clearly attributed movie/TV discovery and for correctly identified movie/series IDs. Some topic-based or release-date catalogs are necessarily *curated/approximate*, not original service lists.
 - Curated source-verified awards and mature animation entries are seeded in `data/verified.json`. Shahid exclusives and Turkish Arabic-subtitle titles are intentionally withheld until each title is documented with source URLs; there is **no fabricated Shahid Top 10**.
+- Source-backed starter entries now include Rashash for Saudi Originals, Arabic Exclusive Series and Gulf Exclusives; The Protector for Netflix Turkish Series and Turkish Streaming Originals; Last Call for Istanbul for Netflix Turkish Movies; and Oppenheimer for Golden Globes & BAFTA. These are small curated selections, not complete service libraries. Arabic subtitles are documented on Netflix Saudi title pages; a separate playback addon must provide usable streams/subtitles in Nuvio.
 - **Playback remains separate:** AIOStreams, Turkish streaming addons, subtitle addons and Nuvio itself handle streams, subtitles, Library and Continue Watching.
 
 ## Publish free with GitHub Pages
@@ -33,8 +36,8 @@
 |---|---|
 | Netflix Saudi weekly Top 10 movies and TV | Official TSV, names mapped conservatively to IMDb; not real-time daily |
 | Netflix Saudi other discovery | TMDB Saudi availability/popularity and recent *production* dates, not an exact Netflix “Newly Added” feed |
-| Shahid Arabic exclusives and VIP | Requires separately verified title-level evidence (not currently automated) |
-| Turkish content with Arabic subtitles | Requires separately verified title-level evidence (not currently automated) |
+| Shahid Arabic exclusives and VIP | Source-backed Rashash starter entry for three series rows; movie, trending and new VIP rows still require specific evidence |
+| Turkish content with Arabic subtitles | Netflix Saudi subtitle evidence for The Protector and Last Call for Istanbul; ranking/new-release rows still need qualifying entries |
 | BetterPosters 10 discovery catalogs | Kept separate; already provided by BetterPosters |
 | Family & Kids | Strict G/TV-Y-type ratings when available; age labels alone cannot guarantee suitability, and filtering isn't parental control |
 | Awards/Adult animation | Curated examples with evidence; expand the verified list over time |
@@ -56,7 +59,31 @@
 
 `python -m unittest discover -s tests -v`
 
+Tests run offline using mocked source data and require no API credentials. Pull requests run tests only. Pushes to `main`, daily schedules and manual runs on `main` test, generate, and deploy. Build credentials are scoped to the generator step. Errors report exception classes and HTTP codes without request URLs or exception messages, which can contain API keys.
+
+To verify the published manifest and every advertised catalog endpoint:
+
+`python verify_site.py https://ahmedalazahrani.github.io/my-nuvio-n1`
+
+The deployment job also runs this check against the URL returned by Pages.
+
+### Deployment diagnosis (2026-11-15)
+
+The first two runs failed because no TMDB credential was configured. A later run generated and uploaded successfully, but `deploy-pages` found no artifact metadata immediately after upload. Run [43665862169](https://github.com/ahmedalazahrani/my-nuvio-n1/actions/runs/43665862169) succeeded after separating build and deployment and adding a delay. The workflow keeps separate jobs and now checks artifact visibility for up to 60 seconds instead of sleeping a fixed interval. It derives the build URL from Pages configuration and grants Pages write/OIDC permissions only to deployment. If artifact visibility times out, retry the failed deployment job. A failure after deployment in the live verification step means Pages was published but the endpoint checks need investigation.
+
+Review and merge the proposed changes to `main` to activate the updated workflow; review branches do not publish over the existing site.
+
 To generate locally, set `TMDB_BEARER_TOKEN` and `PAGE_URL` to the actual public HTTPS base URL, then run `python generate.py`. The generator uses only the Python standard library. If live source APIs cannot be accessed from the build runner, the affected catalogs remain held, not replaced with sample content.
+
+### Missing-row fixes and remaining setup
+
+All 58 definitions in `catalogs.json` remain unchanged. The source additions make seven previously empty rows eligible for publication if TMDB can map their IMDb IDs. This is not a claim that all 58 rows are live: only a successful production build and its `status.json` establish the active count.
+
+Shahid and Turkish subtitle evidence now includes `verified_on` and expires after 90 days; recheck the linked official sources before updating that date. Netflix-specific Turkish entries additionally require provider `netflix` and region `SA`. Streaming-original entries require a separate original-production source. Do not tag older titles as new, trending, or top-ranked without evidence for that specific claim.
+
+The kids filter ignores blank Saudi certifications before considering US ratings, while a nonblank Saudi rating still takes precedence. It searches a larger pool without loosening the configured ratings. Returning Seasons searches upcoming air dates over 60 days, then checks that the announced episode is episode 1 of season 2 or later. Both rows may legitimately remain empty.
+
+Ten BetterPosters rows and three personal recommendation rows require their respective addons in Nuvio. This static public website does not access your installed addons, viewing history, or private accounts. Personal history must not be copied into a public Pages build. Genre/mood folders must be arranged in Nuvio if its installed version supports that feature.
 
 ### Attribution
 

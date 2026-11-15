@@ -2,6 +2,8 @@ name: Publish My Nuvio Build N1
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [main]
   schedule:
     - cron: '26 5 * * *'
   push:
@@ -9,29 +11,44 @@ on:
 
 permissions:
   contents: read
-  actions: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: nuvio-pages
+  group: nuvio-pages-${{ github.event.pull_request.number || 'production' }}
   cancel-in-progress: false
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Run offline regression tests
+        run: python -m unittest discover -s tests -v
+
+  build:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      pages: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - id: pages
+        uses: actions/configure-pages@v5
       - name: Generate verified catalogs
         env:
           TMDB_BEARER_TOKEN: ${{ secrets.TMDB_BEARER_TOKEN }}
           TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
-          PAGE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
+          PAGE_URL: ${{ steps.pages.outputs.base_url }}
         run: python generate.py
-      - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
@@ -39,11 +56,35 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Allow artifact metadata to become available
-        run: sleep 20
+      - name: Wait for Pages artifact metadata
+        uses: actions/github-script@v7
+        with:
+          script: |
+            for (let attempt = 0; attempt < 12; attempt++) {
+              const artifacts = await github.paginate(github.rest.actions.listWorkflowRunArtifacts, {
+                ...context.repo, run_id: context.runId
+              });
+              if (artifacts.some(a => a.name === 'github-pages' && !a.expired)) return;
+              if (attempt < 11) await new Promise(resolve => setTimeout(resolve, 5000));
+            }
+            core.setFailed('Pages artifact metadata was not available within 60 seconds. Retry the failed deployment job.');
       - id: deployment
         uses: actions/deploy-pages@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify live manifest and catalog routes
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: python verify_site.py "$PAGE_URL"
