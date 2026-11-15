@@ -217,7 +217,8 @@ def discover_shahid(spec):
     params = dict(spec.get('params', {}))
     # Never freeze the publication cutoff at the day the code was written.
     date_field = 'primary_release_date.lte' if kind == 'movie' else 'first_air_date.lte'
-    params[date_field] = str(TODAY)
+    # Respect stricter catalog-specific cutoff dates (e.g., Syrian classics).
+    params[date_field] = min(params.get(date_field, str(TODAY)), str(TODAY))
     params.update({
         'watch_region': 'SA',
         'with_watch_providers': str(provider_id),
