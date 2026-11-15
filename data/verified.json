@@ -1,0 +1,32 @@
+[
+  {
+    "imdb_id":"tt15398776","type":"movie","tags":["oscar_winners"],
+    "verified":true,"label":"Best Picture winner · 2024 Academy Awards",
+    "source_url":"https://www.oscars.org/oscars/ceremonies/2024"
+  },
+  {
+    "imdb_id":"tt2788316","type":"series","tags":["emmy_winners"],
+    "verified":true,"label":"Outstanding Drama Series winner · 2024 Emmys",
+    "source_url":"https://www.televisionacademy.com/awards/nominees-winners/2024/outstanding-drama-series"
+  },
+  {
+    "imdb_id":"tt6751668","type":"movie","tags":["cannes_winners"],
+    "verified":true,"label":"Palme d'Or winner · Cannes 2019",
+    "source_url":"https://www.festival-cannes.com/en/retrospective/2019/palmares/"
+  },
+  {
+    "imdb_id":"tt2861424","type":"series","tags":["adult_animation"],
+    "verified":true,"label":"Adult animation",
+    "source_url":"https://www.hulu.com/hub/tv/collections/2729"
+  },
+  {
+    "imdb_id":"tt0182576","type":"series","tags":["adult_animation"],
+    "verified":true,"label":"Adult animation",
+    "source_url":"https://www.hulu.com/hub/tv/collections/2729"
+  },
+  {
+    "imdb_id":"tt0149460","type":"series","tags":["adult_animation"],
+    "verified":true,"label":"Adult animation",
+    "source_url":"https://www.hulu.com/hub/tv/collections/2729"
+  }
+]
