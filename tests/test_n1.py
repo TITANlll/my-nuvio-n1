@@ -148,6 +148,65 @@ class BuildTests(unittest.TestCase):
                 self.assertEqual(g.fetch_verified(spec), [])
                 enrich.assert_not_called()
 
+    def test_shahid_provider_is_discovered_not_guessed(self):
+        with patch.object(g, 'tmdb', return_value={'results': [
+                {'provider_name': 'Other', 'provider_id': 123},
+                {'provider_name': 'Shahid VIP', 'provider_id': 777}
+        ]}) as tmdb:
+            self.assertEqual(g.shahid_provider_id('movie'), 777)
+            tmdb.assert_called_once_with('/watch/providers/movie')
+
+        with patch.object(g, 'tmdb', return_value={'results': [
+                {'provider_name': 'Different Service', 'provider_id': 7}
+        ]}):
+            self.assertIsNone(g.shahid_provider_id('tv'))
+
+    def test_shahid_discovery_returns_multiple_posters_from_saudi_provider(self):
+        spec = next(x for x in g.ALL if x['id'] == 'shahid_top_arabic_series')
+        self.assertEqual(spec['mode'], 'discover_provider')
+        items = [{'id': x, 'poster_path': '/poster.jpg'} for x in range(1, 21)]
+
+        def poster(kind, item, **kwargs):
+            return {'id': 'tt' + str(item['id']).zfill(7), 'type': 'series',
+                    'name': f"Series {item['id']}", 'poster': 'https://image.tmdb.org/poster.jpg'}
+
+        with patch.object(g, 'shahid_provider_id', return_value=777), \
+                patch.object(g, 'fetch_discover', return_value=('tv', items)) as discover, \
+                patch.object(g, 'preview', side_effect=poster):
+            rows, reason = g.catalog(spec)
+        self.assertEqual(len(rows), min(g.LIMIT, 20))
+        self.assertEqual(reason, '')
+        request = discover.call_args.args[0]
+        self.assertEqual(request['params']['watch_region'], 'SA')
+        self.assertEqual(request['params']['with_watch_providers'], '777')
+        self.assertEqual(request['params']['with_watch_monetization_types'], 'flatrate')
+        self.assertEqual(request['params']['first_air_date.lte'], str(g.TODAY))
+        self.assertEqual(request['params']['sort_by'], 'popularity.desc')
+        self.assertFalse(any('subtitle' in key for key in request['params']))
+
+    def test_shahid_unavailable_or_sparse_catalog_is_held(self):
+        spec = next(x for x in g.ALL if x['id'] == 'shahid_top_arabic_movies')
+        with patch.object(g, 'shahid_provider_id', return_value=None):
+            rows, reason = g.catalog(spec)
+        self.assertEqual(rows, [])
+        self.assertIn('not listed', reason)
+
+        with patch.object(g, 'shahid_provider_id', return_value=777), \
+                patch.object(g, 'fetch_discover', return_value=('movie', [{'id': 1}])), \
+                patch.object(g, 'preview', return_value={
+                    'id': 'tt1234567', 'type': 'movie', 'name': 'Test'}):
+            rows, reason = g.catalog(spec)
+        self.assertEqual(rows, [])
+        self.assertIn('Fewer than five', reason)
+
+    def test_single_poster_curated_shahid_row_is_not_published(self):
+        spec = next(x for x in g.ALL if x['id'] == 'shahid_saudi_originals')
+        with patch.object(g, 'fetch_verified', return_value=[
+                {'id': 'tt1234567', 'type': 'series', 'name': 'One title'}]):
+            rows, reason = g.catalog(spec)
+        self.assertEqual(rows, [])
+        self.assertIn('five verified titles', reason)
+
     def test_live_verifier_checks_catalog_routes(self):
         manifest = {'id': 'com.mynuvio.buildn1', 'resources': ['catalog'],
                     'catalogs': [{'type': 'movie', 'id': 'example'}]}
@@ -204,8 +263,8 @@ class BuildTests(unittest.TestCase):
             episode['episode_number'] = 2
             self.assertEqual(g.fetch_episodes(spec, 'returning'), [])
 
-    def test_seeded_sources_unlock_seven_previously_missing_rows(self):
-        ids = ['golden_bafta', 'shahid_saudi_originals', 'shahid_top_arabic_series',
+    def test_seeded_sources_unlock_remaining_curated_rows(self):
+        ids = ['golden_bafta', 'shahid_saudi_originals',
                'shahid_gulf', 'netflix_turkish_movies', 'netflix_turkish_series',
                'turkish_streaming_originals']
         with patch.object(g, 'TODAY', g.date(2026, 11, 15)), \
