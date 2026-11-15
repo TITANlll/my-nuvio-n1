@@ -533,7 +533,7 @@ def catalog(spec, netflix=None):
         return rows,('Awaiting verified entries and source evidence' if not rows else '')
     if mode=='discover_provider' and spec.get('provider')=='shahid':
         return discover_shahid(spec)
-    if mode=='discover' and spec['group']=='Turkish Content':
+    if mode=='discover' and spec.get('group')=='Turkish Content':
         return discover_turkish(spec)
     if mode=='netflix_official':
         rows=(netflix or {}).get(spec['kind'],[])
