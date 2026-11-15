@@ -1,8 +1,8 @@
 # My Nuvio — Build N1 (catalog-only addon)
 
-**Published install URL:** https://ahmedalazahrani.github.io/my-nuvio-n1/manifest.json
+**Published install URL:** https://titanlll.github.io/my-nuvio-n1/manifest.json
 
-GitHub Pages serves the generated `site/` directory. The manifest lists only populated catalogs; all 58 catalog definitions remain in `catalogs.json`. Check the [live status](https://ahmedalazahrani.github.io/my-nuvio-n1/status.json) for held feeds and their reasons.
+GitHub Pages serves the generated `site/` directory. The manifest lists only populated catalogs; all 58 catalog definitions remain in `catalogs.json`. Check the [live status](https://titanlll.github.io/my-nuvio-n1/status.json) for held feeds and their reasons.
 
 ## Build N1 contents
 
@@ -65,13 +65,13 @@ Tests run offline using mocked source data and require no API credentials. Pull 
 
 To verify the published manifest and every advertised catalog endpoint:
 
-`python verify_site.py https://ahmedalazahrani.github.io/my-nuvio-n1`
+`python verify_site.py https://titanlll.github.io/my-nuvio-n1`
 
 The deployment job also checks the URL returned by Pages against the version in the merged source. It retries briefly for propagation, so the previous cached version cannot count as a successful new deployment.
 
 ### Deployment diagnosis (2026-11-15)
 
-The first two runs failed because no TMDB credential was configured. A later run generated and uploaded successfully, but `deploy-pages` found no artifact metadata immediately after upload. Run [43665862169](https://github.com/ahmedalazahrani/my-nuvio-n1/actions/runs/43665862169) succeeded after separating build and deployment and adding a delay. The workflow keeps separate jobs and now checks artifact visibility for up to 60 seconds instead of sleeping a fixed interval. It derives the build URL from Pages configuration and grants Pages write/OIDC permissions only to deployment. If artifact visibility times out, retry the failed deployment job. A failure after deployment in the live verification step means Pages was published but the endpoint checks need investigation.
+The first two runs failed because no TMDB credential was configured. A later run generated and uploaded successfully, but `deploy-pages` found no artifact metadata immediately after upload. Run [43665862169](https://github.com/TITANlll/my-nuvio-n1/actions/runs/43665862169) succeeded after separating build and deployment and adding a delay. The workflow keeps separate jobs and now checks artifact visibility for up to 60 seconds instead of sleeping a fixed interval. It derives the build URL from Pages configuration and grants Pages write/OIDC permissions only to deployment. If artifact visibility times out, retry the failed deployment job. A failure after deployment in the live verification step means Pages was published but the endpoint checks need investigation.
 
 Review and merge the proposed changes to `main` to activate the updated workflow; review branches do not publish over the existing site.
 
