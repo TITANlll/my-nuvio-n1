@@ -182,7 +182,7 @@ def shahid_arabic_poster(kind, item):
         arabic = [p for p in posters
                   if isinstance(p, dict) and p.get('iso_639_1') == 'ar'
                   and isinstance(p.get('file_path'), str)
-                  and re.fullmatch(r'/[A-Za-z0-9_.-]+\\.(?:jpg|png|webp)',
+                  and re.fullmatch(r'/[A-Za-z0-9_.-]+\.(?:jpg|png|webp)',
                                    p['file_path'])]
         if arabic:
             best = max(arabic, key=lambda p: (p.get('vote_average') or 0,
