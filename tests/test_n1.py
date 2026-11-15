@@ -148,6 +148,44 @@ class BuildTests(unittest.TestCase):
                 self.assertEqual(g.fetch_verified(spec), [])
                 enrich.assert_not_called()
 
+    def test_shahid_uses_arabic_poster_when_tmdb_has_one(self):
+        images = {'posters': [
+            {'iso_639_1': 'en', 'file_path': '/english.jpg', 'vote_average': 10},
+            {'iso_639_1': 'ar', 'file_path': '/arabic-low.jpg', 'vote_average': 4, 'vote_count': 1},
+            {'iso_639_1': 'ar', 'file_path': '/arabic-best.jpg', 'vote_average': 8, 'vote_count': 5},
+            {'iso_639_1': 'ar', 'file_path': 'https://unsafe.example/image.jpg', 'vote_average': 10},
+        ]}
+        with patch.object(g, 'tmdb', return_value=images) as tmdb:
+            poster = g.shahid_arabic_poster('tv', {'id': 42})
+        self.assertEqual(poster, 'https://image.tmdb.org/t/p/w500/arabic-best.jpg')
+        tmdb.assert_called_once_with('/tv/42/images',
+                                     {'language': 'ar', 'include_image_language': 'en,null'})
+
+    def test_shahid_arabic_poster_missing_or_error_keeps_existing_poster(self):
+        with patch.object(g, 'tmdb', return_value={'posters': [
+                {'iso_639_1': 'en', 'file_path': '/english.jpg'}]}):
+            self.assertIsNone(g.shahid_arabic_poster('movie', {'id': 55}))
+        with patch.object(g, 'tmdb', side_effect=HTTPError('https://example.org', 429, 'limit', {}, None)):
+            self.assertIsNone(g.shahid_arabic_poster('tv', {'id': 55}))
+
+    def test_shahid_catalog_prefers_arabic_poster_without_changing_count(self):
+        spec = next(x for x in g.ALL if x['id'] == 'shahid_top_arabic_series')
+        items = [{'id': n} for n in range(1, 21)]
+        def preview(kind, item, **kwargs):
+            return {'id': 'tt' + str(item['id']).zfill(7), 'type': 'series',
+                    'name': 'Show', 'poster': 'https://image.tmdb.org/t/p/w500/default.jpg'}
+        with patch.object(g, 'shahid_provider_id', return_value=777), \
+                patch.object(g, 'fetch_discover', return_value=('tv', items)), \
+                patch.object(g, 'preview', side_effect=preview), \
+                patch.object(g, 'shahid_arabic_poster',
+                             side_effect=lambda kind, item:
+                             'https://image.tmdb.org/t/p/w500/ar.jpg' if item['id'] == 1 else None):
+            posters, reason = g.catalog(spec)
+        self.assertEqual(len(posters), g.LIMIT)
+        self.assertEqual(reason, '')
+        self.assertEqual(posters[0]['poster'], 'https://image.tmdb.org/t/p/w500/ar.jpg')
+        self.assertEqual(posters[1]['poster'], 'https://image.tmdb.org/t/p/w500/default.jpg')
+
     def test_shahid_provider_is_discovered_not_guessed(self):
         with patch.object(g, 'tmdb', return_value={'results': [
                 {'provider_name': 'Other', 'provider_id': 123},
@@ -172,7 +210,8 @@ class BuildTests(unittest.TestCase):
 
         with patch.object(g, 'shahid_provider_id', return_value=777), \
                 patch.object(g, 'fetch_discover', return_value=('tv', items)) as discover, \
-                patch.object(g, 'preview', side_effect=poster):
+                patch.object(g, 'preview', side_effect=poster), \
+                patch.object(g, 'shahid_arabic_poster', return_value=None):
             rows, reason = g.catalog(spec)
         self.assertEqual(len(rows), min(g.LIMIT, 20))
         self.assertEqual(reason, '')
@@ -194,7 +233,8 @@ class BuildTests(unittest.TestCase):
         with patch.object(g, 'shahid_provider_id', return_value=777), \
                 patch.object(g, 'fetch_discover', return_value=('movie', [{'id': 1}])), \
                 patch.object(g, 'preview', return_value={
-                    'id': 'tt1234567', 'type': 'movie', 'name': 'Test'}):
+                    'id': 'tt1234567', 'type': 'movie', 'name': 'Test'}), \
+                patch.object(g, 'shahid_arabic_poster', return_value=None):
             rows, reason = g.catalog(spec)
         self.assertEqual(rows, [])
         self.assertIn('Fewer than five', reason)

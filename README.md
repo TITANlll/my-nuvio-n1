@@ -109,6 +109,12 @@ Popularity ordering comes from **TMDB**, not Shahid's internal views. “Recentl
 
 If TMDB does not list Shahid VIP for a given media type or fewer than five valid items are found, the row is held with an explicit reason in `status.json`. GitHub preserves the last published site if the refresh raises an upstream error. The external SC+ addon remains separate.
 
+### Arabic-style Shahid artwork (version 1.2.3)
+
+The three Saudi Shahid provider-discovery rows prefer a **TMDB poster explicitly tagged Arabic** for each identified movie/series, when available. Poster selection uses TMDB's documented `/{movie|tv}/{id}/images` endpoint, and chooses the best-rated Arabic artwork that has a normal image path. If no Arabic artwork is available, or its optional request fails, the existing TMDB poster remains in place. This preserves the original 15-title target and avoids missing catalog rows.
+
+**Important:** These are TMDB-hosted localized posters, **not Shahid's official proprietary marketing images**. Shahid's site serves its own artwork, but this project does not scrape, duplicate or republish its protected image feed. Nuvio controls how the poster rows are actually positioned and rendered. A separate metadata/poster addon such as BetterPosters may still take display precedence depending on the TV client's addon order. Streaming availability and subtitles remain separate from catalog artwork.
+
 ### Attribution
 
 This product uses the TMDB API but is not endorsed or certified by TMDB. Netflix charts are attributed to Netflix Tudum. Film and TV artwork and data are subject to third-party rights and availability.

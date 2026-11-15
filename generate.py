@@ -36,7 +36,7 @@ ALL = json.loads((ROOT / 'catalogs.json').read_text())
 VERIFIED = json.loads((ROOT / 'data' / 'verified.json').read_text())
 BETTERPOSTERS_PATTERN = os.getenv('BETTERPOSTERS_POSTER_PATTERN','').strip()
 CACHE = {}
-ADDON_VERSION = '1.2.2'
+ADDON_VERSION = '1.2.3'
 
 
 def catalog_plan():
@@ -166,6 +166,36 @@ def shahid_provider_id(kind):
     return None
 
 
+def shahid_arabic_poster(kind, item):
+    """Prefer Arabic TMDB artwork for Shahid discovery, never scrape Shahid.
+
+    TMDB may not have an Arabic poster. Any optional artwork lookup failure
+    leaves the ordinary poster in place so the catalog can still publish.
+    """
+    media_id = item.get('id')
+    if not media_id:
+        return None
+    try:
+        images = tmdb('/' + kind + '/' + str(media_id) + '/images',
+                      {'language': 'ar', 'include_image_language': 'en,null'})
+        posters = images.get('posters', [])
+        arabic = [p for p in posters
+                  if isinstance(p, dict) and p.get('iso_639_1') == 'ar'
+                  and isinstance(p.get('file_path'), str)
+                  and re.fullmatch(r'/[A-Za-z0-9_.-]+\.(?:jpg|png|webp)',
+                                   p['file_path'])]
+        if arabic:
+            best = max(arabic, key=lambda p: (p.get('vote_average') or 0,
+                                             p.get('vote_count') or 0,
+                                             p.get('width') or 0))
+            return 'https://image.tmdb.org/t/p/w500' + best['file_path']
+    except Exception:
+        # This is optional artwork: never let an image-lookup fault suppress
+        # Shahid titles or fail a scheduled catalog rebuild.
+        return None
+    return None
+
+
 def discover_shahid(spec):
     kind = media_type(spec)
     provider_id = shahid_provider_id(kind)
@@ -187,6 +217,9 @@ def discover_shahid(spec):
         poster = preview(kind, item, verified_note=spec.get('note'))
         if not poster or poster['id'] in used:
             continue
+        arabic_poster = shahid_arabic_poster(kind, item)
+        if arabic_poster:
+            poster['poster'] = arabic_poster
         used.add(poster['id'])
         results.append(poster)
         if len(results) >= LIMIT:
