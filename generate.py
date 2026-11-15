@@ -395,7 +395,36 @@ def netflix_chart_search_queries(kind, title):
     queries = [title]
     if kind == 'series':
         base = re.sub(
-            r'\s*[:\-–]\s*(?:season\s+\d+|limited\s+series|collection\s+\d+)\s*
+            r'\s*[:\-–]\s*(?:season\s+\d+|limited\s+series|collection\s+\d+)\s*$',
+            '', title, flags=re.IGNORECASE).strip()
+        if base and base != title:
+            queries.append(base)
+    return queries
+
+
+def match_netflix_chart_title(kind, title):
+    """Match by an exact display/original title; never guess a Netflix rank."""
+    target = 'movie' if kind == 'movie' else 'tv'
+    title_keys = ('title', 'original_title') if kind == 'movie' else ('name', 'original_name')
+    for query in netflix_chart_search_queries(kind, title):
+        matches = tmdb('/search/' + target, {'query': query}).get('results', [])
+        expected = norm(query)
+        strong = {
+            candidate['id']: candidate
+            for candidate in matches[:20]
+            if candidate.get('id') and any(
+                expected == norm(candidate.get(field, ''))
+                for field in title_keys)
+        }
+        if len(strong) > 1:
+            # Different productions share this exact name; do not guess.
+            return None
+        if len(strong) == 1:
+            return next(iter(strong.values()))
+    return None
+
+
+def get_netflix_rows():
     """Get latest SA country movie and TV chart rows from official TSV file.
 
     Do not use TMDB popularity as a substitute for official rank. Rankings
@@ -434,20 +463,11 @@ def netflix_chart_search_queries(kind, title):
         for r in recent:
             title=r['show_title'].strip()
             target='movie' if kind=='movie' else 'tv'
-            matches=tmdb('/search/'+target,{'query':title}).get('results',[])
-            # Only accept reliable name matches; do not invent a match.
-            expected=norm(title)
-            strong=[]
-            for cand in matches[:10]:
-                actual=norm(cand.get('title' if target=='movie' else 'name',''))
-                if expected and actual==expected:
-                    strong.append(cand)
-            # A title shared by multiple productions is ambiguous without
-            # a year in Netflix's TSV. Skip rather than misidentify it.
-            if len(strong)!=1:
+            best=match_netflix_chart_title(kind, title)
+            if best is None:
                 continue
-            best=strong[0]
-            p=preview(target,best,source_rank=r['weekly_rank'],source_week=last)
+            p=preview(target,best,source_rank=r['weekly_rank'],
+                      source_week=last, verified_note='Netflix chart: '+title)
             if p:
                 collected.append(p)
         if not collected:
@@ -675,328 +695,6 @@ def main():
             'planned':len(planned),'original_planned':len(ALL),
             'browse_planned':40,'shahid_home_planned':len(build_shahid_home_rows()),
             'netflix_home_planned':len(build_netflix_home_rows()),'active':len(active),'catalogs':status})
-        # Apps that support collections can use this as a planning guide; Stremio
-        # protocol itself does not define nested catalog folders.
-        folders={}
-        for x in planned:
-            folders.setdefault(x['group'],[]).append(x['id'])
-        write_json(stage/'grouping-plan.json',folders)
-        html='''<!DOCTYPE html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>My Nuvio Build N1</title><style>body{font:16px system-ui;background:#10131a;color:#f6f6f9;max-width:800px;margin:auto;padding:24px}a{color:#9bd1ff}code{background:#262d39;padding:8px;border-radius:6px;display:block;overflow-wrap:anywhere}</style><h1>My Nuvio · Build N1</h1><p>Catalog-only addon. Stream and subtitle addons remain separate.</p><h2>Install URL</h2><code>'''+BASE+'''/manifest.json</code><p><a href="manifest.json">Open manifest</a> · <a href="status.json">See feed status and skipped catalogs</a> · <a href="grouping-plan.json">Grouping plan</a></p><p>Official Netflix weekly country charts where mapped; other feeds are labeled by source. Exclusive claims need verified evidence. Turkish discovery rows do not confirm Arabic subtitles or playback availability. TMDB attribution: This product uses the TMDB API but is not endorsed or certified by TMDB.</p></html>'''
-        (stage/'index.html').write_text(html,encoding='utf-8')
-        previous = OUT.with_name(OUT.name + '.previous')
-        if previous.exists():
-            shutil.rmtree(previous)
-        if OUT.exists():
-            OUT.rename(previous)
-        try:
-            stage.rename(OUT)
-        except Exception:
-            if previous.exists():
-                previous.rename(OUT)
-            raise
-        if previous.exists():
-            shutil.rmtree(previous)
-        print('BUILT',len(active),'active of',len(planned),'planned; manifest',BASE+'/manifest.json')
-
-if __name__=='__main__':
-    main()
-,
-            '', title, flags=re.IGNORECASE).strip()
-        if base and base != title:
-            queries.append(base)
-    return queries
-
-
-def match_netflix_chart_title(kind, title):
-    """Match by an exact display/original title; never guess a Netflix rank."""
-    target = 'movie' if kind == 'movie' else 'tv'
-    title_keys = ('title', 'original_title') if kind == 'movie' else ('name', 'original_name')
-    for query in netflix_chart_search_queries(kind, title):
-        matches = tmdb('/search/' + target, {'query': query}).get('results', [])
-        expected = norm(query)
-        strong = {
-            candidate['id']: candidate
-            for candidate in matches[:20]
-            if candidate.get('id') and any(
-                expected == norm(candidate.get(field, ''))
-                for field in title_keys)
-        }
-        if len(strong) > 1:
-            # Different productions share this exact name; do not guess.
-            return None
-        if len(strong) == 1:
-            return next(iter(strong.values()))
-    return None
-
-
-def get_netflix_rows():
-    """Get latest SA country movie and TV chart rows from official TSV file.
-
-    Do not use TMDB popularity as a substitute for official rank. Rankings
-    preserve Netflix's original rank; failed title matches are simply omitted.
-    """
-    url='https://www.netflix.com/tudum/top10/data/all-weeks-countries.tsv'
-    b=fetch(url, retries=5, timeout=120)
-    reader=csv.DictReader(io.StringIO(b.decode('utf-8-sig')),delimiter='\t')
-    required={'country_iso2','category','week','weekly_rank','show_title'}
-    if not required.issubset(reader.fieldnames or []):
-        raise ValueError('Netflix chart is missing required columns')
-    by = defaultdict(list)
-    for r in reader:
-        if r.get('country_iso2')!='SA':
-            continue
-        cat = r.get('category','').casefold()
-        if 'films' in cat:
-            kind='movie'
-        elif 'tv' in cat:
-            kind='series'
-        else:
-            continue
-        date.fromisoformat(r.get('week',''))
-        by[(r.get('week'),kind)].append(r)
-    output={}
-    for kind in ('movie','series'):
-        weeks = [week for week,k in by if k==kind]
-        if not weeks:
-            raise ValueError('Netflix chart has no Saudi rows for ' + kind)
-        last=max(weeks)
-        recent=sorted(by[(last,kind)],key=lambda r:int(r['weekly_rank']))
-        if (len(recent)!=10 or {int(r['weekly_rank']) for r in recent}!=set(range(1,11))
-                or any(not r.get('show_title','').strip() for r in recent)):
-            raise ValueError('Netflix Saudi weekly chart is incomplete')
-        collected=[]
-        for r in recent:
-            title=r['show_title'].strip()
-            target='movie' if kind=='movie' else 'tv'
-            best=match_netflix_chart_title(kind, title)
-            if best is None:
-                continue
-            p=preview(target,best,source_rank=r['weekly_rank'],
-                      source_week=last, verified_note='Netflix chart: '+title)
-            if p:
-                collected.append(p)
-        if not collected:
-            raise ValueError('Netflix chart has no reliable IMDb matches for ' + kind)
-        output[kind]=collected
-    return output
-
-
-def rating_eligible(kind, item, allowed):
-    media_id=item['id']
-    if kind=='movie':
-        data=tmdb(f'/movie/{media_id}/release_dates')
-        results=data.get('results',[])
-        # Prefer national guidance when a Saudi certification is present.
-        for country in ('SA','US'):
-            vals=[]
-            for r in results:
-                if r.get('iso_3166_1')!=country:
-                    continue
-                vals += [v for x in r.get('release_dates',[])
-                         if (v := x.get('certification','').strip().upper())]
-            if vals:
-                return any(v in allowed for v in vals)
-        return False
-    data=tmdb(f'/tv/{media_id}/content_ratings')
-    results=data.get('results',[])
-    for country in ('SA','US'):
-        vals=[v for x in results if x.get('iso_3166_1')==country
-              and (v := x.get('rating','').strip().upper())]
-        if vals:
-            return any(v in allowed for v in vals)
-    return False
-
-
-def fetch_kids(spec):
-    params=dict(spec['params'])
-    if spec['id']=='new_for_kids':
-        params['primary_release_date.gte']=str(TODAY-timedelta(days=365))
-        params['primary_release_date.lte']=str(TODAY)
-    row={**spec,'params':params}
-    # Strict certification checks discard many candidates. A small popularity
-    # pool previously left New for Kids empty before eligible films were seen.
-    options={'max_pages':8, 'pool_size':max(100, LIMIT * 5)}
-    kind,items=fetch_keyword(row, **options) if spec.get('keyword') else fetch_discover(row, **options)
-    result=[]
-    for item in items:
-        if len(result)>=LIMIT:
-            break
-        if rating_eligible(kind,item,spec['ratings']):
-            p=preview(kind,item,verified_note='Rating filter matched (not a parental-control guarantee)')
-            if p:
-                result.append(p)
-    return result
-
-
-def fetch_collection(spec):
-    out=[]
-    seen=set()
-    for colid in spec['collection_ids']:
-        info=tmdb(f'/collection/{colid}')
-        for x in sorted(info.get('parts',[]), key=lambda p:p.get('release_date') or '9999'):
-            if x['id'] not in seen and x.get('media_type','movie')=='movie':
-                seen.add(x['id'])
-                if x.get('poster_path'):
-                    out.append(x)
-            if len(out)>=LIMIT:
-                break
-        if len(out)>=LIMIT:
-            break
-    return [p for x in out if (p:=preview('movie',x))]
-
-
-def fetch_airing(spec):
-    rows=tmdb(spec['path']).get('results',[])
-    return [p for x in rows if (p:=preview('tv',x))][:LIMIT]
-
-
-def fetch_episodes(spec, mode):
-    out=[]
-    start=TODAY
-    end=TODAY+timedelta(days=60 if mode=='returning' else 7)
-    if mode=='returning':
-        # A returning season announced several weeks ahead is usually absent
-        # from the two-page "on the air" sample used for weekly episodes.
-        _,rows=fetch_discover({'type':'series','params':{
-            'air_date.gte':str(start), 'air_date.lte':str(end),
-            'first_air_date.lte':str(start), 'sort_by':'popularity.desc'
-        }}, max_pages=5, pool_size=100)
-    else:
-        rows=tmdb('/tv/on_the_air').get('results',[])
-        rows+=tmdb('/tv/on_the_air',{'page':2}).get('results',[])
-    for x in rows:
-        dt=details('tv',x['id'])
-        ep=dt.get('next_episode_to_air') or {}
-        ep_date=ep.get('air_date')
-        if not ep_date or not (str(start)<=ep_date<=str(end)):
-            continue
-        if mode=='returning' and not (ep.get('episode_number')==1 and ep.get('season_number',0)>1):
-            continue
-        p=preview('tv',x, verified_note=('Scheduled for '+ep_date+'; availability may lag'))
-        if p:
-            out.append(p)
-        if len(out)>=LIMIT:
-            break
-    return out
-
-
-def fetch_premieres(spec):
-    kind,items=fetch_discover({'type':'series','params':{
-        'first_air_date.gte':str(TODAY),
-        'first_air_date.lte':str(TODAY+timedelta(days=60)),
-        'sort_by':'first_air_date.asc'
-    }})
-    return [p for x in items if (p:=preview(kind,x,verified_note='Scheduled premiere; not confirmed streaming availability'))][:LIMIT]
-
-
-def catalog(spec, netflix=None):
-    mode=spec['mode']
-    if mode=='external':
-        return None,'Handled by independently installed BetterPosters / personalized addon'
-    if mode=='verified':
-        rows=fetch_verified(spec)
-        if spec['group']=='Shahid Arabic Exclusives' and len(rows) < 5:
-            return [], 'Curated Shahid row withheld until five verified titles are available'
-        return rows,('Awaiting verified entries and source evidence' if not rows else '')
-    if mode=='discover_provider' and spec.get('provider')=='shahid':
-        return discover_shahid(spec)
-    if mode=='discover' and spec.get('group')=='Turkish Content':
-        return discover_turkish(spec)
-    if mode=='netflix_official':
-        rows=(netflix or {}).get(spec['kind'],[])
-        return rows,('Official Netflix data unavailable or unmatched' if not rows else '')
-    if mode in ('discover','discover_keyword'):
-        if spec['id']=='netflix_sa_new':
-            spec={**spec,'params':{**spec['params'],
-                'primary_release_date.gte':str(TODAY-timedelta(days=120)),
-                'primary_release_date.lte':str(TODAY)}}
-        kind,items=(fetch_discover(spec) if mode=='discover' else fetch_keyword(spec))
-        rows=[]
-        for item in items:
-            p=preview(kind,item,verified_note=spec.get('note'))
-            if p:
-                rows.append(p)
-            if len(rows)>=LIMIT:
-                break
-        return rows,'' if rows else 'No reliable IMDb-mapped titles returned'
-    if mode=='kids':
-        rows=fetch_kids(spec)
-        return rows,'' if rows else 'No titles passed strict age-rating filter'
-    if mode=='collections':
-        rows=fetch_collection(spec)
-        return rows,'' if rows else 'No franchise entries could be mapped'
-    if mode=='airing':
-        rows=fetch_airing(spec)
-        return rows,'' if rows else 'No currently airing shows available'
-    if mode in ('episodes','returning'):
-        rows=fetch_episodes(spec,mode)
-        return rows,'' if rows else 'No confirmed upcoming episode matched this period'
-    if mode=='premieres':
-        rows=fetch_premieres(spec)
-        return rows,'' if rows else 'No upcoming series matched this period'
-    return None,'Not implemented'
-
-
-def write_json(filename,data):
-    filename.parent.mkdir(parents=True,exist_ok=True)
-    filename.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
-
-
-def safe_error(err):
-    # Exception messages can contain request URLs with TMDB API keys.
-    # Publish only the exception class and, for HTTP failures, the status code.
-    if isinstance(err, HTTPError):
-        return f'HTTPError (HTTP {err.code})'
-    return type(err).__name__
-
-
-def main():
-    if not BASE.startswith('https://'):
-        raise SystemExit('PAGE_URL must be your real public HTTPS website URL')
-    if not (API_KEY or TOKEN):
-        raise SystemExit('Configure TMDB_API_KEY or TMDB_BEARER_TOKEN as a private GitHub Actions secret')
-    # Netflix top ranks: if the upstream TSV fails, do NOT relabel TMDB as the Netflix Top 10.
-    try:
-        netflix=get_netflix_rows()
-    except Exception as err:
-        raise SystemExit('Netflix official source unavailable: ' + safe_error(err) +
-                         '; build stopped to preserve the previous website') from None
-    # Generate in a temporary directory; do not touch the existing site on failure.
-    with tempfile.TemporaryDirectory(prefix='nuvio-build-', dir=OUT.parent) as staging_dir:
-        stage = Path(staging_dir)
-        active=[]
-        status=[]
-        planned=catalog_plan()
-        for spec in planned:
-            try:
-                rows,reason=catalog(spec,netflix)
-                if rows:
-                    path=stage/'catalog'/spec['type']/(spec['id']+'.json')
-                    write_json(path,{'metas':rows})
-                    active.append({'type':spec['type'],'id':spec['id'],'name':spec['name']})
-                    state='active'
-                else:
-                    state='external' if spec['mode']=='external' else 'held'
-                status.append({'id':spec['id'],'type':spec['type'],'section':spec['group'],'catalog':spec['name'],'status':state,
-                               'entries':len(rows or []),'reason':reason})
-                print(f"{state:8} {spec['name']}: {len(rows or [])}",flush=True)
-            except Exception as err:
-                # A transient TMDB/network error is not an empty catalog.
-                # Fail the whole build so GitHub Pages keeps the last verified site.
-                raise SystemExit(
-                    'Catalog update failed (' + spec['id'] + '): ' + safe_error(err) +
-                    '; build stopped to preserve the previously published site'
-                ) from None
-        if not active:
-            raise SystemExit('No catalogs could be populated; keeping previous website untouched')
-        manifest={'id':'com.mynuvio.buildn1','version':ADDON_VERSION,'name':'My Nuvio · Build N1',
-          'description':'Personal discovery catalogs. Genuine Netflix weekly positions, TMDB classifications, verified-only exclusives. No playback or subtitle streams. BetterPosters remains separate.',
-          'types':['movie','series'],'resources':['catalog'],
-          'catalogs':active,'behaviorHints':{'configurable':False}}
-        write_json(stage/'manifest.json',manifest)
-        write_json(stage/'status.json',{'built_utc':datetime.now(timezone.utc).isoformat(),
-            'planned':len(planned),'original_planned':len(ALL),
-            'browse_planned':40,'shahid_home_planned':len(build_shahid_home_rows()),'active':len(active),'catalogs':status})
         # Apps that support collections can use this as a planning guide; Stremio
         # protocol itself does not define nested catalog folders.
         folders={}
