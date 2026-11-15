@@ -259,7 +259,8 @@ class BuildTests(unittest.TestCase):
         request = discover.call_args.args[0]
         self.assertEqual(request['params']['watch_region'], 'SA')
         self.assertEqual(request['params']['with_watch_providers'], '777')
-        self.assertEqual(request['params']['with_watch_monetization_types'], 'flatrate')
+        self.assertEqual(request['params']['with_watch_monetization_types'],
+                         'flatrate|free|ads')
         self.assertEqual(request['params']['first_air_date.lte'], str(g.TODAY))
         self.assertEqual(request['params']['sort_by'], 'popularity.desc')
         self.assertFalse(any('subtitle' in key for key in request['params']))
