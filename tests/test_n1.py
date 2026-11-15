@@ -209,6 +209,24 @@ class BuildTests(unittest.TestCase):
         self.assertEqual(posters[0]['poster'], 'https://image.tmdb.org/t/p/w500/ar.jpg')
         self.assertEqual(posters[1]['poster'], 'https://image.tmdb.org/t/p/w500/default.jpg')
 
+    def test_shahid_classics_keep_historical_cutoff(self):
+        from shahid_home_rows import build_shahid_home_rows
+        spec = next(r for r in build_shahid_home_rows()
+                    if r['id'] == 'shahid_home_syrian_classics')
+        candidates = [{'id': n} for n in range(1, 7)]
+        with patch.object(g, 'shahid_provider_id', return_value=777), \
+                patch.object(g, 'fetch_discover', return_value=('tv', candidates)) as fetch, \
+                patch.object(g, 'preview', side_effect=lambda kind, item, **kwargs:
+                             {'id': 'tt' + str(item['id']).zfill(7), 'name': 'Show',
+                              'type': 'series', 'poster': '/img.jpg'}), \
+                patch.object(g, 'shahid_arabic_poster', return_value=None):
+            rows, reason = g.catalog(spec)
+        self.assertEqual(len(rows), 6)
+        self.assertEqual(reason, '')
+        params = fetch.call_args.args[0]['params']
+        self.assertEqual(params['first_air_date.lte'], '2016-12-31')
+        self.assertEqual(params['watch_region'], 'SA')
+
     def test_shahid_provider_is_discovered_not_guessed(self):
         with patch.object(g, 'tmdb', return_value={'results': [
                 {'provider_name': 'Other', 'provider_id': 123},
