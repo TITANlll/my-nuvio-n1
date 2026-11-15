@@ -1,6 +1,8 @@
 # My Nuvio — Build N1 (catalog-only addon)
 
-**Status: project created and unit-tested; NOT live yet.** This zip is **not an install URL**. A working URL requires publishing the `site/` directory to a real HTTPS web host. The recommended free path is GitHub Pages. Do not paste `manifest.preview.json` or this ZIP into Nuvio.
+**Published install URL:** https://ahmedalazahrani.github.io/my-nuvio-n1/manifest.json
+
+GitHub Pages serves the generated `site/` directory. The manifest lists only populated catalogs; all 58 catalog definitions remain in `catalogs.json`. Check the [live status](https://ahmedalazahrani.github.io/my-nuvio-n1/status.json) for held feeds and their reasons.
 
 ## Build N1 contents
 
@@ -55,6 +57,20 @@
 ## Testing locally
 
 `python -m unittest discover -s tests -v`
+
+Tests run offline using mocked source data and require no API credentials. Pull requests run tests only. Pushes to `main`, daily schedules and manual runs on `main` test, generate, and deploy. Build credentials are scoped to the generator step. Errors report exception classes and HTTP codes without request URLs or exception messages, which can contain API keys.
+
+To verify the published manifest and every advertised catalog endpoint:
+
+`python verify_site.py https://ahmedalazahrani.github.io/my-nuvio-n1`
+
+The deployment job also runs this check against the URL returned by Pages.
+
+### Deployment diagnosis (2026-11-15)
+
+The first two runs failed because no TMDB credential was configured. A later run generated and uploaded successfully, but `deploy-pages` found no artifact metadata immediately after upload. Run [43665862169](https://github.com/ahmedalazahrani/my-nuvio-n1/actions/runs/43665862169) succeeded after separating build and deployment and adding a delay. The workflow keeps separate jobs and now checks artifact visibility for up to 60 seconds instead of sleeping a fixed interval. It derives the build URL from Pages configuration and grants Pages write/OIDC permissions only to deployment. If artifact visibility times out, retry the failed deployment job. A failure after deployment in the live verification step means Pages was published but the endpoint checks need investigation.
+
+Review and merge the proposed changes to `main` to activate the updated workflow; review branches do not publish over the existing site.
 
 To generate locally, set `TMDB_BEARER_TOKEN` and `PAGE_URL` to the actual public HTTPS base URL, then run `python generate.py`. The generator uses only the Python standard library. If live source APIs cannot be accessed from the build runner, the affected catalogs remain held, not replaced with sample content.
 

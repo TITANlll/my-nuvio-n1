@@ -370,6 +370,14 @@ def write_json(filename,data):
     filename.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
 
 
+def safe_error(err):
+    # Exception messages can contain request URLs with TMDB API keys.
+    # Publish only the exception class and, for HTTP failures, the status code.
+    if isinstance(err, HTTPError):
+        return f'HTTPError (HTTP {err.code})'
+    return type(err).__name__
+
+
 def main():
     if not BASE.startswith('https://'):
         raise SystemExit('PAGE_URL must be your real public HTTPS website URL')
@@ -382,7 +390,7 @@ def main():
     try:
         netflix=get_netflix_rows()
     except Exception as err:
-        print('Netflix official source unavailable:',str(err),flush=True)
+        print('Netflix official source unavailable:',safe_error(err),flush=True)
         netflix={}
     active=[]
     status=[]
@@ -401,8 +409,8 @@ def main():
             print(f"{state:8} {spec['name']}: {len(rows or [])}",flush=True)
         except Exception as err:
             status.append({'section':spec['group'],'catalog':spec['name'],
-                           'status':'held','entries':0,'reason':str(err)[:300]})
-            print('HELD',spec['name'],type(err).__name__,str(err)[:200],flush=True)
+                           'status':'held','entries':0,'reason':safe_error(err)})
+            print('HELD',spec['name'],safe_error(err),flush=True)
     if not active:
         raise SystemExit('No catalogs could be populated; keeping previous website untouched')
     manifest={'id':'com.mynuvio.buildn1','version':'1.0.0','name':'My Nuvio · Build N1',
