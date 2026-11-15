@@ -24,6 +24,7 @@ from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 from http.client import IncompleteRead
 from browse_catalogs import build_browse_catalogs
+from shahid_home_rows import build_shahid_home_rows
 
 ROOT = Path(__file__).parent
 OUT = ROOT / 'site'
@@ -36,13 +37,25 @@ ALL = json.loads((ROOT / 'catalogs.json').read_text())
 VERIFIED = json.loads((ROOT / 'data' / 'verified.json').read_text())
 BETTERPOSTERS_PATTERN = os.getenv('BETTERPOSTERS_POSTER_PATTERN','').strip()
 CACHE = {}
-ADDON_VERSION = '1.2.3'
+ADDON_VERSION = '1.3.0'
 
 
 def catalog_plan():
     labels = json.loads((ROOT / 'browsing-folders.json').read_text())
     original = sorted(ALL, key=lambda row: row['group'] != 'BetterPosters Discovery')
-    return original + build_browse_catalogs(labels, TODAY)
+    # Add homepage-inspired Shahid rows near the existing Shahid catalogs.
+    # Preserve all original 58 definitions and their relative order.
+    additions = build_shahid_home_rows()
+    after = {
+        'shahid_top_arabic_series': additions[:2],
+        'shahid_top_arabic_movies': additions[2:4],
+        'shahid_trending_arabic': additions[4:],
+    }
+    plan = []
+    for row in original:
+        plan.append(row)
+        plan.extend(after.get(row['id'], []))
+    return plan + build_browse_catalogs(labels, TODAY)
 
 
 def fetch(url, *, headers=None, retries=3, timeout=40):
@@ -564,7 +577,7 @@ def main():
         write_json(stage/'manifest.json',manifest)
         write_json(stage/'status.json',{'built_utc':datetime.now(timezone.utc).isoformat(),
             'planned':len(planned),'original_planned':len(ALL),
-            'browse_planned':len(planned)-len(ALL),'active':len(active),'catalogs':status})
+            'browse_planned':40,'shahid_home_planned':len(build_shahid_home_rows()),'active':len(active),'catalogs':status})
         # Apps that support collections can use this as a planning guide; Stremio
         # protocol itself does not define nested catalog folders.
         folders={}
