@@ -30,7 +30,7 @@ Base: `7e32f6592caabce78d4c0368c7bb80270beeb484`.
 
 ## Review and publication
 
-The live install URL is https://ahmedalazahrani.github.io/my-nuvio-n1/manifest.json . The existing deployment returned HTTP 200 and valid addon JSON during preparation.
+After the account rename to TITANlll, the install URL is https://titanlll.github.io/my-nuvio-n1/manifest.json . The workflow derives the current URL from GitHub Pages configuration. The old-account URL in the validation section above records the original check before the rename.
 
 This review branch does not deploy. Merging the reviewed PR to main activates the updated production workflow. Live verification checks endpoint validity; status.json remains the feed-level record of populated and held catalogs.
 
