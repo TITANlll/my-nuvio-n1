@@ -97,7 +97,15 @@ def norm(s):
 
 
 def external_id(kind, tmdb_id):
-    e = tmdb(f'/{kind}/{tmdb_id}/external_ids')
+    # TMDB occasionally includes an indexed discover result whose separate
+    # /external_ids detail record is not available (HTTP 404). Skip that item,
+    # but still stop the build on authentication/rate-limit/server failures.
+    try:
+        e = tmdb(f'/{kind}/{tmdb_id}/external_ids')
+    except HTTPError as err:
+        if err.code == 404:
+            return None
+        raise
     v = e.get('imdb_id')
     return v if isinstance(v, str) and re.fullmatch(r'tt\d+', v) else None
 

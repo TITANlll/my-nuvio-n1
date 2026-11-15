@@ -227,6 +227,18 @@ class BuildTests(unittest.TestCase):
         self.assertEqual(params['first_air_date.lte'], '2016-12-31')
         self.assertEqual(params['watch_region'], 'SA')
 
+    def test_missing_title_external_ids_are_skipped_but_api_failures_propagate(self):
+        with patch.object(g, 'tmdb', side_effect=HTTPError(
+                'https://api.themoviedb.org/3/tv/123/external_ids', 404,
+                'not found', {}, None)):
+            self.assertIsNone(g.external_id('tv', 123))
+            self.assertIsNone(g.preview('tv', {'id': 123, 'name': 'Orphaned item'}))
+        with patch.object(g, 'tmdb', side_effect=HTTPError(
+                'https://api.themoviedb.org/3/tv/123/external_ids', 401,
+                'unauthorized', {}, None)):
+            with self.assertRaises(HTTPError):
+                g.external_id('tv', 123)
+
     def test_shahid_provider_is_discovered_not_guessed(self):
         with patch.object(g, 'tmdb', return_value={'results': [
                 {'provider_name': 'Other', 'provider_id': 123},
