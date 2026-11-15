@@ -52,12 +52,35 @@ class BuildTests(unittest.TestCase):
         status = json.loads((self.out / 'status.json').read_text())
         self.assertEqual(status['original_planned'], 58)
         self.assertEqual(status['browse_planned'], 40)
-        self.assertEqual(status['planned'], 98)
-        self.assertEqual(len(status['catalogs']), 98)
+        self.assertEqual(status['shahid_home_planned'], 6)
+        self.assertEqual(status['planned'], 104)
+        self.assertEqual(len(status['catalogs']), 104)
         groups = json.loads((self.out / 'grouping-plan.json').read_text())
-        self.assertEqual(sum(map(len, groups.values())), 98)
+        self.assertEqual(sum(map(len, groups.values())), 104)
         self.assertEqual(next(iter(groups)), 'BetterPosters Discovery')
         self.assertIn(g.BASE + '/manifest.json', (self.out / 'index.html').read_text())
+
+    def test_shahid_home_rows_are_saudi_filtered_and_clearly_labeled(self):
+        from shahid_home_rows import build_shahid_home_rows
+        rows = build_shahid_home_rows()
+        self.assertEqual(len(rows), 6)
+        self.assertEqual(len({r['id'] for r in rows}), 6)
+        self.assertTrue(all(r['provider'] == 'shahid' and
+                            r['mode'] == 'discover_provider' for r in rows))
+        self.assertTrue(all('Shahid' in r['note'] and 'TMDB' in r['note']
+                            for r in rows))
+        self.assertFalse(any('official Shahid Top 10' in r['name'] for r in rows))
+        ids = {r['id'] for r in rows}
+        self.assertIn('shahid_home_egyptian_series', ids)
+        self.assertIn('shahid_home_turkish_movies', ids)
+        self.assertIn('shahid_home_syrian_classics', ids)
+        originals = {(r['type'], r['id']) for r in g.ALL}
+        self.assertFalse(originals & {(r['type'], r['id']) for r in rows})
+        planned = g.catalog_plan()
+        self.assertEqual(len(planned), 104)
+        self.assertEqual(len({(r['type'], r['id']) for r in planned}), 104)
+        for r in rows:
+            self.assertEqual(sum(p['id'] == r['id'] for p in planned), 1)
 
     def test_no_active_catalogs_fails_build(self):
         with self.assertRaisesRegex(SystemExit, 'No catalogs'):
