@@ -33,6 +33,8 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    outputs:
+      pages_artifact: ${{ steps.artifact_name.outputs.name }}
     permissions:
       contents: read
       pages: read
@@ -49,8 +51,12 @@ jobs:
           TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
           PAGE_URL: ${{ steps.pages.outputs.base_url }}
         run: python generate.py
+      - name: Select Pages artifact for this build attempt
+        id: artifact_name
+        run: echo "name=github-pages-${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-pages-artifact@v3
         with:
+          name: ${{ steps.artifact_name.outputs.name }}
           path: site
 
   deploy:
@@ -68,18 +74,23 @@ jobs:
     steps:
       - name: Wait for Pages artifact metadata
         uses: actions/github-script@v7
+        env:
+          PAGES_ARTIFACT: ${{ needs.build.outputs.pages_artifact }}
         with:
           script: |
+            const artifactName = process.env.PAGES_ARTIFACT;
             for (let attempt = 0; attempt < 12; attempt++) {
               const artifacts = await github.paginate(github.rest.actions.listWorkflowRunArtifacts, {
                 ...context.repo, run_id: context.runId
               });
-              if (artifacts.some(a => a.name === 'github-pages' && !a.expired)) return;
+              if (artifacts.some(a => a.name === artifactName && !a.expired)) return;
               if (attempt < 11) await new Promise(resolve => setTimeout(resolve, 5000));
             }
             core.setFailed('Pages artifact metadata was not available within 60 seconds. Retry the failed deployment job.');
       - id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: ${{ needs.build.outputs.pages_artifact }}
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:

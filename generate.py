@@ -21,6 +21,7 @@ from pathlib import Path
 from urllib.parse import urlencode, quote
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
+from http.client import IncompleteRead
 from browse_catalogs import build_browse_catalogs
 
 ROOT = Path(__file__).parent
@@ -34,7 +35,7 @@ ALL = json.loads((ROOT / 'catalogs.json').read_text())
 VERIFIED = json.loads((ROOT / 'data' / 'verified.json').read_text())
 BETTERPOSTERS_PATTERN = os.getenv('BETTERPOSTERS_POSTER_PATTERN','').strip()
 CACHE = {}
-ADDON_VERSION = '1.2.0'
+ADDON_VERSION = '1.2.1'
 
 
 def catalog_plan():
@@ -43,12 +44,15 @@ def catalog_plan():
     return original + build_browse_catalogs(labels, TODAY)
 
 
-def fetch(url, *, headers=None, retries=3):
+def fetch(url, *, headers=None, retries=3, timeout=40):
     for attempt in range(retries):
         try:
-            with urlopen(Request(url, headers={**{'User-Agent':'MyNuvioN1/1.0 (+personal catalog)'}, **(headers or {})}), timeout=40) as r:
+            with urlopen(Request(url, headers={**{'User-Agent':'MyNuvioN1/1.0 (+personal catalog)'}, **(headers or {})}), timeout=timeout) as r:
                 return r.read()
-        except (OSError, HTTPError) as e:
+        except (OSError, HTTPError, IncompleteRead):
+            # An interrupted HTTP body is not an OSError. Discard its partial
+            # bytes and restart the entire request; a truncated chart can
+            # silently omit countries or weeks if parsed as valid TSV.
             if attempt == retries - 1:
                 raise
             time.sleep(2 ** attempt)
@@ -213,8 +217,11 @@ def get_netflix_rows():
     preserve Netflix's original rank; failed title matches are simply omitted.
     """
     url='https://www.netflix.com/tudum/top10/data/all-weeks-countries.tsv'
-    b=fetch(url)
+    b=fetch(url, retries=5, timeout=120)
     reader=csv.DictReader(io.StringIO(b.decode('utf-8-sig')),delimiter='\t')
+    required={'country_iso2','category','week','weekly_rank','show_title'}
+    if not required.issubset(reader.fieldnames or []):
+        raise ValueError('Netflix chart is missing required columns')
     by = defaultdict(list)
     for r in reader:
         if r.get('country_iso2')!='SA':
@@ -226,15 +233,18 @@ def get_netflix_rows():
             kind='series'
         else:
             continue
+        date.fromisoformat(r.get('week',''))
         by[(r.get('week'),kind)].append(r)
     output={}
     for kind in ('movie','series'):
         weeks = [week for week,k in by if k==kind]
         if not weeks:
-            output[kind]=[]
-            continue
+            raise ValueError('Netflix chart has no Saudi rows for ' + kind)
         last=max(weeks)
         recent=sorted(by[(last,kind)],key=lambda r:int(r['weekly_rank']))
+        if (len(recent)!=10 or {int(r['weekly_rank']) for r in recent}!=set(range(1,11))
+                or any(not r.get('show_title','').strip() for r in recent)):
+            raise ValueError('Netflix Saudi weekly chart is incomplete')
         collected=[]
         for r in recent:
             title=r['show_title'].strip()
@@ -255,6 +265,8 @@ def get_netflix_rows():
             p=preview(target,best,source_rank=r['weekly_rank'],source_week=last)
             if p:
                 collected.append(p)
+        if not collected:
+            raise ValueError('Netflix chart has no reliable IMDb matches for ' + kind)
         output[kind]=collected
     return output
 
@@ -427,15 +439,15 @@ def main():
         raise SystemExit('PAGE_URL must be your real public HTTPS website URL')
     if not (API_KEY or TOKEN):
         raise SystemExit('Configure TMDB_API_KEY or TMDB_BEARER_TOKEN as a private GitHub Actions secret')
-    if OUT.exists():
-        shutil.rmtree(OUT)
-    OUT.mkdir()
     # Netflix top ranks: if the upstream TSV fails, do NOT relabel TMDB as the Netflix Top 10.
     try:
         netflix=get_netflix_rows()
     except Exception as err:
-        print('Netflix official source unavailable:',safe_error(err),flush=True)
-        netflix={}
+        raise SystemExit('Netflix official source unavailable: ' + safe_error(err) +
+                         '; build stopped to preserve the previous website') from None
+    if OUT.exists():
+        shutil.rmtree(OUT)
+    OUT.mkdir()
     active=[]
     status=[]
     planned=catalog_plan()
