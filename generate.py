@@ -37,7 +37,7 @@ ALL = json.loads((ROOT / 'catalogs.json').read_text())
 VERIFIED = json.loads((ROOT / 'data' / 'verified.json').read_text())
 BETTERPOSTERS_PATTERN = os.getenv('BETTERPOSTERS_POSTER_PATTERN','').strip()
 CACHE = {}
-ADDON_VERSION = '1.3.1'
+ADDON_VERSION = '1.4.0'
 
 
 def catalog_plan():
@@ -250,6 +250,45 @@ def discover_shahid(spec):
             break
     if len(results) < 5:
         return [], 'Fewer than five Shahid Saudi titles with reliable IMDb poster metadata'
+    return results, ''
+
+
+def discover_turkish(spec):
+    """Create non-sparse Turkish discovery rows from TMDB, not subtitle claims.
+
+    Stream availability is only asserted for the separate Netflix Saudi rows,
+    which apply an explicit regional watch-provider filter.
+    """
+    params = dict(spec.get('params', {}))
+    kind = media_type(spec)
+    date_field = 'primary_release_date' if kind == 'movie' else 'first_air_date'
+    params[date_field + '.lte'] = str(TODAY)
+    if spec.get('release_window_days'):
+        params[date_field + '.gte'] = str(
+            TODAY - timedelta(days=spec['release_window_days']))
+    if spec.get('episode_window_days'):
+        if kind != 'tv':
+            return [], 'Episode date filters require series'
+        params['air_date.gte'] = str(
+            TODAY - timedelta(days=spec['episode_window_days']))
+        params['air_date.lte'] = str(TODAY)
+    kind, items = fetch_discover(
+        {**spec, 'params': params}, max_pages=6, pool_size=max(100, LIMIT * 6))
+    results = []
+    seen = set()
+    for item in items:
+        # Only Turkish-original-language works belong here, even if the
+        # upstream discover service returns an unexpected mixed-language row.
+        if item.get('original_language') != 'tr':
+            continue
+        poster = preview(kind, item, verified_note=spec.get('note'))
+        if poster and poster['id'] not in seen:
+            seen.add(poster['id'])
+            results.append(poster)
+        if len(results) >= LIMIT:
+            break
+    if len(results) < 5:
+        return [], 'Fewer than five Turkish-language titles with reliable IMDb poster metadata'
     return results, ''
 
 
@@ -494,6 +533,8 @@ def catalog(spec, netflix=None):
         return rows,('Awaiting verified entries and source evidence' if not rows else '')
     if mode=='discover_provider' and spec.get('provider')=='shahid':
         return discover_shahid(spec)
+    if mode=='discover' and spec['group']=='Turkish Content':
+        return discover_turkish(spec)
     if mode=='netflix_official':
         rows=(netflix or {}).get(spec['kind'],[])
         return rows,('Official Netflix data unavailable or unmatched' if not rows else '')
