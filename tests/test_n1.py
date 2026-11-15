@@ -161,9 +161,86 @@ class BuildTests(unittest.TestCase):
                 self.assertIsNone(rows)
                 self.assertTrue(reason)
 
-    def test_turkish_subtitles_and_shahid_require_specific_evidence(self):
-        for group in ('Turkish Content', 'Shahid Arabic Exclusives'):
-            spec = next(s for s in g.ALL if s['group'] == group and s['mode'] == 'verified')
+    def test_turkish_catalogs_now_use_discovery_not_subtitle_allowlists(self):
+        turkish = [s for s in g.ALL if s['group'] == 'Turkish Content']
+        self.assertEqual(len(turkish), 11)
+        self.assertTrue(all(s['mode'] == 'discover' for s in turkish))
+        self.assertTrue(all(s['params']['with_original_language'] == 'tr'
+                            for s in turkish))
+        self.assertTrue(all('Sub Verified' not in s['name'] for s in turkish))
+        self.assertTrue(all('tag' not in s for s in turkish))
+        for spec in turkish:
+            self.assertIn('TMDB', spec['name'])
+
+    def test_turkish_discovery_has_multiple_unique_titles_and_correct_filters(self):
+        spec = next(s for s in g.ALL if s['id'] == 'turkish_new_series')
+        items = ([{'id': i, 'original_language': 'tr'} for i in range(1, 24)] +
+                 [{'id': 100, 'original_language': 'en'}])
+        items.insert(2, {'id': 1, 'original_language': 'tr'})
+        def fake_preview(kind, item, **kwargs):
+            return {'id': 'tt' + str(item['id']).zfill(7),
+                    'type': 'series', 'name': 'Turkish Series',
+                    'poster': 'https://image.tmdb.org/t/p/w500/poster.jpg'}
+        with patch.object(g, 'fetch_discover', return_value=('tv', items)) as discover, \
+                patch.object(g, 'preview', side_effect=fake_preview):
+            rows, reason = g.catalog(spec)
+        self.assertEqual(len(rows), g.LIMIT)
+        self.assertEqual(len({p['id'] for p in rows}), len(rows))
+        self.assertEqual(reason, '')
+        request = discover.call_args.args[0]
+        self.assertEqual(request['params']['with_original_language'], 'tr')
+        self.assertEqual(request['params']['first_air_date.lte'], str(g.TODAY))
+        self.assertEqual(request['params']['first_air_date.gte'],
+                         str(g.TODAY - g.timedelta(days=730)))
+        self.assertEqual(discover.call_args.kwargs['max_pages'], 6)
+        self.assertFalse(any('subtitle' in k for k in request['params']))
+
+    def test_turkish_recent_episodes_use_episode_air_dates(self):
+        spec = next(s for s in g.ALL if s['id'] == 'turkish_new_episodes')
+        items = [{'id': i, 'original_language': 'tr'} for i in range(1, 8)]
+        with patch.object(g, 'fetch_discover', return_value=('tv', items)) as discover, \
+                patch.object(g, 'preview', side_effect=lambda kind, item, **kw:
+                             {'id': 'tt' + str(item['id']).zfill(7), 'type': 'series'}):
+            rows, reason = g.catalog(spec)
+        self.assertEqual(len(rows), 7)
+        self.assertEqual(reason, '')
+        params = discover.call_args.args[0]['params']
+        self.assertEqual(params['air_date.gte'],
+                         str(g.TODAY - g.timedelta(days=14)))
+        self.assertEqual(params['air_date.lte'], str(g.TODAY))
+        self.assertEqual(params['first_air_date.lte'], str(g.TODAY))
+
+    def test_netflix_turkish_catalog_uses_saudi_availability_not_subtitles(self):
+        spec = next(s for s in g.ALL if s['id'] == 'netflix_turkish_movies')
+        items = [{'id': i, 'original_language': 'tr'} for i in range(1, 10)]
+        with patch.object(g, 'fetch_discover', return_value=('movie', items)) as discover, \
+                patch.object(g, 'preview', side_effect=lambda kind, item, **kw:
+                             {'id': 'tt' + str(item['id']).zfill(7), 'type': 'movie'}):
+            rows, reason = g.catalog(spec)
+        self.assertEqual(len(rows), 9)
+        self.assertEqual(reason, '')
+        params = discover.call_args.args[0]['params']
+        self.assertEqual(params['watch_region'], 'SA')
+        self.assertEqual(params['with_watch_providers'], '8')
+        self.assertEqual(params['with_watch_monetization_types'], 'flatrate')
+        self.assertEqual(params['with_original_language'], 'tr')
+        self.assertEqual(params['primary_release_date.lte'], str(g.TODAY))
+
+    def test_turkish_single_poster_row_is_held(self):
+        spec = next(s for s in g.ALL if s['id'] == 'turkish_top_movies')
+        with patch.object(g, 'fetch_discover', return_value=(
+                     'movie', [{'id': 7, 'original_language': 'tr'}])), \
+                patch.object(g, 'preview', return_value={'id': 'tt0000007'}):
+            rows, reason = g.catalog(spec)
+        self.assertEqual(rows, [])
+        self.assertIn('Fewer than five', reason)
+
+    def test_legacy_subtitle_claims_and_shahid_exclusives_require_evidence(self):
+        legacy_turkish = {'id': 'netflix_turkish_movies', 'type': 'movie',
+                          'group': 'Turkish Content', 'mode': 'verified',
+                          'tag': 'netflix_turkish_movies'}
+        shahid = next(x for x in g.ALL if x['id'] == 'shahid_saudi_originals')
+        for spec in (legacy_turkish, shahid):
             entry = {'type': spec['type'], 'tags': [spec['tag']], 'verified': True,
                      'imdb_id': 'tt1234567', 'source_url': 'https://example.org',
                      'origin_country': 'TR', 'original_language': 'tr'}
@@ -358,18 +435,24 @@ class BuildTests(unittest.TestCase):
             self.assertEqual(g.fetch_episodes(spec, 'returning'), [])
 
     def test_seeded_sources_unlock_remaining_curated_rows(self):
-        ids = ['golden_bafta', 'shahid_saudi_originals',
-               'shahid_gulf', 'netflix_turkish_movies', 'netflix_turkish_series',
-               'turkish_streaming_originals']
+        ids = ['golden_bafta', 'shahid_saudi_originals', 'shahid_gulf']
         with patch.object(g, 'TODAY', g.date(2026, 11, 15)), \
                 patch.object(g, 'enrich_from_imdb', side_effect=lambda imdb, kind: {
                     'id': imdb, 'type': kind, 'name': 'Source-mapped title'}):
             for catalog_id in ids:
                 spec = next(s for s in g.ALL if s['id'] == catalog_id)
                 self.assertTrue(g.fetch_verified(spec), catalog_id)
+            for catalog_id, kind in [('netflix_turkish_movies', 'movie'),
+                                     ('netflix_turkish_series', 'series'),
+                                     ('turkish_streaming_originals', 'series')]:
+                legacy = {'id': catalog_id, 'type': kind, 'group': 'Turkish Content',
+                          'mode': 'verified', 'tag': catalog_id}
+                self.assertTrue(g.fetch_verified(legacy), catalog_id)
 
     def test_subtitle_evidence_expires_and_requires_saudi_provider(self):
-        spec = next(s for s in g.ALL if s['id'] == 'netflix_turkish_movies')
+        spec = {'id': 'netflix_turkish_movies', 'type': 'movie',
+                'group': 'Turkish Content', 'mode': 'verified',
+                'tag': 'netflix_turkish_movies'}
         entry = dict(next(e for e in g.VERIFIED if spec['tag'] in e['tags']))
         with patch.object(g, 'VERIFIED', [entry]), \
                 patch.object(g, 'enrich_from_imdb', return_value={'id': entry['imdb_id']}):

@@ -109,91 +109,159 @@
   },
   {
     "id": "turkish_top_movies",
-    "name": "Top Turkish Movies · Arabic Sub Verified",
+    "name": "Turkish Movies · Popular (TMDB)",
     "type": "movie",
     "group": "Turkish Content",
-    "mode": "verified",
-    "tag": "turkish_top_movies"
+    "mode": "discover",
+    "params": {
+      "with_original_language": "tr",
+      "include_adult": "false",
+      "sort_by": "popularity.desc"
+    },
+    "note": "Turkish-language title, sorted using TMDB metadata. This is not a Turkish broadcaster chart; streaming availability and Arabic subtitles are not verified."
   },
   {
     "id": "turkish_trending_movies",
-    "name": "Trending Turkish Movies · Arabic Sub Verified",
+    "name": "Turkish Comedy Movies · Popular (TMDB)",
     "type": "movie",
     "group": "Turkish Content",
-    "mode": "verified",
-    "tag": "turkish_trending_movies"
+    "mode": "discover",
+    "params": {
+      "with_original_language": "tr",
+      "include_adult": "false",
+      "sort_by": "popularity.desc",
+      "with_genres": "35"
+    },
+    "note": "Turkish-language title, sorted using TMDB metadata. This is not a Turkish broadcaster chart; streaming availability and Arabic subtitles are not verified."
   },
   {
     "id": "turkish_new_movies",
-    "name": "New Turkish Movies · Arabic Sub Verified",
+    "name": "Turkish Movies · Recent Releases (TMDB)",
     "type": "movie",
     "group": "Turkish Content",
-    "mode": "verified",
-    "tag": "turkish_new_movies"
+    "mode": "discover",
+    "params": {
+      "with_original_language": "tr",
+      "include_adult": "false",
+      "sort_by": "primary_release_date.desc"
+    },
+    "note": "Turkish-language movies first released in the last 2 years, newest first by TMDB release date. This is not a streaming-added date.",
+    "release_window_days": 730
   },
   {
     "id": "turkish_rated_movies",
-    "name": "Top Rated Turkish Movies · Arabic Sub Verified",
+    "name": "Turkish Movies · Top Rated (TMDB)",
     "type": "movie",
     "group": "Turkish Content",
-    "mode": "verified",
-    "tag": "turkish_rated_movies"
+    "mode": "discover",
+    "params": {
+      "with_original_language": "tr",
+      "include_adult": "false",
+      "sort_by": "vote_average.desc",
+      "vote_count.gte": "30"
+    },
+    "note": "TMDB highest-rated Turkish-language movies with 30 or more TMDB votes; not a broadcaster ranking."
   },
   {
     "id": "turkish_top_series",
-    "name": "Top Turkish Series · Arabic Sub Verified",
+    "name": "Turkish Series · Popular (TMDB)",
     "type": "series",
     "group": "Turkish Content",
-    "mode": "verified",
-    "tag": "turkish_top_series"
+    "mode": "discover",
+    "params": {
+      "with_original_language": "tr",
+      "include_adult": "false",
+      "sort_by": "popularity.desc"
+    },
+    "note": "Turkish-language title, sorted using TMDB metadata. This is not a Turkish broadcaster chart; streaming availability and Arabic subtitles are not verified."
   },
   {
     "id": "turkish_trending_series",
-    "name": "Trending Turkish Series · Arabic Sub Verified",
+    "name": "Turkish Drama Series · Popular (TMDB)",
     "type": "series",
     "group": "Turkish Content",
-    "mode": "verified",
-    "tag": "turkish_trending_series"
+    "mode": "discover",
+    "params": {
+      "with_original_language": "tr",
+      "include_adult": "false",
+      "sort_by": "popularity.desc",
+      "with_genres": "18"
+    },
+    "note": "Turkish-language title, sorted using TMDB metadata. This is not a Turkish broadcaster chart; streaming availability and Arabic subtitles are not verified."
   },
   {
     "id": "turkish_new_series",
-    "name": "New Turkish Series · Arabic Sub Verified",
+    "name": "Turkish Series · Recent Premieres (TMDB)",
     "type": "series",
     "group": "Turkish Content",
-    "mode": "verified",
-    "tag": "turkish_new_series"
+    "mode": "discover",
+    "params": {
+      "with_original_language": "tr",
+      "include_adult": "false",
+      "sort_by": "first_air_date.desc"
+    },
+    "note": "Turkish-language series with first premiere in the last 2 years; not a streaming-added date.",
+    "release_window_days": 730
   },
   {
     "id": "turkish_new_episodes",
-    "name": "New Turkish Episodes · Arabic Sub Verified",
+    "name": "Turkish Series · Episodes in Last 14 Days (TMDB)",
     "type": "series",
     "group": "Turkish Content",
-    "mode": "verified",
-    "tag": "turkish_new_episodes"
+    "mode": "discover",
+    "params": {
+      "with_original_language": "tr",
+      "include_adult": "false",
+      "sort_by": "popularity.desc"
+    },
+    "note": "Turkish-language series with episode air dates in the past 14 days according to TMDB. Does not confirm the episode has subtitles or is streamable.",
+    "episode_window_days": 14
   },
   {
     "id": "turkish_streaming_originals",
-    "name": "Turkish Streaming Originals · Arabic Sub Verified",
+    "name": "Turkish Crime Series · Popular (TMDB)",
     "type": "series",
     "group": "Turkish Content",
-    "mode": "verified",
-    "tag": "turkish_streaming_originals"
+    "mode": "discover",
+    "params": {
+      "with_original_language": "tr",
+      "include_adult": "false",
+      "sort_by": "popularity.desc",
+      "with_genres": "80"
+    },
+    "note": "Turkish-language crime series selected by TMDB genre and popularity; not a claim of streaming-platform originality or exclusivity."
   },
   {
     "id": "netflix_turkish_movies",
-    "name": "Netflix Saudi · Turkish Movies · Arabic Sub Verified",
+    "name": "Netflix Saudi · Turkish Movies (TMDB / JustWatch)",
     "type": "movie",
     "group": "Turkish Content",
-    "mode": "verified",
-    "tag": "netflix_turkish_movies"
+    "mode": "discover",
+    "params": {
+      "with_original_language": "tr",
+      "include_adult": "false",
+      "sort_by": "popularity.desc",
+      "watch_region": "SA",
+      "with_watch_providers": "8",
+      "with_watch_monetization_types": "flatrate"
+    },
+    "note": "TMDB/JustWatch lists this Turkish-language movie with Netflix Saudi subscription availability; Arabic subtitles and playback sources are not verified."
   },
   {
     "id": "netflix_turkish_series",
-    "name": "Netflix Saudi · Turkish Series · Arabic Sub Verified",
+    "name": "Netflix Saudi · Turkish Series (TMDB / JustWatch)",
     "type": "series",
     "group": "Turkish Content",
-    "mode": "verified",
-    "tag": "netflix_turkish_series"
+    "mode": "discover",
+    "params": {
+      "with_original_language": "tr",
+      "include_adult": "false",
+      "sort_by": "popularity.desc",
+      "watch_region": "SA",
+      "with_watch_providers": "8",
+      "with_watch_monetization_types": "flatrate"
+    },
+    "note": "TMDB/JustWatch lists this Turkish-language series with Netflix Saudi subscription availability; Arabic subtitles and playback sources are not verified."
   },
   {
     "id": "better_trending_movies",
