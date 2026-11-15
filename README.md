@@ -124,6 +124,10 @@ Six extra Shahid discovery rows were added: Arabic drama, Egyptian series, Turki
 
 `status.json` separates 58 original catalog definitions, 40 genre/mood rows and six Shahid-inspired rows (`planned: 104`). Only successfully populated rows are included in the public manifest.
 
+### Shahid availability coverage (version 1.3.1)
+
+Shahid Saudi provider-discovery rows now use TMDB's supported watch monetization categories `flatrate|free|ads` with the existing Saudi (`SA`) provider filter, instead of subscription-only `flatrate`. The pipe means **OR** in TMDB discover. This may include more titles indexed as free/ad-supported in addition to Shahid VIP, without adding extra rows or any paid API. Coverage is still limited by the provider records that TMDB/JustWatch exposes. This does **not** make Shahid VIP content free or establish access rights; free availability and subscription requirements must be checked on Shahid itself. Rankings remain TMDB popularity, not Shahid's official Top 10. FlixPatrol has not been integrated and requires no subscription.
+
 ### Attribution
 
 This product uses the TMDB API but is not endorsed or certified by TMDB. Netflix charts are attributed to Netflix Tudum. Film and TV artwork and data are subject to third-party rights and availability.
