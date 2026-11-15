@@ -1,5 +1,5 @@
 {
-  "note":"Planning-only labels for Nuvio/Xperience collections. These are not part of the Stremio addon manifest and do not automatically create Nuvio folders.",
+  "note":"Labels used to generate movie and series catalog rows. These do not automatically create native Nuvio folders.",
   "Genres":["Action","Comedy","Romance","Horror","Mystery","Thriller","Sci-Fi","Fantasy","Adventure","Drama","Crime","Music"],
   "Moods":["Feel-Good","Mind-Bending","Dark & Suspenseful","Light & Funny","Emotional Stories","High-Adrenaline","Easy Watching","Twists & Mysteries"]
 }

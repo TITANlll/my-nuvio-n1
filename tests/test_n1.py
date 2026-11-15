@@ -43,17 +43,20 @@ class BuildTests(unittest.TestCase):
         manifest = json.loads((self.out / 'manifest.json').read_text())
         self.assertEqual(manifest['resources'], ['catalog'])
         self.assertEqual(manifest['types'], ['movie', 'series'])
-        expected = [s for s in g.ALL if s['mode'] != 'external']
+        expected = [s for s in g.catalog_plan() if s['mode'] != 'external']
         self.assertEqual(len(manifest['catalogs']), len(expected))
         for spec, entry in zip(expected, manifest['catalogs']):
             self.assertEqual(entry, {k: spec[k] for k in ('type', 'id', 'name')})
             route = self.out / 'catalog' / entry['type'] / (entry['id'] + '.json')
             self.assertEqual(json.loads(route.read_text())['metas'][0]['id'], 'tt1234567')
         status = json.loads((self.out / 'status.json').read_text())
-        self.assertEqual(status['planned'], 58)
-        self.assertEqual(len(status['catalogs']), 58)
+        self.assertEqual(status['original_planned'], 58)
+        self.assertEqual(status['browse_planned'], 40)
+        self.assertEqual(status['planned'], 98)
+        self.assertEqual(len(status['catalogs']), 98)
         groups = json.loads((self.out / 'grouping-plan.json').read_text())
-        self.assertEqual(sum(map(len, groups.values())), 58)
+        self.assertEqual(sum(map(len, groups.values())), 98)
+        self.assertEqual(next(iter(groups)), 'BetterPosters Discovery')
         self.assertIn(g.BASE + '/manifest.json', (self.out / 'index.html').read_text())
 
     def test_no_active_catalogs_fails_build(self):
@@ -127,6 +130,12 @@ class BuildTests(unittest.TestCase):
         with patch.object(verify_site, 'read_json', side_effect=[manifest, {'metas': []}]):
             with self.assertRaisesRegex(ValueError, 'no entries'):
                 verify_site.verify('https://example.org/addon')
+
+    def test_live_verifier_rejects_previous_deployment_version(self):
+        with patch.object(verify_site, 'read_json', return_value={
+                'id': 'com.mynuvio.buildn1', 'version': '1.1.0', 'resources': ['catalog']}):
+            with self.assertRaisesRegex(ValueError, 'updated addon version'):
+                verify_site.verify('https://example.org/addon', g.ADDON_VERSION)
 
     def test_blank_saudi_certification_falls_back_to_us(self):
         movie = {'results': [

@@ -9,7 +9,7 @@ GitHub Pages serves the generated `site/` directory. The manifest lists only pop
 - All **58 approved catalog definitions** are preserved in `catalogs.json` and grouped by network/topic.
 - **10 BetterPosters discovery rows** remain with the BetterPosters addon you already installed; publishing duplicate copies would clutter Nuvio.
 - **3 personalized For You rows** remain with a separately connected personalization addon/account. This project does not access your viewing history.
-- **20 genre/mood folder names** appear in `browsing-folders.json`. Folder navigation is a Nuvio/collection-manager feature, not a feature of the standard Stremio catalog protocol. This JSON is a planning guide, not automatically installed folders.
+- **12 genres and 8 moods** in `browsing-folders.json` now generate **40 additional catalog rows**: one Movies and one Series row per label. Folder navigation remains a Nuvio/collection-manager feature; these are working catalog rows, not automatically installed folders.
 - The generator publishes each **additional catalog only if it can produce justified, identifiable entries**. Held catalogs are explained in `status.json` after build, rather than filled with fabricated rankings or false subscription/subtitle claims.
 - Uses **official Netflix Saudi weekly Top 10** from the published country dataset. In some cases Netflix title names cannot be matched unambiguously to IMDb IDs; those chart entries are skipped, and the original rank is preserved in the description. If the data is inaccessible, it is held, *not* replaced with a fake Top 10.
 - Uses **TMDB** for clearly attributed movie/TV discovery and for correctly identified movie/series IDs. Some topic-based or release-date catalogs are necessarily *curated/approximate*, not original service lists.
@@ -43,16 +43,18 @@ GitHub Pages serves the generated `site/` directory. The manifest lists only pop
 | Awards/Adult animation | Curated examples with evidence; expand the verified list over time |
 | Documentaries/Currently Airing | TMDB classifications and date/episode metadata, not proof that a video is already playable |
 | Trakt personal recommendations | Existing separately connected addon/account required; not scraped or redistributed |
-| Genres & Moods folders | Planning labels; Nuvio collection placement must be configured in app or collection manager |
+| Genres & Moods | Movie and series rows generated from TMDB genre/keyword filters; moods are editorial selections. Native folder placement must be configured in Nuvio |
 
 ## Files
 
 - `catalogs.json` — all 58 frozen Build N1 catalog definitions, with mode and source choices.
 - `browsing-folders.json` — the 20 approved genre/mood labels, organized under two folder concepts.
+- `browse_catalogs.py` — generates the 40 movie/series browsing definitions without editing the original 58 catalogs.
 - `data/verified.json` — curated, source-attributed IMDb items; expand only after real verification. For Turkish titles also include `origin_country: "TR"`, `original_language: "tr"`, `arabic_subtitles_verified: true`, and a `subtitle_source_url`. For Shahid, verify `original_language: "ar"` and `shahid_exclusive_verified: true` with a source.
 - `generate.py` — static catalog builder using TMDB and the official Netflix TSV.
 - `.github/workflows/deploy.yml` — daily automatic generation and GitHub Pages deployment.
 - `tests/test_n1.py` — tests for manifest schema, 58-item plan and verification guards.
+- `tests/test_browse_catalogs.py` — browsing coverage, movie/TV taxonomy, route and ordering tests.
 - Generated public `status.json` — which catalogs are actively published and which were held, with reason.
 
 ## Testing locally
@@ -65,7 +67,7 @@ To verify the published manifest and every advertised catalog endpoint:
 
 `python verify_site.py https://ahmedalazahrani.github.io/my-nuvio-n1`
 
-The deployment job also runs this check against the URL returned by Pages.
+The deployment job also checks the URL returned by Pages against the version in the merged source. It retries briefly for propagation, so the previous cached version cannot count as a successful new deployment.
 
 ### Deployment diagnosis (2026-11-15)
 
@@ -84,6 +86,14 @@ Shahid and Turkish subtitle evidence now includes `verified_on` and expires afte
 The kids filter ignores blank Saudi certifications before considering US ratings, while a nonblank Saudi rating still takes precedence. It searches a larger pool without loosening the configured ratings. Returning Seasons searches upcoming air dates over 60 days, then checks that the announced episode is episode 1 of season 2 or later. Both rows may legitimately remain empty.
 
 Ten BetterPosters rows and three personal recommendation rows require their respective addons in Nuvio. This static public website does not access your installed addons, viewing history, or private accounts. Personal history must not be copied into a public Pages build. Genre/mood folders must be arranged in Nuvio if its installed version supports that feature.
+
+### Genre and mood browsing (version 1.2.0)
+
+The 12 genre labels and 8 mood labels each get separate movie and series rows, such as `Genre · Action · Movies`, `Genre · Action · Series`, and `Mood · Feel-Good · Movies`. They follow the original addon rows in the manifest. The 58 original definitions are preserved; `status.json` reports `original_planned: 58`, `browse_planned: 40`, and `planned: 98`. Only populated rows appear in the manifest.
+
+Movies use TMDB movie genres. Series use TV genres, with exact keyword matches where a movie genre has no TV equivalent or TMDB combines two TV genres. If no matching keyword exists, the row stays held instead of becoming an unrelated general catalog. Moods use editorial genre, keyword, rating and runtime filters; they are subjective discovery lists, not age classifications or streaming-availability claims.
+
+BetterPosters Discovery is first in `grouping-plan.json` and the complete saved plan. Its ten rows still come from the separate BetterPosters addon, so this repository cannot move that addon ahead of N1 on your device. Arrange installed addon/catalog order in Nuvio where supported. This change does not duplicate or relabel BetterPosters rows.
 
 ### Attribution
 
