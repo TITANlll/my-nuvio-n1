@@ -71,11 +71,11 @@ The deployment job also checks the URL returned by Pages against the version in 
 
 ### Deployment diagnosis (2026-11-15)
 
-The first two runs failed because no TMDB credential was configured. A later run generated and uploaded successfully, but `deploy-pages` found no artifact metadata immediately after upload. Run [43665862169](https://github.com/TITANlll/my-nuvio-n1/actions/runs/43665862169) succeeded after separating build and deployment and adding a delay. The workflow keeps separate jobs and now checks artifact visibility for up to 60 seconds instead of sleeping a fixed interval. It derives the build URL from Pages configuration and grants Pages write/OIDC permissions only to deployment. If artifact visibility times out, retry the failed deployment job. A failure after deployment in the live verification step means Pages was published but the endpoint checks need investigation.
+The first two runs failed because no TMDB credential was configured. A later run generated and uploaded successfully, but `deploy-pages` found no artifact metadata immediately after upload. Run [43665862169](https://github.com/TITANlll/my-nuvio-n1/actions/runs/43665862169) succeeded after separating build and deployment and adding a delay. The workflow keeps separate jobs and now checks artifact visibility for up to 60 seconds instead of sleeping a fixed interval. It derives the build URL from Pages configuration and grants Pages write/OIDC permissions only to deployment. Artifacts have distinct build-attempt names; the build passes its actual artifact name to deployment, so a build retry cannot create ambiguous duplicate artifacts and a deployment-only retry still selects the correct build. If artifact visibility times out, retry the failed deployment job. A failure after deployment in the live verification step means Pages was published but the endpoint checks need investigation.
 
 Review and merge the proposed changes to `main` to activate the updated workflow; review branches do not publish over the existing site.
 
-To generate locally, set `TMDB_BEARER_TOKEN` and `PAGE_URL` to the actual public HTTPS base URL, then run `python generate.py`. The generator uses only the Python standard library. If live source APIs cannot be accessed from the build runner, the affected catalogs remain held, not replaced with sample content.
+To generate locally, set `TMDB_BEARER_TOKEN` and `PAGE_URL` to the actual public HTTPS base URL, then run `python generate.py`. The generator uses only the Python standard library. The official Netflix chart is a required source: if it cannot be downloaded, validated or mapped after retries, the build stops before replacing output, preserving the previous published website. Other unavailable catalogs remain held, not replaced with sample content.
 
 ### Missing-row fixes and remaining setup
 
@@ -94,6 +94,12 @@ The 12 genre labels and 8 mood labels each get separate movie and series rows, s
 Movies use TMDB movie genres. Series use TV genres, with exact keyword matches where a movie genre has no TV equivalent or TMDB combines two TV genres. If no matching keyword exists, the row stays held instead of becoming an unrelated general catalog. Moods use editorial genre, keyword, rating and runtime filters; they are subjective discovery lists, not age classifications or streaming-availability claims.
 
 BetterPosters Discovery is first in `grouping-plan.json` and the complete saved plan. Its ten rows still come from the separate BetterPosters addon, so this repository cannot move that addon ahead of N1 on your device. Arrange installed addon/catalog order in Nuvio where supported. This change does not duplicate or relabel BetterPosters rows.
+
+### Netflix download recovery (version 1.2.1)
+
+The official country TSV is about 32 MB. An interrupted transfer raises `http.client.IncompleteRead`, which is not an `OSError` and previously bypassed the retry loop. The downloader now retries the entire response, discards partial bytes, and gives this large source up to five attempts with a 120-second timeout per attempt. Normal API requests retain their existing timeout.
+
+Before mapping titles, validate the required columns and the latest Saudi movie and TV charts, each with ten unique ranks from 1 through 10. At least one reliably mapped title is required in each feed. Original ranks and chart week remain in descriptions; ambiguous matches are skipped. Exhausted downloads, invalid charts or unmappable feeds stop publication instead of silently removing the Netflix rows. No request URLs or exception messages are logged.
 
 ### Attribution
 
