@@ -36,7 +36,7 @@ ALL = json.loads((ROOT / 'catalogs.json').read_text())
 VERIFIED = json.loads((ROOT / 'data' / 'verified.json').read_text())
 BETTERPOSTERS_PATTERN = os.getenv('BETTERPOSTERS_POSTER_PATTERN','').strip()
 CACHE = {}
-ADDON_VERSION = '1.2.1'
+ADDON_VERSION = '1.2.2'
 
 
 def catalog_plan():
@@ -148,6 +148,52 @@ def fetch_discover(spec, *, max_pages=3, pool_size=None):
         if len(items) >= (pool_size if pool_size is not None else LIMIT + 20):
             break
     return kind, items
+
+
+
+def shahid_provider_id(kind):
+    """Resolve Shahid VIP in the TMDB watch-provider registry, not by guessing an ID.
+
+    The provider's JustWatch coverage reflects regional catalog availability,
+    not Shahid's own ranking or exact subscription entitlement.
+    """
+    providers = tmdb('/watch/providers/' + kind).get('results', [])
+    for provider in providers:
+        if str(provider.get('provider_name', '')).strip().casefold() in ('shahid vip', 'shahid'):
+            provider_id = provider.get('provider_id')
+            if isinstance(provider_id, int) and provider_id > 0:
+                return provider_id
+    return None
+
+
+def discover_shahid(spec):
+    kind = media_type(spec)
+    provider_id = shahid_provider_id(kind)
+    if provider_id is None:
+        return [], 'Shahid VIP is not listed as a TMDB provider for this media type'
+    params = dict(spec.get('params', {}))
+    # Never freeze the publication cutoff at the day the code was written.
+    date_field = 'primary_release_date.lte' if kind == 'movie' else 'first_air_date.lte'
+    params[date_field] = str(TODAY)
+    params.update({
+        'watch_region': 'SA',
+        'with_watch_providers': str(provider_id),
+        'with_watch_monetization_types': 'flatrate',
+    })
+    _, items = fetch_discover({**spec, 'params': params}, max_pages=6, pool_size=180)
+    results = []
+    used = set()
+    for item in items:
+        poster = preview(kind, item, verified_note=spec.get('note'))
+        if not poster or poster['id'] in used:
+            continue
+        used.add(poster['id'])
+        results.append(poster)
+        if len(results) >= LIMIT:
+            break
+    if len(results) < 5:
+        return [], 'Fewer than five Shahid Saudi titles with reliable IMDb poster metadata'
+    return results, ''
 
 
 def fetch_keyword(spec, **discovery_options):
@@ -386,7 +432,11 @@ def catalog(spec, netflix=None):
         return None,'Handled by independently installed BetterPosters / personalized addon'
     if mode=='verified':
         rows=fetch_verified(spec)
+        if spec['group']=='Shahid Arabic Exclusives' and len(rows) < 5:
+            return [], 'Curated Shahid row withheld until five verified titles are available'
         return rows,('Awaiting verified entries and source evidence' if not rows else '')
+    if mode=='discover_provider' and spec.get('provider')=='shahid':
+        return discover_shahid(spec)
     if mode=='netflix_official':
         rows=(netflix or {}).get(spec['kind'],[])
         return rows,('Official Netflix data unavailable or unmatched' if not rows else '')
