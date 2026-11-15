@@ -1,0 +1,272 @@
+[
+  {
+    "id": "cd3df8ac-44fa-4a90-8c81-80e55e22a005",
+    "title": "Streaming & Turkish",
+    "pinToTop": false,
+    "focusGlowEnabled": true,
+    "viewMode": "TABBED_GRID",
+    "showAllTab": true,
+    "backdropImageUrl": null,
+    "folders": [
+      {
+        "id": "cb89cc1e-bf93-438a-b314-bc5a4b234b01",
+        "title": "Netflix",
+        "hideTitle": true,
+        "coverImageUrl": "https://raw.githubusercontent.com/rrevanth/nuvio-assets/main/streaming/netflix/netflix-landscape.gif",
+        "coverEmoji": null,
+        "focusGifUrl": null,
+        "focusGifEnabled": false,
+        "heroBackdropUrl": null,
+        "heroVideoUrl": null,
+        "titleLogoUrl": null,
+        "tileShape": "LANDSCAPE",
+        "catalogSources": [
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "netflix_sa_top_movies",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "netflix_sa_top_series",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "netflix_sa_popular_movies",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "netflix_sa_popular_series",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "netflix_sa_crime_series",
+            "genre": null
+          }
+        ],
+        "sources": [
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "netflix_sa_top_movies",
+            "genre": "None"
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "netflix_sa_top_series",
+            "genre": "None"
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "netflix_sa_popular_movies",
+            "genre": "None"
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "netflix_sa_popular_series",
+            "genre": "None"
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "netflix_sa_crime_series",
+            "genre": "None"
+          }
+        ]
+      },
+      {
+        "id": "c1dd14c3-c0d1-4218-995b-4c7254e851a2",
+        "title": "Shahid",
+        "hideTitle": true,
+        "coverImageUrl": "https://shahid.mbc.net/mediaObject/shahidlogo/light/Shahid_logo_light/original/Shahid_logo_light.png?height=178&width=auto&croppingPoint=mc&type=webp",
+        "coverEmoji": null,
+        "focusGifUrl": null,
+        "focusGifEnabled": false,
+        "heroBackdropUrl": null,
+        "heroVideoUrl": null,
+        "titleLogoUrl": null,
+        "tileShape": "LANDSCAPE",
+        "catalogSources": [
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "shahid_top_arabic_series",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "shahid_top_arabic_movies",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "shahid_home_saudi_series",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "shahid_home_arabic_drama",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "shahid_home_arabic_comedy",
+            "genre": null
+          }
+        ],
+        "sources": [
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "shahid_top_arabic_series",
+            "genre": "None"
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "shahid_top_arabic_movies",
+            "genre": "None"
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "shahid_home_saudi_series",
+            "genre": "None"
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "shahid_home_arabic_drama",
+            "genre": "None"
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "shahid_home_arabic_comedy",
+            "genre": "None"
+          }
+        ]
+      },
+      {
+        "id": "72578b37-0f9a-4dc4-89df-5d012e78d0bb",
+        "title": "Turkish Series",
+        "hideTitle": true,
+        "coverImageUrl": "https://raw.githubusercontent.com/izlemeli/nuvio/main/collections/turkish-turkish-series.jpg",
+        "coverEmoji": null,
+        "focusGifUrl": null,
+        "focusGifEnabled": false,
+        "heroBackdropUrl": null,
+        "heroVideoUrl": null,
+        "titleLogoUrl": null,
+        "tileShape": "LANDSCAPE",
+        "catalogSources": [
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "turkish_top_series",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "turkish_trending_series",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "turkish_streaming_originals",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "turkish_new_series",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "turkish_new_episodes",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "netflix_turkish_series",
+            "genre": null
+          }
+        ],
+        "sources": [
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "turkish_top_series",
+            "genre": "None"
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "turkish_trending_series",
+            "genre": "None"
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "turkish_streaming_originals",
+            "genre": "None"
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "turkish_new_series",
+            "genre": "None"
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "turkish_new_episodes",
+            "genre": "None"
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "netflix_turkish_series",
+            "genre": "None"
+          }
+        ]
+      }
+    ]
+  }
+]
