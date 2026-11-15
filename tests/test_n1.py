@@ -53,10 +53,11 @@ class BuildTests(unittest.TestCase):
         self.assertEqual(status['original_planned'], 58)
         self.assertEqual(status['browse_planned'], 40)
         self.assertEqual(status['shahid_home_planned'], 6)
-        self.assertEqual(status['planned'], 104)
-        self.assertEqual(len(status['catalogs']), 104)
+        self.assertEqual(status['netflix_home_planned'], 6)
+        self.assertEqual(status['planned'], 110)
+        self.assertEqual(len(status['catalogs']), 110)
         groups = json.loads((self.out / 'grouping-plan.json').read_text())
-        self.assertEqual(sum(map(len, groups.values())), 104)
+        self.assertEqual(sum(map(len, groups.values())), 110)
         self.assertEqual(next(iter(groups)), 'BetterPosters Discovery')
         self.assertIn(g.BASE + '/manifest.json', (self.out / 'index.html').read_text())
 
@@ -77,10 +78,60 @@ class BuildTests(unittest.TestCase):
         originals = {(r['type'], r['id']) for r in g.ALL}
         self.assertFalse(originals & {(r['type'], r['id']) for r in rows})
         planned = g.catalog_plan()
-        self.assertEqual(len(planned), 104)
-        self.assertEqual(len({(r['type'], r['id']) for r in planned}), 104)
+        self.assertEqual(len(planned), 110)
+        self.assertEqual(len({(r['type'], r['id']) for r in planned}), 110)
         for r in rows:
             self.assertEqual(sum(p['id'] == r['id'] for p in planned), 1)
+
+    def test_netflix_home_rows_preserve_originals_and_do_not_claim_official_ranks(self):
+        from netflix_home_rows import build_netflix_home_rows
+        rows = build_netflix_home_rows()
+        self.assertEqual(len(rows), 6)
+        self.assertEqual(len({r['id'] for r in rows}), 6)
+        self.assertTrue(all(r['mode'] == 'netflix_discover' for r in rows))
+        self.assertTrue(all(r['group'] == 'Netflix Saudi' for r in rows))
+        self.assertTrue(all(r['params']['watch_region'] == 'SA'
+                            and r['params']['with_watch_providers'] == '8'
+                            and r['params']['with_watch_monetization_types'] == 'flatrate'
+                            for r in rows))
+        self.assertTrue(all('TMDB' in r['name'] for r in rows))
+        self.assertFalse(any('official' in r['name'].lower() for r in rows))
+        self.assertEqual(len(g.catalog_plan()), 110)
+        self.assertFalse({(r['type'], r['id']) for r in rows} &
+                         {(r['type'], r['id']) for r in g.ALL})
+
+    def test_new_netflix_series_discovery_filters_region_and_dynamic_dates(self):
+        from netflix_home_rows import build_netflix_home_rows
+        spec = next(r for r in build_netflix_home_rows()
+                    if r['id'] == 'netflix_sa_recent_series')
+        items = [{'id': i} for i in range(1, 19)]
+        def fake_preview(kind, item, **kw):
+            return {'id': 'tt' + str(item['id']).zfill(7), 'type': 'series',
+                    'name': 'Test', 'poster': 'https://image.tmdb.org/t/p/w500/test.jpg'}
+        with patch.object(g, 'fetch_discover', return_value=('tv', items)) as fetched, \
+                patch.object(g, 'preview', side_effect=fake_preview):
+            rows, reason = g.catalog(spec)
+        self.assertEqual(len(rows), g.LIMIT)
+        self.assertEqual(reason, '')
+        query = fetched.call_args.args[0]['params']
+        self.assertEqual(query['watch_region'], 'SA')
+        self.assertEqual(query['with_watch_providers'], '8')
+        self.assertEqual(query['first_air_date.gte'],
+                         str(g.TODAY - g.timedelta(days=730)))
+        self.assertEqual(query['first_air_date.lte'], str(g.TODAY))
+        self.assertEqual(query['sort_by'], 'first_air_date.desc')
+
+    def test_netflix_discovery_suppresses_sparse_or_duplicated_catalogs(self):
+        from netflix_home_rows import build_netflix_home_rows
+        spec = next(r for r in build_netflix_home_rows()
+                    if r['id'] == 'netflix_sa_popular_series')
+        items = [{'id': 1}, {'id': 1}, {'id': 2}]
+        with patch.object(g, 'fetch_discover', return_value=('tv', items)), \
+                patch.object(g, 'preview', side_effect=lambda kind, item, **kw: {
+                    'id': 'tt' + str(item['id']).zfill(7), 'type': 'series'}):
+            rows, reason = g.catalog(spec)
+        self.assertEqual(rows, [])
+        self.assertIn('Fewer than five', reason)
 
     def test_no_active_catalogs_fails_build(self):
         with self.assertRaisesRegex(SystemExit, 'No catalogs'):
