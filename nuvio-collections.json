@@ -37,6 +37,51 @@
           },
           {
             "addonId": "com.mynuvio.buildn1",
+            "catalogId": "netflix_sa_public_arab_series",
+            "type": "series"
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "catalogId": "netflix_sa_public_arab_movies",
+            "type": "movie"
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "catalogId": "netflix_sa_public_arab_tv_comedies",
+            "type": "series"
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "catalogId": "netflix_sa_public_arab_comedy_movies",
+            "type": "movie"
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "catalogId": "netflix_sa_public_arab_action_movies",
+            "type": "movie"
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "catalogId": "netflix_sa_public_arab_drama_movies",
+            "type": "movie"
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "catalogId": "netflix_sa_public_arab_weekend_series",
+            "type": "series"
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "catalogId": "netflix_sa_public_arab_emotional_movies",
+            "type": "movie"
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "catalogId": "netflix_sa_public_only_on_netflix",
+            "type": "series"
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
             "catalogId": "netflix_sa_highly_rated_movies",
             "type": "movie"
           },
