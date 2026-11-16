@@ -9,6 +9,7 @@ from urllib.error import HTTPError
 
 import generate as g
 import verify_site
+from browse_catalogs import BROWSE_GROUPS
 
 
 class BuildTests(unittest.TestCase):
@@ -46,7 +47,10 @@ class BuildTests(unittest.TestCase):
         expected = [s for s in g.catalog_plan() if s['mode'] != 'external']
         self.assertEqual(len(manifest['catalogs']), len(expected))
         for spec, entry in zip(expected, manifest['catalogs']):
-            self.assertEqual(entry, {k: spec[k] for k in ('type', 'id', 'name')})
+            descriptor = {k: spec[k] for k in ('type', 'id', 'name')}
+            if spec['group'] in BROWSE_GROUPS:
+                descriptor['extra'] = [{'name': 'skip', 'isRequired': False}]
+            self.assertEqual(entry, descriptor)
             route = self.out / 'catalog' / entry['type'] / (entry['id'] + '.json')
             self.assertEqual(json.loads(route.read_text())['metas'][0]['id'], 'tt1234567')
         status = json.loads((self.out / 'status.json').read_text())

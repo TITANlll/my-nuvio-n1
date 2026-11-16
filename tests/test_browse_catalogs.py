@@ -1,5 +1,6 @@
 import contextlib
 import copy
+import gzip
 import io
 import json
 import tempfile
@@ -10,7 +11,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import generate as g
-from browse_catalogs import build_browse_catalogs
+from browse_catalogs import BROWSE_PAGE_SIZE, build_browse_catalogs
 
 
 class BrowseCatalogTests(unittest.TestCase):
@@ -156,6 +157,66 @@ class BrowseCatalogTests(unittest.TestCase):
             rows, reason = g.catalog(spec)
         self.assertEqual(rows, [])
         self.assertIn('No reliable IMDb', reason)
+
+    def test_paginated_mood_keeps_source_order_and_resolves_missing_ids(self):
+        spec = next(row for row in self.rows if row['id'] == 'browse_mood_mind_bending_series')
+        source = [
+            {'id': i, 'name': f'Title {i}', 'poster_path': f'/{i}.jpg'}
+            for i in range(1, 249)
+        ]
+        source.insert(22, source[0])
+        source[23].pop('poster_path')
+        ids = {('tv', i): f'tt{i:07d}' for i in range(1, 249)}
+        ids['tv', 24] = ids['tv', 1]
+        del ids['tv', 248]
+
+        def tmdb(path, params, *, cache=True):
+            if path == '/search/keyword':
+                return {'results': [{'id': 99, 'name': 'time travel'}]}
+            self.assertEqual(path, '/discover/tv')
+            self.assertFalse(cache)
+            self.assertEqual(params['with_keywords'], '99')
+            self.assertEqual({k: params[k] for k in spec['params']}, spec['params'])
+            start = (params['page'] - 1) * 20
+            return {'results': source[start:start + 20], 'total_pages': 13}
+
+        with patch.object(g, 'tmdb', side_effect=tmdb), \
+                patch.object(g, 'browse_imdb_ids', return_value=ids), \
+                patch.object(g, 'external_id', return_value='tt0000248') as external:
+            rows, reason = g.catalog(spec)
+        external.assert_called_once_with('tv', 248)
+        self.assertEqual(reason, '')
+        self.assertEqual([row['id'] for row in rows],
+                         [f'tt{i:07d}' for i in range(1, 249) if i not in {23, 24}])
+
+    def test_browse_publisher_matches_clients_actual_skip_offsets(self):
+        spec = self.rows[0]
+        rows = [{'id': f'tt{i:07d}', 'type': spec['type'], 'name': f'Title {i}'}
+                for i in range(247)]
+        with tempfile.TemporaryDirectory() as temp:
+            stage = Path(temp)
+            entry = g.publish_catalog(stage, spec, rows)
+            self.assertIn({'name': 'skip', 'isRequired': False}, entry['extra'])
+            route = stage / 'catalog' / spec['type'] / spec['id']
+            first = json.loads(route.with_suffix('.json').read_text())['metas']
+            self.assertEqual(len(first), BROWSE_PAGE_SIZE)
+            loaded = first.copy()
+            while len(loaded) < len(rows):
+                current = json.loads((route / f'skip={len(loaded)}.json').read_text())['metas']
+                self.assertTrue(current)
+                loaded.extend(current)
+            self.assertEqual(loaded, rows)
+            for end in (247, 300):
+                self.assertEqual(json.loads((route / f'skip={end}.json').read_text()), {'metas': []})
+
+    def test_browse_imdb_map_uses_media_type_and_ignores_conflicts(self):
+        data = gzip.compress(b'TMDB ID,TMDB Type,IMDB ID\n'
+                             b'99,tv,tt1234567\n99,movie,tt7654321\n'
+                             b'92,tv,tt3131313\n92,tv,tt5555555\n10,tv,\n')
+        load_map = g.browse_imdb_ids.__wrapped__
+        with patch.object(g, 'fetch', return_value=data):
+            self.assertEqual(load_map(), {('tv', 99): 'tt1234567', ('movie', 99): 'tt7654321',
+                                          ('tv', 92): None})
 
 
 if __name__ == '__main__':

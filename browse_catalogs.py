@@ -2,6 +2,9 @@
 import re
 
 
+BROWSE_GROUPS = ('Genres', 'Moods')
+BROWSE_PAGE_SIZE = 100
+
 MOVIE_GENRES = {
     'Action': '28', 'Comedy': '35', 'Romance': '10749', 'Horror': '27',
     'Mystery': '9648', 'Thriller': '53', 'Sci-Fi': '878', 'Fantasy': '14',
@@ -49,7 +52,7 @@ def mood_filters(label, kind):
 def build_browse_catalogs(labels, today):
     """One movie and one series row per saved label; never modify the N1 plan."""
     rows = []
-    for group in ('Genres', 'Moods'):
+    for group in BROWSE_GROUPS:
         for label in labels[group]:
             for kind in ('movie', 'series'):
                 params = {'sort_by': 'popularity.desc', 'include_adult': 'false',

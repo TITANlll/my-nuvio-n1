@@ -7,6 +7,7 @@ subtitle and awards claims require a human-verifiable allowlist.
 """
 from __future__ import annotations
 import csv
+import gzip
 import io
 import json
 import os
@@ -17,14 +18,16 @@ import sys
 import time
 import unicodedata
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date, timedelta, datetime, timezone
 from functools import lru_cache
 from pathlib import Path
+from threading import Lock
 from urllib.parse import urlencode, quote
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 from http.client import IncompleteRead
-from browse_catalogs import build_browse_catalogs
+from browse_catalogs import BROWSE_GROUPS, BROWSE_PAGE_SIZE, build_browse_catalogs
 from shahid_home_rows import build_shahid_home_rows
 from netflix_home_rows import build_netflix_home_rows, build_netflix_release_rows
 from netflix_public_rows import build_public_netflix_rows
@@ -39,13 +42,18 @@ API_KEY = os.getenv('TMDB_API_KEY', '').strip()
 TOKEN = os.getenv('TMDB_BEARER_TOKEN', '').strip()
 BASE = os.getenv('PAGE_URL', '').strip().rstrip('/')
 LIMIT = max(5, min(30, int(os.getenv('ITEMS_PER_ROW', '15'))))
-# Netflix collection only; all other catalog sizes retain their existing limit.
+# Netflix-only row size. Genre and mood feeds use the browse page size.
 NETFLIX_LIMIT = max(10, min(40, int(os.getenv('NETFLIX_ITEMS_PER_ROW', '35'))))
 ALL = json.loads((ROOT / 'catalogs.json').read_text())
 VERIFIED = json.loads((ROOT / 'data' / 'verified.json').read_text())
 BETTERPOSTERS_PATTERN = os.getenv('BETTERPOSTERS_POSTER_PATTERN','').strip()
 CACHE = {}
-ADDON_VERSION = '1.7.1'
+TMDB_MAX_DISCOVER_PAGES = 500
+TMDB_REQUEST_INTERVAL = 1 / 25
+TMDB_REQUEST_LOCK = Lock()
+tmdb_next_request = 0.0
+WATCHMODE_ID_MAP_URL = 'https://api.watchmode.com/datasets/title_id_map.csv'
+ADDON_VERSION = '1.8.0'
 
 
 def catalog_plan():
@@ -75,27 +83,39 @@ def fetch(url, *, headers=None, retries=3, timeout=40):
         try:
             with urlopen(Request(url, headers={**{'User-Agent':'MyNuvioN1/1.0 (+personal catalog)'}, **(headers or {})}), timeout=timeout) as r:
                 return r.read()
-        except (OSError, HTTPError, IncompleteRead):
+        except (OSError, HTTPError, IncompleteRead) as err:
             # An interrupted HTTP body is not an OSError. Discard its partial
             # bytes and restart the entire request; a truncated chart can
             # silently omit countries or weeks if parsed as valid TSV.
             if attempt == retries - 1:
                 raise
-            time.sleep(2 ** attempt)
+            delay = 2 ** attempt
+            if isinstance(err, HTTPError) and err.code == 429 and err.headers:
+                retry_after = err.headers.get('Retry-After', '')
+                if retry_after.isdecimal():
+                    delay = max(delay, int(retry_after))
+            time.sleep(delay)
 
 
-def tmdb(path, params=None):
+def tmdb(path, params=None, *, cache=True):
+    global tmdb_next_request
     if not (API_KEY or TOKEN):
         raise RuntimeError('TMDB_API_KEY or TMDB_BEARER_TOKEN is required')
     query = {'language':'en-US', **(params or {})}
     if API_KEY:
         query['api_key'] = API_KEY
     url = 'https://api.themoviedb.org/3' + path + '?' + urlencode(query)
-    if url in CACHE:
+    if cache and url in CACHE:
         return CACHE[url]
+    with TMDB_REQUEST_LOCK:
+        delay = tmdb_next_request - time.monotonic()
+        if delay > 0:
+            time.sleep(delay)
+        tmdb_next_request = time.monotonic() + TMDB_REQUEST_INTERVAL
     headers = {'Authorization':'Bearer ' + TOKEN} if TOKEN else {}
     value = json.loads(fetch(url, headers=headers))
-    CACHE[url] = value
+    if cache:
+        CACHE[url] = value
     return value
 
 
@@ -126,8 +146,8 @@ def details(kind, tmdb_id):
     return tmdb(f'/{kind}/{tmdb_id}')
 
 
-def preview(kind, item, *, verified_note=None, source_rank=None, source_week=None):
-    imdb = external_id(kind, item['id'])
+def preview(kind, item, *, verified_note=None, source_rank=None, source_week=None, imdb_id=None):
+    imdb = imdb_id or external_id(kind, item['id'])
     if not imdb:
         return None
     title = item.get('title' if kind == 'movie' else 'name')
@@ -497,7 +517,7 @@ def fetch_public_netflix(spec):
     return [], f'Fewer than {minimum} unambiguous IMDb matches from Netflix public page'
 
 
-def fetch_keyword(spec, **discovery_options):
+def resolve_keyword_spec(spec):
     params = dict(spec.get('params', {}))
     keywords=[]
     for phrase in spec['keyword'].split('|'):
@@ -507,9 +527,86 @@ def fetch_keyword(spec, **discovery_options):
         if exact:
             keywords.append(str(exact['id']))
     if not keywords:
-        return media_type(spec), []
+        return None
     params['with_keywords'] = '|'.join(keywords)
-    return fetch_discover({**spec,'params':params}, **discovery_options)
+    return {**spec, 'params':params}
+
+
+def fetch_keyword(spec, **discovery_options):
+    resolved = resolve_keyword_spec(spec)
+    if resolved is None:
+        return media_type(spec), []
+    return fetch_discover(resolved, **discovery_options)
+
+
+@lru_cache(maxsize=1)
+def browse_imdb_ids():
+    """Join the public ID map by TMDB type and ID to avoid a request per title."""
+    ids = {}
+    try:
+        payload = fetch(WATCHMODE_ID_MAP_URL, headers={'Accept-Encoding': 'gzip'}, timeout=90)
+        data = io.BytesIO(payload)
+        if payload.startswith(b'\x1f\x8b'):
+            data = gzip.GzipFile(fileobj=data)
+        with io.TextIOWrapper(data, encoding='utf-8-sig', newline='') as source:
+            records = csv.DictReader(source)
+            if not {'TMDB Type', 'TMDB ID', 'IMDB ID'} <= set(records.fieldnames or []):
+                raise ValueError('Missing Watchmode ID columns')
+            for record in records:
+                kind = record['TMDB Type']
+                tmdb_id = record['TMDB ID'] or ''
+                imdb_id = record['IMDB ID'] or ''
+                if kind in ('movie', 'tv') and tmdb_id.isdecimal() and re.fullmatch(r'tt\d+', imdb_id):
+                    key = (kind, int(tmdb_id))
+                    if ids.setdefault(key, imdb_id) != imdb_id:
+                        ids[key] = None
+    except (OSError, IncompleteRead, EOFError, ValueError, csv.Error) as err:
+        print(f'Browse ID map unavailable ({safe_error(err)}); using TMDB external IDs', flush=True)
+        return {}
+    return ids
+
+
+def fetch_browse_catalog(spec):
+    if spec['mode'] == 'discover_keyword':
+        spec = resolve_keyword_spec(spec)
+        if spec is None:
+            return []
+    kind = media_type(spec)
+    path = '/discover/' + kind
+    params = spec['params']
+    first = tmdb(path, {**params, 'page': 1}, cache=False)
+    if not first['results']:
+        return []
+    page_count = min(first['total_pages'], TMDB_MAX_DISCOVER_PAGES)
+    imdb_ids = browse_imdb_ids()
+
+    def read_page(page):
+        return first if page == 1 else tmdb(path, {**params, 'page': page}, cache=False)
+
+    def make_preview(item):
+        return preview(kind, item, verified_note=spec.get('note'),
+                       imdb_id=imdb_ids.get((kind, item['id'])))
+
+    rows = []
+    seen_tmdb = set()
+    seen_imdb = set()
+    batch_size = 12
+    with ThreadPoolExecutor(max_workers=batch_size) as pool:
+        # map preserves source order even when responses complete out of order.
+        for start in range(1, page_count + 1, batch_size):
+            pages = range(start, min(start + batch_size, page_count + 1))
+            candidates = []
+            for response in pool.map(read_page, pages):
+                for item in response['results']:
+                    tmdb_id = item.get('id')
+                    if tmdb_id and item.get('poster_path') and tmdb_id not in seen_tmdb:
+                        seen_tmdb.add(tmdb_id)
+                        candidates.append(item)
+            for item in pool.map(make_preview, candidates):
+                if item and item['id'] not in seen_imdb:
+                    seen_imdb.add(item['id'])
+                    rows.append(item)
+    return rows
 
 
 def fetch_verified(spec):
@@ -799,6 +896,9 @@ def catalog(spec, netflix=None):
     if mode=='netflix_official':
         rows=(netflix or {}).get(spec['kind'],[])
         return rows,('Official Netflix data unavailable or unmatched' if not rows else '')
+    if spec.get('group') in BROWSE_GROUPS:
+        rows = fetch_browse_catalog(spec)
+        return rows, '' if rows else 'No reliable IMDb-mapped titles returned'
     if mode in ('discover','discover_keyword'):
         if spec['id']=='netflix_sa_new':
             spec={**spec,'params':{**spec['params'],
@@ -836,6 +936,24 @@ def write_json(filename,data):
     filename.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
 
 
+def publish_catalog(stage, spec, rows):
+    route = stage / 'catalog' / spec['type'] / spec['id']
+    entry = {key: spec[key] for key in ('type', 'id', 'name')}
+    if spec['group'] in BROWSE_GROUPS:
+        entry['extra'] = [{'name': 'skip', 'isRequired': False}]
+        for offset in range(BROWSE_PAGE_SIZE, len(rows), BROWSE_PAGE_SIZE):
+            write_json(route / f'skip={offset}.json', {'metas': rows[offset:offset + BROWSE_PAGE_SIZE]})
+        # Clients can advance by the actual size of a partial final page or by 100.
+        end = len(rows)
+        write_json(route / f'skip={end}.json', {'metas': []})
+        rounded_end = ((end + BROWSE_PAGE_SIZE - 1) // BROWSE_PAGE_SIZE) * BROWSE_PAGE_SIZE
+        if rounded_end != end:
+            write_json(route / f'skip={rounded_end}.json', {'metas': []})
+        rows = rows[:BROWSE_PAGE_SIZE]
+    write_json(route.with_name(route.name + '.json'), {'metas': rows})
+    return entry
+
+
 def safe_error(err):
     # Exception messages can contain request URLs with TMDB API keys.
     # Publish only the exception class and, for HTTP failures, the status code.
@@ -871,9 +989,7 @@ def main():
                     else:
                         for item in rows:
                             item.pop('_tmdb_score', None)
-                    path=stage/'catalog'/spec['type']/(spec['id']+'.json')
-                    write_json(path,{'metas':rows})
-                    active.append({'type':spec['type'],'id':spec['id'],'name':spec['name']})
+                    active.append(publish_catalog(stage, spec, rows))
                     state='active'
                 else:
                     state='external' if spec['mode']=='external' else 'held'
@@ -909,6 +1025,7 @@ def main():
             folders.setdefault(x['group'],[]).append(x['id'])
         write_json(stage/'grouping-plan.json',folders)
         html='''<!DOCTYPE html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>My Nuvio Build N1</title><style>body{font:16px system-ui;background:#10131a;color:#f6f6f9;max-width:800px;margin:auto;padding:24px}a{color:#9bd1ff}code{background:#262d39;padding:8px;border-radius:6px;display:block;overflow-wrap:anywhere}</style><h1>My Nuvio · Build N1</h1><p>Catalog-only addon. Stream and subtitle addons remain separate.</p><h2>Install URL</h2><code>'''+BASE+'''/manifest.json</code><p><a href="manifest.json">Open manifest</a> · <a href="status.json">See feed status and skipped catalogs</a> · <a href="grouping-plan.json">Grouping plan</a></p><p>Official Netflix weekly country charts where mapped; other feeds are labeled by source. Exclusive claims need verified evidence. Turkish discovery rows do not confirm Arabic subtitles or playback availability. TMDB attribution: This product uses the TMDB API but is not endorsed or certified by TMDB.</p></html>'''
+        html = html.replace('</html>', '<p>IMDb and TMDB ID crosswalk by <a href="https://www.watchmode.com/">Watchmode</a>.</p></html>')
         (stage/'index.html').write_text(html,encoding='utf-8')
         previous = OUT.with_name(OUT.name + '.previous')
         if previous.exists():

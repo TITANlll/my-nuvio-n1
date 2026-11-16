@@ -182,3 +182,9 @@ The movie row keeps Netflix's weekly Saudi order. The builder checks title IDs a
 The daily build reads the public Saudi genre pages in their published order. The Netflix folder includes Children & Family Movies, Kids TV Shows, Arabic Action Movies and the Arabic page's `New on Netflix` movie and series selections. Editorial categories have dated fallback selections. When Netflix omits its public `New on Netflix` row, the build can use the confirmed, dated selection for up to seven days.
 
 New Arabic & Gulf Movies and Series use a rolling 30-day window, original Arabic audio, and Netflix subscription availability in Saudi Arabia from TMDB/JustWatch. Movies use the release date or a documented Saudi digital release. Series use premiere dates for the show or a season. Credits are read per title, including smaller or newly indexed networks and studios. Netflix's own `New on Netflix` row provides its current editorial picks separately from those release dates.
+
+### Genre and mood browsing (version 1.8.0)
+
+All 40 existing genre and mood sources support scrolling through pages of 100 posters in Nuvio collection folders. The build follows each TMDB Discover query through its available pages, up to TMDB's 500-page query limit. It keeps the existing filters and popularity order and deduplicates by IMDb ID within a source. Each source ends when its eligible posters run out. The catalog and collection IDs stay the same.
+
+The daily build uses the public [Watchmode title ID map](https://api.watchmode.com/) to match TMDB IDs with IMDb IDs in bulk and asks TMDB for missing or conflicting matches.
