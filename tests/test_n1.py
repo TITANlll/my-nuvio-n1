@@ -52,20 +52,20 @@ class BuildTests(unittest.TestCase):
         status = json.loads((self.out / 'status.json').read_text())
         self.assertEqual(status['original_planned'], 58)
         self.assertEqual(status['browse_planned'], 40)
-        self.assertEqual(status['shahid_home_planned'], 6)
+        self.assertEqual(status['shahid_home_planned'], 7)
         self.assertEqual(status['netflix_home_planned'], 6)
-        self.assertEqual(status['planned'], 110)
-        self.assertEqual(len(status['catalogs']), 110)
+        self.assertEqual(status['planned'], 111)
+        self.assertEqual(len(status['catalogs']), 111)
         groups = json.loads((self.out / 'grouping-plan.json').read_text())
-        self.assertEqual(sum(map(len, groups.values())), 110)
+        self.assertEqual(sum(map(len, groups.values())), 111)
         self.assertEqual(next(iter(groups)), 'BetterPosters Discovery')
         self.assertIn(g.BASE + '/manifest.json', (self.out / 'index.html').read_text())
 
     def test_shahid_home_rows_are_saudi_filtered_and_clearly_labeled(self):
         from shahid_home_rows import build_shahid_home_rows
         rows = build_shahid_home_rows()
-        self.assertEqual(len(rows), 6)
-        self.assertEqual(len({r['id'] for r in rows}), 6)
+        self.assertEqual(len(rows), 7)
+        self.assertEqual(len({r['id'] for r in rows}), 7)
         self.assertTrue(all(r['provider'] == 'shahid' and
                             r['mode'] == 'discover_provider' for r in rows))
         self.assertTrue(all('Shahid' in r['note'] and 'TMDB' in r['note']
@@ -75,11 +75,16 @@ class BuildTests(unittest.TestCase):
         self.assertIn('shahid_home_egyptian_series', ids)
         self.assertIn('shahid_home_turkish_movies', ids)
         self.assertIn('shahid_home_syrian_classics', ids)
+        self.assertIn('shahid_home_gulf_series', ids)
+        gulf = next(r for r in rows if r['id'] == 'shahid_home_gulf_series')
+        self.assertEqual(gulf['params']['with_original_language'], 'ar')
+        self.assertEqual(set(gulf['params']['with_origin_country'].split('|')),
+                         {'SA', 'KW', 'AE', 'BH', 'QA', 'OM'})
         originals = {(r['type'], r['id']) for r in g.ALL}
         self.assertFalse(originals & {(r['type'], r['id']) for r in rows})
         planned = g.catalog_plan()
-        self.assertEqual(len(planned), 110)
-        self.assertEqual(len({(r['type'], r['id']) for r in planned}), 110)
+        self.assertEqual(len(planned), 111)
+        self.assertEqual(len({(r['type'], r['id']) for r in planned}), 111)
         for r in rows:
             self.assertEqual(sum(p['id'] == r['id'] for p in planned), 1)
 
@@ -96,7 +101,7 @@ class BuildTests(unittest.TestCase):
                             for r in rows))
         self.assertTrue(all('TMDB' in r['name'] for r in rows))
         self.assertFalse(any('official' in r['name'].lower() for r in rows))
-        self.assertEqual(len(g.catalog_plan()), 110)
+        self.assertEqual(len(g.catalog_plan()), 111)
         self.assertFalse({(r['type'], r['id']) for r in rows} &
                          {(r['type'], r['id']) for r in g.ALL})
 
@@ -403,7 +408,14 @@ class BuildTests(unittest.TestCase):
                          'flatrate|free|ads')
         self.assertEqual(request['params']['first_air_date.lte'], str(g.TODAY))
         self.assertEqual(request['params']['sort_by'], 'popularity.desc')
+        self.assertEqual(request['params']['with_original_language'], 'ar')
         self.assertFalse(any('subtitle' in key for key in request['params']))
+
+    def test_shahid_core_discovery_is_arabic_only(self):
+        for ident in ('shahid_top_arabic_series', 'shahid_top_arabic_movies',
+                      'shahid_trending_arabic'):
+            spec = next(s for s in g.ALL if s['id'] == ident)
+            self.assertEqual(spec['params']['with_original_language'], 'ar')
 
     def test_shahid_unavailable_or_sparse_catalog_is_held(self):
         spec = next(x for x in g.ALL if x['id'] == 'shahid_top_arabic_movies')
