@@ -54,11 +54,12 @@ class BuildTests(unittest.TestCase):
         self.assertEqual(status['browse_planned'], 40)
         self.assertEqual(status['shahid_home_planned'], 7)
         self.assertEqual(status['netflix_home_planned'], 6)
-        self.assertEqual(status['netflix_public_planned'], 9)
-        self.assertEqual(status['planned'], 120)
-        self.assertEqual(len(status['catalogs']), 120)
+        self.assertEqual(status['netflix_release_planned'], 2)
+        self.assertEqual(status['netflix_public_planned'], 13)
+        self.assertEqual(status['planned'], 126)
+        self.assertEqual(len(status['catalogs']), 126)
         groups = json.loads((self.out / 'grouping-plan.json').read_text())
-        self.assertEqual(sum(map(len, groups.values())), 120)
+        self.assertEqual(sum(map(len, groups.values())), 126)
         self.assertEqual(next(iter(groups)), 'BetterPosters Discovery')
         self.assertIn(g.BASE + '/manifest.json', (self.out / 'index.html').read_text())
 
@@ -84,8 +85,8 @@ class BuildTests(unittest.TestCase):
         originals = {(r['type'], r['id']) for r in g.ALL}
         self.assertFalse(originals & {(r['type'], r['id']) for r in rows})
         planned = g.catalog_plan()
-        self.assertEqual(len(planned), 120)
-        self.assertEqual(len({(r['type'], r['id']) for r in planned}), 120)
+        self.assertEqual(len(planned), 126)
+        self.assertEqual(len({(r['type'], r['id']) for r in planned}), 126)
         for r in rows:
             self.assertEqual(sum(p['id'] == r['id'] for p in planned), 1)
 
@@ -102,7 +103,7 @@ class BuildTests(unittest.TestCase):
                             for r in rows))
         self.assertTrue(all('TMDB' in r['name'] for r in rows))
         self.assertFalse(any('official' in r['name'].lower() for r in rows))
-        self.assertEqual(len(g.catalog_plan()), 120)
+        self.assertEqual(len(g.catalog_plan()), 126)
         self.assertFalse({(r['type'], r['id']) for r in rows} &
                          {(r['type'], r['id']) for r in g.ALL})
 

@@ -36,6 +36,42 @@
           {
             "addonId": "com.mynuvio.buildn1",
             "type": "movie",
+            "catalogId": "netflix_sa_public_arab_new_movies",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "netflix_sa_public_arab_new_series",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "netflix_sa_new_arabic_movies",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "netflix_sa_new_arabic_series",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "netflix_sa_public_family_movies",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "netflix_sa_public_kids_series",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
             "catalogId": "netflix_sa_popular_movies",
             "genre": null
           },
@@ -119,6 +155,48 @@
             "addonId": "com.mynuvio.buildn1",
             "type": "series",
             "catalogId": "netflix_sa_top_series",
+            "genre": "None"
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "netflix_sa_public_arab_new_movies",
+            "genre": "None"
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "netflix_sa_public_arab_new_series",
+            "genre": "None"
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "netflix_sa_new_arabic_movies",
+            "genre": "None"
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "netflix_sa_new_arabic_series",
+            "genre": "None"
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "netflix_sa_public_family_movies",
+            "genre": "None"
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "netflix_sa_public_kids_series",
             "genre": "None"
           },
           {

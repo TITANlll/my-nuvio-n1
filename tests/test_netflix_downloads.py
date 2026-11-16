@@ -1,6 +1,7 @@
 import contextlib
 import csv
 import io
+import json
 import tempfile
 import unittest
 from http.client import IncompleteRead
@@ -9,6 +10,7 @@ from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 import generate as g
+from netflix_sources import NetflixTitle, parse_saudi_chart
 
 
 FIELDS = ['country_iso2', 'week', 'category', 'weekly_rank', 'show_title']
@@ -67,6 +69,7 @@ class DownloadTests(unittest.TestCase):
 class NetflixChartTests(unittest.TestCase):
     def mapped_chart(self, rows, search=search_result):
         with patch.object(g, 'fetch', return_value=chart_bytes(rows)) as fetch, \
+                patch.object(g, 'netflix_chart_identities', return_value={}), \
                 patch.object(g, 'tmdb', side_effect=search), \
                 patch.object(g, 'external_id', side_effect=lambda kind, mid: f'tt{mid:07d}'):
             result = g.get_netflix_rows()
@@ -160,8 +163,58 @@ class NetflixChartTests(unittest.TestCase):
         self.assertIn('Original chart position #10', charts['movie'][-1]['description'])
         self.assertEqual(len(charts['series']), 10)
 
+    def test_tudum_identities_are_bound_to_the_saudi_week_and_rank(self):
+        data = {
+            '__typename': 'PulseTop10ItemEntity',
+            'top10': {'category': 'MOVIES', 'weekEndDate': WEEK, 'weeklyRank': 2},
+            'countryRanks': [{'countryId': 'SA', 'rank': 2}],
+            'top10Video': {'title': 'Heist', 'releaseYear': 2001, 'videoId': 60020557},
+        }
+        html = 'netflix.reactContext.models.graphql = JSON.parse(' + repr(json.dumps({
+            'data': {
+                'sa': data,
+                'us': {**data, 'top10': {**data['top10'], 'weeklyRank': 4}},
+            },
+        })) + ')'
+        self.assertEqual(parse_saudi_chart(html, 'movie', WEEK), {
+            2: ('Heist', NetflixTitle('Heist', 60020557, 2001)),
+        })
+        self.assertEqual(parse_saudi_chart(html, 'movie', '2026-11-01'), {})
+
+    def test_verified_netflix_id_supplies_imdb_even_when_tmdb_has_no_record(self):
+        title = NetflixTitle('Heist', 60020557, 2001, 'https://dnm.nflximg.net/api/v6/art.jpg')
+        with patch.object(g, 'enrich_from_imdb', return_value=None):
+            result = g.resolve_netflix_title('movie', title, source_rank=2, source_week=WEEK)
+            self.assertEqual(g.resolve_netflix_title('series', title), None)
+        self.assertEqual(result['id'], 'tt0252503')
+        self.assertEqual(result['releaseInfo'], '2001')
+        self.assertEqual(result['poster'], title.poster)
+        self.assertIn('Original chart position #2', result['description'])
+
+    def test_disambiguation_uses_release_year_and_preserves_arabic_characters(self):
+        data = {'results': [{'id': 1, 'title': 'Heist', 'release_date': '2001-11-09'},
+                            {'id': 2, 'title': 'Heist', 'release_date': '2015-11-13'}]}
+        with patch.object(g, 'tmdb', return_value=data) as tmdb:
+            self.assertEqual(g.match_netflix_chart_title('movie', 'Heist', year=2001)['id'], 1)
+            tmdb.assert_called_once_with('/search/movie', {'query': 'Heist', 'primary_release_year': '2001'})
+        with patch.object(g, 'tmdb', return_value={'results': [
+                {'id': 3, 'title': 'العنكبوت'}, {'id': 4, 'title': 'الرهينة'}]}):
+            self.assertEqual(g.match_netflix_chart_title('movie', 'العنكبوت')['id'], 3)
+
+    def test_season_duplicates_use_the_highest_rank_and_include_the_other_position(self):
+        rows = chart_rows()
+        for row in rows:
+            if row['category'] == 'TV' and row['weekly_rank'] == '8':
+                row['show_title'] = 'Show 3'
+        charts, _ = self.mapped_chart(rows)
+        self.assertEqual(len(charts['series']), 9)
+        third = charts['series'][2]
+        self.assertIn('Original chart position #3', third['description'])
+        self.assertIn('Also ranked #8', third['description'])
+
     def test_all_unmapped_titles_prevent_publication_instead_of_silently_dropping_chart(self):
         with patch.object(g, 'fetch', return_value=chart_bytes(chart_rows())), \
+                patch.object(g, 'netflix_chart_identities', return_value={}), \
                 patch.object(g, 'tmdb', return_value={'results': []}):
             with self.assertRaisesRegex(ValueError, 'no reliable IMDb matches'):
                 g.get_netflix_rows()

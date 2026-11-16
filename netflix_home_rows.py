@@ -1,17 +1,14 @@
-"""Add free Netflix Saudi discovery rows without implying official daily ranks.
+"""Netflix Saudi discovery rows using TMDB/JustWatch subscription availability."""
 
-All rows use TMDB/JustWatch's Netflix subscription availability filter in
-Saudi Arabia. Popularity, ratings and original premiere dates are TMDB data.
-"""
+NETFLIX_SAUDI = {
+    'with_watch_providers': '8',
+    'watch_region': 'SA',
+    'with_watch_monetization_types': 'flatrate',
+    'include_adult': 'false',
+}
 
 
 def build_netflix_home_rows():
-    common = {
-        'with_watch_providers': '8',
-        'watch_region': 'SA',
-        'with_watch_monetization_types': 'flatrate',
-        'include_adult': 'false',
-    }
     definitions = [
         (
             'netflix_sa_popular_series', 'Netflix Saudi · Popular Series (TMDB)',
@@ -54,8 +51,22 @@ def build_netflix_home_rows():
     for identifier, title, kind, filters, note, days in definitions:
         row = {'id': identifier, 'name': title, 'type': kind,
                'group': 'Netflix Saudi', 'mode': 'netflix_discover',
-               'params': {**common, **filters}, 'note': note}
+               'params': {**NETFLIX_SAUDI, **filters}, 'note': note}
         if days:
             row['release_window_days'] = days
         rows.append(row)
     return rows
+
+
+def build_netflix_release_rows():
+    return [
+        {
+            'id': 'netflix_sa_new_arabic_' + suffix,
+            'name': 'Netflix Saudi · New Arabic & Gulf ' + label,
+            'type': kind,
+            'group': 'Netflix Saudi',
+            'mode': 'netflix_releases',
+            'params': {**NETFLIX_SAUDI, 'with_original_language': 'ar'},
+        }
+        for suffix, label, kind in [('movies', 'Movies', 'movie'), ('series', 'Series', 'series')]
+    ]

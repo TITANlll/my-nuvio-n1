@@ -12,6 +12,8 @@ from pathlib import Path
 from urllib.parse import urlsplit
 from urllib.request import Request, urlopen
 
+from netflix_sources import netflix_image_url
+
 POSTER_SIZE = (500, 750)
 IMAGE_BASE = "https://image.tmdb.org"
 IMDB_ID = re.compile(r"tt[0-9]{5,12}\Z")
@@ -126,7 +128,7 @@ def style_netflix_catalog(stage: Path, spec: dict, rows: list, base: str,
         imdb = meta.get("id", "")
         rank = rank_label(meta, spec)
         score = score_label(meta)
-        if not IMDB_ID.fullmatch(imdb) or not safe_tmdb_image_url(original):
+        if not IMDB_ID.fullmatch(imdb) or not (safe_tmdb_image_url(original) or netflix_image_url(original)):
             meta.pop("_tmdb_score", None)
             continue
         # A ranked image differs from an unranked image. Ratings are factual

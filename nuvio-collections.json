@@ -27,6 +27,36 @@
           },
           {
             "addonId": "com.mynuvio.buildn1",
+            "catalogId": "netflix_sa_public_arab_new_movies",
+            "type": "movie"
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "catalogId": "netflix_sa_public_arab_new_series",
+            "type": "series"
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "catalogId": "netflix_sa_new_arabic_movies",
+            "type": "movie"
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "catalogId": "netflix_sa_new_arabic_series",
+            "type": "series"
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "catalogId": "netflix_sa_public_family_movies",
+            "type": "movie"
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "catalogId": "netflix_sa_public_kids_series",
+            "type": "series"
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
             "catalogId": "netflix_sa_popular_movies",
             "type": "movie"
           },

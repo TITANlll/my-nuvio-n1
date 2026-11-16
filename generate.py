@@ -18,6 +18,7 @@ import time
 import unicodedata
 from collections import defaultdict
 from datetime import date, timedelta, datetime, timezone
+from functools import lru_cache
 from pathlib import Path
 from urllib.parse import urlencode, quote
 from urllib.request import Request, urlopen
@@ -25,9 +26,11 @@ from urllib.error import HTTPError
 from http.client import IncompleteRead
 from browse_catalogs import build_browse_catalogs
 from shahid_home_rows import build_shahid_home_rows
-from netflix_home_rows import build_netflix_home_rows
+from netflix_home_rows import build_netflix_home_rows, build_netflix_release_rows
 from netflix_public_rows import build_public_netflix_rows
 from netflix_everything import style_netflix_catalog
+from netflix_sources import (NetflixTitle, VERIFIED_IMDB, parse_saudi_chart,
+                             parse_saudi_genre_rows)
 
 ROOT = Path(__file__).parent
 OUT = ROOT / 'site'
@@ -42,7 +45,7 @@ ALL = json.loads((ROOT / 'catalogs.json').read_text())
 VERIFIED = json.loads((ROOT / 'data' / 'verified.json').read_text())
 BETTERPOSTERS_PATTERN = os.getenv('BETTERPOSTERS_POSTER_PATTERN','').strip()
 CACHE = {}
-ADDON_VERSION = '1.6.0'
+ADDON_VERSION = '1.7.0'
 
 
 def catalog_plan():
@@ -58,7 +61,7 @@ def catalog_plan():
         'shahid_top_arabic_movies': additions[2:4],
         'shahid_trending_arabic': additions[4:],
         'netflix_sa_popular_movies': netflix_additions[:3],
-        'netflix_sa_new': netflix_additions[3:] + netflix_public,
+        'netflix_sa_new': netflix_additions[3:] + build_netflix_release_rows() + netflix_public,
     }
     plan = []
     for row in original:
@@ -102,7 +105,7 @@ def media_type(spec):
 
 def norm(s):
     t = unicodedata.normalize('NFKD', str(s)).casefold()
-    return re.sub(r'[^a-z0-9]+', '', t)
+    return ''.join(char for char in t if char.isalnum())
 
 
 def external_id(kind, tmdb_id):
@@ -145,7 +148,12 @@ def preview(kind, item, *, verified_note=None, source_rank=None, source_week=Non
     released = item.get('release_date' if kind == 'movie' else 'first_air_date','')
     if released:
         p['releaseInfo'] = str(released)[:4]
-    d = item.get('overview', '') or ''
+    p['description'] = source_description(item.get('overview') or '',
+        verified_note=verified_note, source_rank=source_rank, source_week=source_week)
+    return p
+
+
+def source_description(overview, *, verified_note=None, source_rank=None, source_week=None):
     prefixes = []
     if source_rank is not None:
         prefixes.append('Original chart position #' + str(source_rank))
@@ -153,8 +161,7 @@ def preview(kind, item, *, verified_note=None, source_rank=None, source_week=Non
         prefixes.append('Chart week ending ' + str(source_week))
     if verified_note:
         prefixes.append(verified_note)
-    p['description'] = ' · '.join(prefixes) + ('. ' if prefixes else '') + d
-    return p
+    return ' · '.join(prefixes) + ('. ' if prefixes else '') + overview
 
 
 def enrich_from_imdb(imdb, expected_type):
@@ -333,31 +340,156 @@ def discover_netflix(spec):
     return found, ''
 
 
-def fetch_public_netflix(spec):
-    """Resolve the titles in a dated official Netflix Saudi genre-page snapshot.
+def discover_netflix_releases(spec):
+    """Find original Arabic releases and keep their actual network/studio credits."""
+    kind = media_type(spec)
+    since = TODAY - timedelta(days=29)
+    if kind == 'movie':
+        searches = [('primary_release_date', {}),
+                    ('release_date', {'region': 'SA', 'with_release_type': '4'})]
+    else:
+        searches = [('first_air_date', {}), ('air_date', {})]
 
-    Unmatched or ambiguous titles are skipped, never swapped for loosely
-    related TMDB popularity results. Source order is preserved for matches.
-    """
-    kind = 'movie' if spec['type'] == 'movie' else 'tv'
+    candidates = {}
+    digital = set()
+    for release_field, filters in searches:
+        params = {**spec['params'], **filters,
+                  release_field + '.gte': str(since), release_field + '.lte': str(TODAY),
+                  'sort_by': 'primary_release_date.desc' if kind == 'movie' else 'first_air_date.desc'}
+        _, items = fetch_discover({**spec, 'params': params}, max_pages=5, pool_size=100)
+        for item in items:
+            if item.get('original_language') == 'ar':
+                candidates.setdefault(item['id'], item)
+                if release_field == 'release_date':
+                    digital.add(item['id'])
+
+    dated = []
+    for tmdb_id, item in candidates.items():
+        try:
+            record = details(kind, tmdb_id)
+            dates = netflix_release_dates(kind, record, tmdb_id in digital)
+        except HTTPError as err:
+            if err.code == 404:
+                continue
+            raise
+        valid = [(day, label) for day, label in dates if str(since) <= day <= str(TODAY)]
+        if valid:
+            day, label = max(valid)
+            dated.append((day, tmdb_id, label, item, record))
+
+    found = {}
+    for day, _, label, item, record in sorted(dated, reverse=True):
+        note = [f'{label} {day}', 'Netflix Saudi availability: TMDB/JustWatch']
+        for field, label in [('networks', 'Networks'), ('production_companies', 'Production')]:
+            names = list(dict.fromkeys(x['name'] for x in record.get(field) or [] if x.get('name')))
+            if names:
+                note.append(label + ': ' + ', '.join(names))
+        poster = preview(kind, item, verified_note=' · '.join(note))
+        if poster:
+            found.setdefault(poster['id'], poster)
+        if len(found) >= NETFLIX_LIMIT:
+            break
+
+    return list(found.values()), '' if found else 'No matched Arabic releases in the last 30 days'
+
+
+def netflix_release_dates(kind, record, check_digital):
+    if kind == 'tv':
+        dates = [(record.get('first_air_date') or '', 'Series premiere')]
+        dates.extend((season.get('air_date') or '', f'Season {season["season_number"]} premiere')
+                     for season in record.get('seasons', []) if season.get('season_number', 0) > 0)
+        return dates
+    dates = [(record.get('release_date') or '', 'Film release')]
+    if check_digital:
+        data = tmdb(f'/movie/{record["id"]}/release_dates')
+        dates.extend((entry['release_date'][:10], 'Saudi digital release')
+                     for country in data.get('results', []) if country.get('iso_3166_1') == 'SA'
+                     for entry in country.get('release_dates', [])
+                     if entry.get('type') == 4 and entry.get('release_date'))
+    return dates
+
+
+@lru_cache(maxsize=12)
+def netflix_public_html(url):
+    try:
+        return fetch(url, retries=1, timeout=20).decode('utf-8')
+    except (OSError, IncompleteRead, UnicodeError) as err:
+        print('Netflix public page unavailable:', safe_error(err), flush=True)
+        return ''
+
+
+@lru_cache(maxsize=8)
+def netflix_genre_rows(url):
+    try:
+        return parse_saudi_genre_rows(netflix_public_html(url))
+    except (ValueError, SyntaxError, KeyError, TypeError, AttributeError) as err:
+        print('Netflix genre page format unavailable:', safe_error(err), flush=True)
+        return {}
+
+
+def netflix_chart_identities(kind, week):
+    page = 'films' if kind == 'movie' else 'tv'
+    url = 'https://www.netflix.com/tudum/top10/saudi-arabia/' + page
+    try:
+        return parse_saudi_chart(netflix_public_html(url), kind, week)
+    except (ValueError, SyntaxError, KeyError, TypeError, AttributeError) as err:
+        print('Netflix chart identity data unavailable:', safe_error(err), flush=True)
+        return {}
+
+
+def resolve_netflix_title(kind, title, **source):
+    if title.kind and title.kind != kind:
+        return None
+    known = VERIFIED_IMDB.get(title.netflix_id)
+    if known:
+        known_kind, imdb = known
+        if known_kind != kind:
+            return None
+        meta = enrich_from_imdb(imdb, kind)
+        if not meta or meta['id'] != imdb:
+            meta = {'id': imdb, 'name': title.name, 'type': kind}
+        meta['name'] = title.name
+        meta['description'] = source_description(meta.get('description') or '', **source)
+        if title.poster and not meta.get('poster'):
+            meta['poster'] = title.poster
+        if title.year and not meta.get('releaseInfo'):
+            meta['releaseInfo'] = str(title.year)
+        return meta
+    match = match_netflix_chart_title(kind, title.name, year=title.year)
+    target = 'movie' if kind == 'movie' else 'tv'
+    return preview(target, match, **source) if match else None
+
+
+def resolve_netflix_genre_row(spec, titles, date_note):
+    label = ('Netflix Saudi public category: ' + spec['source_row'] +
+             ' (' + date_note + ') · Source: ' + spec['source_url'])
     results = []
     seen = set()
-    for title in spec['titles']:
-        match = match_netflix_chart_title(spec['type'], title)
-        if match is None:
+    for title in titles:
+        if spec['source_row'] == 'New on Netflix' and title.kind != spec['type']:
             continue
-        item = preview(kind, match, verified_note=(
-            'Netflix Saudi public category: ' + spec['source_row'] +
-            ' (snapshot ' + spec['snapshot_date'] + ')' +
-            ' · Source: ' + spec['source_url']))
+        item = resolve_netflix_title(spec['type'], title, verified_note=label)
         if item and item['id'] not in seen:
             seen.add(item['id'])
             results.append(item)
         if len(results) >= NETFLIX_LIMIT:
             break
-    if len(results) < 5:
-        return [], 'Fewer than five unambiguous IMDb matches from Netflix public-page snapshot'
-    return results, ''
+    return results
+
+
+def fetch_public_netflix(spec):
+    """Keep the order of the public page and use the dated snapshot as fallback."""
+    live = netflix_genre_rows(spec['source_url']).get(spec['source_row'], [])
+    minimum = spec['minimum_items']
+    results = resolve_netflix_genre_row(spec, live, 'checked ' + str(TODAY))
+    if len(results) >= minimum:
+        return results, ''
+    snapshot = [NetflixTitle(item) if isinstance(item, str) else NetflixTitle(*item)
+                for item in spec['titles']]
+    results = resolve_netflix_genre_row(spec, snapshot, 'snapshot ' + spec['snapshot_date'])
+    if len(results) >= minimum:
+        return results, ''
+    return [], f'Fewer than {minimum} unambiguous IMDb matches from Netflix public page'
 
 
 def fetch_keyword(spec, **discovery_options):
@@ -430,24 +562,32 @@ def netflix_chart_search_queries(kind, title):
     queries = [title]
     if kind == 'series':
         base = re.sub(
-            r'\s*[:\-–]\s*(?:season\s+\d+|limited\s+series|collection\s+\d+)\s*$',
+            r'\s*[:\-–]\s*(?:(?:season|part|collection)\s+\d+|limited\s+series)\s*$',
             '', title, flags=re.IGNORECASE).strip()
         if base and base != title:
             queries.append(base)
     return queries
 
 
-def match_netflix_chart_title(kind, title):
+def match_netflix_chart_title(kind, title, *, year=None):
     """Match by an exact display/original title; never guess a Netflix rank."""
     target = 'movie' if kind == 'movie' else 'tv'
     title_keys = ('title', 'original_title') if kind == 'movie' else ('name', 'original_name')
+    date_key = 'release_date' if kind == 'movie' else 'first_air_date'
     for query in netflix_chart_search_queries(kind, title):
-        matches = tmdb('/search/' + target, {'query': query}).get('results', [])
         expected = norm(query)
+        if not expected:
+            continue
+        params = {'query': query}
+        if year:
+            params['primary_release_year' if kind == 'movie' else 'first_air_date_year'] = str(year)
+        matches = tmdb('/search/' + target, params).get('results', [])
         strong = {
             candidate['id']: candidate
             for candidate in matches[:20]
-            if candidate.get('id') and any(
+            if candidate.get('id')
+            and (not year or str(candidate.get(date_key, ''))[:4] == str(year))
+            and any(
                 expected == norm(candidate.get(field, ''))
                 for field in title_keys)
         }
@@ -495,15 +635,24 @@ def get_netflix_rows():
                 or any(not r.get('show_title','').strip() for r in recent)):
             raise ValueError('Netflix Saudi weekly chart is incomplete')
         collected=[]
+        by_imdb = {}
+        identities = netflix_chart_identities(kind, last)
         for r in recent:
             title=r['show_title'].strip()
-            target='movie' if kind=='movie' else 'tv'
-            best=match_netflix_chart_title(kind, title)
-            if best is None:
+            season_title = (r.get('season_title') or '').strip()
+            chart_title = season_title if kind == 'series' and season_title not in ('', 'N/A') else title
+            rank = int(r['weekly_rank'])
+            ranked_name, identity = identities.get(rank, (title, NetflixTitle(title)))
+            if norm(title) not in (norm(ranked_name), norm(identity.name)):
+                identity = NetflixTitle(title)
+            p = resolve_netflix_title(kind, identity, source_rank=rank, source_week=last,
+                                      verified_note='Netflix chart: ' + chart_title)
+            if not p:
                 continue
-            p=preview(target,best,source_rank=r['weekly_rank'],
-                      source_week=last, verified_note='Netflix chart: '+title)
-            if p:
+            if p['id'] in by_imdb:
+                by_imdb[p['id']]['description'] += f' Also ranked #{rank} on this chart ({chart_title}).'
+            else:
+                by_imdb[p['id']] = p
                 collected.append(p)
         if not collected:
             raise ValueError('Netflix chart has no reliable IMDb matches for ' + kind)
@@ -636,6 +785,8 @@ def catalog(spec, netflix=None):
         return fetch_public_netflix(spec)
     if mode=='netflix_discover' and spec.get('group')=='Netflix Saudi':
         return discover_netflix(spec)
+    if mode=='netflix_releases' and spec.get('group')=='Netflix Saudi':
+        return discover_netflix_releases(spec)
     if mode=='discover' and spec.get('id') in ('netflix_sa_popular_movies', 'netflix_sa_new'):
         if spec['id'] == 'netflix_sa_new':
             spec = {**spec, 'release_window_days': 120}
@@ -742,6 +893,7 @@ def main():
             'planned':len(planned),'original_planned':len(ALL),
             'browse_planned':40,'shahid_home_planned':len(build_shahid_home_rows()),
             'netflix_home_planned':len(build_netflix_home_rows()),
+            'netflix_release_planned':len(build_netflix_release_rows()),
             'netflix_public_planned':len(build_public_netflix_rows()),
             'netflix_style':'Everything-inspired (TMDB + Netflix SA catalog)',
             'active':len(active),'catalogs':status})

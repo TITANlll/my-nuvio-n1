@@ -1,15 +1,11 @@
-"""Snapshot of rows and titles published on Netflix Saudi's public pages.
-
-Netflix does not publish a supported live API for these editorial rows. These
-lists were transcribed from public sa-en genre pages on 2026-11-16. They are
-source-labeled snapshots, NOT personalized Netflix home recommendations and
-NOT daily Netflix rankings. TMDB is used strictly to resolve title IDs/art.
-"""
+"""Netflix Saudi public row definitions and dated fallback selections."""
 
 SNAPSHOT_DATE = "2026-11-16"
 ARAB_STORIES_URL = "https://www.netflix.com/sa-en/browse/genre/81727603"
 ARABIC_URL = "https://www.netflix.com/sa-en/browse/genre/107456"
 ONLY_URL = "https://www.netflix.com/sa-en/browse/genre/839338"
+FAMILY_URL = "https://www.netflix.com/sa-en/browse/genre/783"
+KIDS_TV_URL = "https://www.netflix.com/sa-en/browse/genre/27346"
 
 # Keep each movie/series row independent. The source's mixed-type rows are
 # split by type to avoid producing Stremio entries with the wrong media type.
@@ -61,12 +57,13 @@ PUBLIC_ROWS = [
         "Siko Siko", "Bogeyman", "Tag", "Esaaf",
         "Alhamour H.A.", "Shabab Albomb", "Alkhallat+",
     ]),
-    ("netflix_sa_public_arab_action_movies", "Arabic · Action & Adventure Movies",
-     "movie", ARAB_STORIES_URL, "Action & Adventure Movies", [
-        "Sons of Rizk 3", "Shabab Albomb", "Esaaf", "Esabet El Maahx",
-        "Bogeyman", "Mosul", "The Alexandrian", "Tag",
-        "In Broad Daylight", "Hassan El Masry", "Africano",
-        "Kira & El Gin", "No Turning Back, No Surrendering!", "Fireworks",
+    ("netflix_sa_public_arab_action_movies", "Arabic · Action Movies",
+     "movie", ARABIC_URL, "Action Movies", [
+        ("Sons of Rizk 3", 82135610), ("Esabet El Maahx", 81767085),
+        ("Mosul", 81041495), ("Esaaf", 82065716),
+        ("The Alexandrian", 81908699), "Tag", ("Bogeyman", 81716255),
+        "العنكبوت", "Fireworks", "In Broad Daylight", "Hassan El Masry",
+        ("Kira & El Gin", 81908693), "No Turning Back, No Surrendering!",
     ]),
     ("netflix_sa_public_arab_drama_movies", "Arabic · Drama Movies",
      "movie", ARABIC_URL, "Drama Movies", [
@@ -111,6 +108,37 @@ PUBLIC_ROWS = [
         "When Life Gives You Tangerines", "Alchemy of Souls", "Dark",
         "Money Trap", "Crash Landing on You",
     ]),
+    ("netflix_sa_public_family_movies", "Children & Family Movies",
+     "movie", FAMILY_URL, "Your Next Watch", [
+        "Swapped", "Sing 2", "Sing", "Sonic the Hedgehog 3", "The Witches",
+        "How to Train Your Dragon: The Hidden World", "We Can Be Heroes",
+        "Ice Age 4: Continental Drift", "KPop Demon Hunters", "The Wild Robot",
+        "Shrek", "The Addams Family", "That Christmas", "How to Train Your Dragon",
+        "Roald Dahl's Matilda The Musical", "How the Grinch Stole Christmas",
+        "The Sea Beast", "Bee Movie", "The Angry Birds Movie",
+        "How to Train Your Dragon 2", "Howl’s Moving Castle", "Shrek 2",
+        "A Boy Called Christmas", "Wish Dragon", "Dr. Seuss' The Grinch",
+        "Ponyo", "Rango", "Back to the Outback", "The Princess Switch",
+    ]),
+    ("netflix_sa_public_kids_series", "Kids TV Shows",
+     "series", KIDS_TV_URL, "Your Next Watch", [
+        "The Amazing World of Gumball", "SpongeBob SquarePants",
+        "Avatar: The Last Airbender", "Miraculous: Tales of Ladybug & Cat Noir",
+        "The Smurfs", "Teen Titans Go!", "Masha and the Bear", "Victorious",
+        "Henry Danger", "Ms. Rachel", "Grizzy and the Lemmings",
+        "ALVINNN!!! And the Chipmunks", "LEGO Ninjago: Masters of Spinjitzu",
+        "The Worst Witch", "The Thundermans", "Sam & Cat", "PAW Patrol",
+        "Dragons: Race to the Edge", "Shaun the Sheep: Adventures from Mossy Bottom",
+        "Power Rangers Ninja Steel", "Barbie Life in the Dreamhouse",
+        "Trollhunters: Tales of Arcadia", "Free Rein",
+        "Kung Fu Panda: The Dragon Knight", "Peppa Pig", "The InBESTigators",
+        "Sonic Prime", "The Boss Baby: Back in Business", "The Cuphead Show!",
+        "Shaun the Sheep", "Carmen Sandiego", "Hilda",
+    ]),
+    ("netflix_sa_public_arab_new_movies", "Arabic · New on Netflix Movies",
+     "movie", ARABIC_URL, "New on Netflix", []),
+    ("netflix_sa_public_arab_new_series", "Arabic · New on Netflix Series",
+     "series", ARABIC_URL, "New on Netflix", []),
 ]
 
 
@@ -127,5 +155,6 @@ def build_public_netflix_rows():
             "source_url": url,
             "source_row": source_row,
             "snapshot_date": SNAPSHOT_DATE,
+            "minimum_items": 1 if source_row == "New on Netflix" else 5,
         })
     return output
