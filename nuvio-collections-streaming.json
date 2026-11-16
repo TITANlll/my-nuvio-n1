@@ -106,19 +106,13 @@
           {
             "addonId": "com.mynuvio.buildn1",
             "type": "series",
-            "catalogId": "shahid_top_arabic_series",
-            "genre": null
-          },
-          {
-            "addonId": "com.mynuvio.buildn1",
-            "type": "movie",
-            "catalogId": "shahid_top_arabic_movies",
+            "catalogId": "shahid_home_saudi_series",
             "genre": null
           },
           {
             "addonId": "com.mynuvio.buildn1",
             "type": "series",
-            "catalogId": "shahid_home_saudi_series",
+            "catalogId": "shahid_home_gulf_series",
             "genre": null
           },
           {
@@ -131,6 +125,30 @@
             "addonId": "com.mynuvio.buildn1",
             "type": "series",
             "catalogId": "shahid_home_arabic_comedy",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "shahid_home_egyptian_series",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "shahid_top_arabic_series",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "shahid_top_arabic_movies",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "shahid_trending_arabic",
             "genre": null
           }
         ],
@@ -139,21 +157,14 @@
             "provider": "addon",
             "addonId": "com.mynuvio.buildn1",
             "type": "series",
-            "catalogId": "shahid_top_arabic_series",
-            "genre": "None"
-          },
-          {
-            "provider": "addon",
-            "addonId": "com.mynuvio.buildn1",
-            "type": "movie",
-            "catalogId": "shahid_top_arabic_movies",
+            "catalogId": "shahid_home_saudi_series",
             "genre": "None"
           },
           {
             "provider": "addon",
             "addonId": "com.mynuvio.buildn1",
             "type": "series",
-            "catalogId": "shahid_home_saudi_series",
+            "catalogId": "shahid_home_gulf_series",
             "genre": "None"
           },
           {
@@ -168,6 +179,34 @@
             "addonId": "com.mynuvio.buildn1",
             "type": "series",
             "catalogId": "shahid_home_arabic_comedy",
+            "genre": "None"
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "shahid_home_egyptian_series",
+            "genre": "None"
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "shahid_top_arabic_series",
+            "genre": "None"
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "shahid_top_arabic_movies",
+            "genre": "None"
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "shahid_trending_arabic",
             "genre": "None"
           }
         ]

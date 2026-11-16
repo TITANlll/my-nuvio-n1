@@ -54,42 +54,45 @@
   },
   {
     "id": "shahid_top_arabic_series",
-    "name": "Shahid Saudi · Popular Series (TMDB / JustWatch)",
+    "name": "Shahid Saudi · Arabic Series (TMDB / JustWatch)",
     "type": "series",
     "group": "Shahid Arabic Exclusives",
     "mode": "discover_provider",
     "provider": "shahid",
     "params": {
       "sort_by": "popularity.desc",
-      "include_adult": "false"
+      "include_adult": "false",
+      "with_original_language": "ar"
     },
-    "note": "Titles listed as available on Shahid in Saudi Arabia; TMDB popularity is not Shahid's official viewing ranking"
+    "note": "Arabic-language series listed as available on Shahid in Saudi Arabia; TMDB popularity, not Shahid's official audience ranking"
   },
   {
     "id": "shahid_top_arabic_movies",
-    "name": "Shahid Saudi · Popular Movies (TMDB / JustWatch)",
+    "name": "Shahid Saudi · Arabic Movies (TMDB / JustWatch)",
     "type": "movie",
     "group": "Shahid Arabic Exclusives",
     "mode": "discover_provider",
     "provider": "shahid",
     "params": {
       "sort_by": "popularity.desc",
-      "include_adult": "false"
+      "include_adult": "false",
+      "with_original_language": "ar"
     },
-    "note": "Titles listed as available on Shahid in Saudi Arabia; TMDB popularity is not Shahid's official viewing ranking"
+    "note": "Arabic-language movies listed as available on Shahid in Saudi Arabia; TMDB popularity, not Shahid's official audience ranking"
   },
   {
     "id": "shahid_trending_arabic",
-    "name": "Shahid Saudi · Recently Produced Series (TMDB / JustWatch)",
+    "name": "Shahid Saudi · Recently Produced Arabic Series (TMDB / JustWatch)",
     "type": "series",
     "group": "Shahid Arabic Exclusives",
     "mode": "discover_provider",
     "provider": "shahid",
     "params": {
       "sort_by": "first_air_date.desc",
-      "include_adult": "false"
+      "include_adult": "false",
+      "with_original_language": "ar"
     },
-    "note": "Recently first-aired series listed as available on Shahid Saudi; NOT the date they arrived on Shahid or an official Shahid trending chart"
+    "note": "Arabic-language series listed as available on Shahid Saudi, ordered by original first-air date, NOT the date added to Shahid or an official Shahid trending chart"
   },
   {
     "id": "shahid_vip_new",
