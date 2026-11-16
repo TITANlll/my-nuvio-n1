@@ -38,9 +38,18 @@ def build_shahid_home_rows():
         ),
         (
             'shahid_home_saudi_series', 'شاهد · مسلسلات سعودية (حسب TMDB)', 'series',
-            {'sort_by': 'popularity.desc', 'with_origin_country': 'SA'},
+            {'sort_by': 'popularity.desc', 'with_origin_country': 'SA',
+             'with_original_language': 'ar'},
             'Saudi-produced series listed for Shahid Saudi by TMDB/JustWatch; '
             'not a claim of exclusive rights or official ranking',
+        ),
+        (
+            'shahid_home_gulf_series', 'شاهد · مسلسلات خليجية وسعودية (حسب TMDB)', 'series',
+            {'sort_by': 'popularity.desc',
+             'with_original_language': 'ar',
+             'with_origin_country': 'SA|KW|AE|BH|QA|OM'},
+            'Arabic-original Saudi and Gulf-produced series listed for Shahid Saudi by TMDB/JustWatch; '
+            'TMDB popularity, not Shahid editorial or audience ranking',
         ),
         (
             'shahid_home_arabic_comedy', 'شاهد · كوميديا عربية (حسب TMDB)', 'series',
