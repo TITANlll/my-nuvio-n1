@@ -26,6 +26,8 @@ from http.client import IncompleteRead
 from browse_catalogs import build_browse_catalogs
 from shahid_home_rows import build_shahid_home_rows
 from netflix_home_rows import build_netflix_home_rows
+from netflix_public_rows import build_public_netflix_rows
+from netflix_everything import style_netflix_catalog
 
 ROOT = Path(__file__).parent
 OUT = ROOT / 'site'
@@ -34,11 +36,13 @@ API_KEY = os.getenv('TMDB_API_KEY', '').strip()
 TOKEN = os.getenv('TMDB_BEARER_TOKEN', '').strip()
 BASE = os.getenv('PAGE_URL', '').strip().rstrip('/')
 LIMIT = max(5, min(30, int(os.getenv('ITEMS_PER_ROW', '15'))))
+# Netflix collection only; all other catalog sizes retain their existing limit.
+NETFLIX_LIMIT = max(10, min(40, int(os.getenv('NETFLIX_ITEMS_PER_ROW', '35'))))
 ALL = json.loads((ROOT / 'catalogs.json').read_text())
 VERIFIED = json.loads((ROOT / 'data' / 'verified.json').read_text())
 BETTERPOSTERS_PATTERN = os.getenv('BETTERPOSTERS_POSTER_PATTERN','').strip()
 CACHE = {}
-ADDON_VERSION = '1.5.1'
+ADDON_VERSION = '1.6.0'
 
 
 def catalog_plan():
@@ -48,12 +52,13 @@ def catalog_plan():
     # Preserve all original 58 definitions and their relative order.
     additions = build_shahid_home_rows()
     netflix_additions = build_netflix_home_rows()
+    netflix_public = build_public_netflix_rows()
     after = {
         'shahid_top_arabic_series': additions[:2],
         'shahid_top_arabic_movies': additions[2:4],
         'shahid_trending_arabic': additions[4:],
         'netflix_sa_popular_movies': netflix_additions[:3],
-        'netflix_sa_new': netflix_additions[3:],
+        'netflix_sa_new': netflix_additions[3:] + netflix_public,
     }
     plan = []
     for row in original:
@@ -126,6 +131,9 @@ def preview(kind, item, *, verified_note=None, source_rank=None, source_week=Non
     if not title:
         return None
     p = {'id':imdb, 'type':'movie' if kind == 'movie' else 'series', 'name':title}
+    # Internal source score used by Netflix artwork; never expose as an IMDb rating.
+    if isinstance(item.get('vote_average'), (float, int)):
+        p['_tmdb_score'] = item['vote_average']
     if item.get('poster_path'):
         p['poster'] = 'https://image.tmdb.org/t/p/w500' + item['poster_path']
     # Only use a URL pattern actually copied from the user's own BetterPosters
@@ -310,7 +318,7 @@ def discover_netflix(spec):
         params[date_field + '.gte'] = str(
             TODAY - timedelta(days=spec['release_window_days']))
     _, candidates = fetch_discover({**spec, 'params': params},
-                                   max_pages=5, pool_size=max(100, LIMIT * 5))
+                                   max_pages=10, pool_size=max(200, NETFLIX_LIMIT * 6))
     found = []
     seen = set()
     for item in candidates:
@@ -318,11 +326,38 @@ def discover_netflix(spec):
         if poster and poster['id'] not in seen:
             seen.add(poster['id'])
             found.append(poster)
-        if len(found) >= LIMIT:
+        if len(found) >= NETFLIX_LIMIT:
             break
     if len(found) < 5:
         return [], 'Fewer than five Netflix Saudi titles with reliable IMDb poster metadata'
     return found, ''
+
+
+def fetch_public_netflix(spec):
+    """Resolve the titles in a dated official Netflix Saudi genre-page snapshot.
+
+    Unmatched or ambiguous titles are skipped, never swapped for loosely
+    related TMDB popularity results. Source order is preserved for matches.
+    """
+    kind = 'movie' if spec['type'] == 'movie' else 'tv'
+    results = []
+    seen = set()
+    for title in spec['titles']:
+        match = match_netflix_chart_title(spec['type'], title)
+        if match is None:
+            continue
+        item = preview(kind, match, verified_note=(
+            'Netflix Saudi public category: ' + spec['source_row'] +
+            ' (snapshot ' + spec['snapshot_date'] + ')' +
+            ' · Source: ' + spec['source_url']))
+        if item and item['id'] not in seen:
+            seen.add(item['id'])
+            results.append(item)
+        if len(results) >= NETFLIX_LIMIT:
+            break
+    if len(results) < 5:
+        return [], 'Fewer than five unambiguous IMDb matches from Netflix public-page snapshot'
+    return results, ''
 
 
 def fetch_keyword(spec, **discovery_options):
@@ -597,7 +632,13 @@ def catalog(spec, netflix=None):
         return discover_shahid(spec)
     if mode=='discover' and spec.get('group')=='Turkish Content':
         return discover_turkish(spec)
+    if mode=='netflix_public' and spec.get('group')=='Netflix Saudi':
+        return fetch_public_netflix(spec)
     if mode=='netflix_discover' and spec.get('group')=='Netflix Saudi':
+        return discover_netflix(spec)
+    if mode=='discover' and spec.get('id') in ('netflix_sa_popular_movies', 'netflix_sa_new'):
+        if spec['id'] == 'netflix_sa_new':
+            spec = {**spec, 'release_window_days': 120}
         return discover_netflix(spec)
     if mode=='netflix_official':
         rows=(netflix or {}).get(spec['kind'],[])
@@ -663,11 +704,17 @@ def main():
         stage = Path(staging_dir)
         active=[]
         status=[]
+        poster_cache={}
         planned=catalog_plan()
         for spec in planned:
             try:
                 rows,reason=catalog(spec,netflix)
                 if rows:
+                    if spec.get('group') == 'Netflix Saudi':
+                        style_netflix_catalog(stage, spec, rows, BASE, poster_cache)
+                    else:
+                        for item in rows:
+                            item.pop('_tmdb_score', None)
                     path=stage/'catalog'/spec['type']/(spec['id']+'.json')
                     write_json(path,{'metas':rows})
                     active.append({'type':spec['type'],'id':spec['id'],'name':spec['name']})
@@ -694,7 +741,10 @@ def main():
         write_json(stage/'status.json',{'built_utc':datetime.now(timezone.utc).isoformat(),
             'planned':len(planned),'original_planned':len(ALL),
             'browse_planned':40,'shahid_home_planned':len(build_shahid_home_rows()),
-            'netflix_home_planned':len(build_netflix_home_rows()),'active':len(active),'catalogs':status})
+            'netflix_home_planned':len(build_netflix_home_rows()),
+            'netflix_public_planned':len(build_public_netflix_rows()),
+            'netflix_style':'Everything-inspired (TMDB + Netflix SA catalog)',
+            'active':len(active),'catalogs':status})
         # Apps that support collections can use this as a planning guide; Stremio
         # protocol itself does not define nested catalog folders.
         folders={}

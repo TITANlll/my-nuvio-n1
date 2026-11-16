@@ -54,10 +54,11 @@ class BuildTests(unittest.TestCase):
         self.assertEqual(status['browse_planned'], 40)
         self.assertEqual(status['shahid_home_planned'], 7)
         self.assertEqual(status['netflix_home_planned'], 6)
-        self.assertEqual(status['planned'], 111)
-        self.assertEqual(len(status['catalogs']), 111)
+        self.assertEqual(status['netflix_public_planned'], 9)
+        self.assertEqual(status['planned'], 120)
+        self.assertEqual(len(status['catalogs']), 120)
         groups = json.loads((self.out / 'grouping-plan.json').read_text())
-        self.assertEqual(sum(map(len, groups.values())), 111)
+        self.assertEqual(sum(map(len, groups.values())), 120)
         self.assertEqual(next(iter(groups)), 'BetterPosters Discovery')
         self.assertIn(g.BASE + '/manifest.json', (self.out / 'index.html').read_text())
 
@@ -83,8 +84,8 @@ class BuildTests(unittest.TestCase):
         originals = {(r['type'], r['id']) for r in g.ALL}
         self.assertFalse(originals & {(r['type'], r['id']) for r in rows})
         planned = g.catalog_plan()
-        self.assertEqual(len(planned), 111)
-        self.assertEqual(len({(r['type'], r['id']) for r in planned}), 111)
+        self.assertEqual(len(planned), 120)
+        self.assertEqual(len({(r['type'], r['id']) for r in planned}), 120)
         for r in rows:
             self.assertEqual(sum(p['id'] == r['id'] for p in planned), 1)
 
@@ -101,7 +102,7 @@ class BuildTests(unittest.TestCase):
                             for r in rows))
         self.assertTrue(all('TMDB' in r['name'] for r in rows))
         self.assertFalse(any('official' in r['name'].lower() for r in rows))
-        self.assertEqual(len(g.catalog_plan()), 111)
+        self.assertEqual(len(g.catalog_plan()), 120)
         self.assertFalse({(r['type'], r['id']) for r in rows} &
                          {(r['type'], r['id']) for r in g.ALL})
 
@@ -116,7 +117,7 @@ class BuildTests(unittest.TestCase):
         with patch.object(g, 'fetch_discover', return_value=('tv', items)) as fetched, \
                 patch.object(g, 'preview', side_effect=fake_preview):
             rows, reason = g.catalog(spec)
-        self.assertEqual(len(rows), g.LIMIT)
+        self.assertEqual(len(rows), min(len(items), g.NETFLIX_LIMIT))
         self.assertEqual(reason, '')
         query = fetched.call_args.args[0]['params']
         self.assertEqual(query['watch_region'], 'SA')
