@@ -45,7 +45,7 @@ ALL = json.loads((ROOT / 'catalogs.json').read_text())
 VERIFIED = json.loads((ROOT / 'data' / 'verified.json').read_text())
 BETTERPOSTERS_PATTERN = os.getenv('BETTERPOSTERS_POSTER_PATTERN','').strip()
 CACHE = {}
-ADDON_VERSION = '1.7.0'
+ADDON_VERSION = '1.7.1'
 
 
 def catalog_plan():
@@ -412,7 +412,8 @@ def netflix_release_dates(kind, record, check_digital):
 @lru_cache(maxsize=12)
 def netflix_public_html(url):
     try:
-        return fetch(url, retries=1, timeout=20).decode('utf-8')
+        return fetch(url, headers={'Accept-Language': 'en-SA,en;q=0.9'},
+                     retries=1, timeout=20).decode('utf-8')
     except (OSError, IncompleteRead, UnicodeError) as err:
         print('Netflix public page unavailable:', safe_error(err), flush=True)
         return ''
@@ -466,7 +467,7 @@ def resolve_netflix_genre_row(spec, titles, date_note):
     results = []
     seen = set()
     for title in titles:
-        if spec['source_row'] == 'New on Netflix' and title.kind != spec['type']:
+        if spec['source_row'] == 'New on Netflix' and not title.kind and title.netflix_id not in VERIFIED_IMDB:
             continue
         item = resolve_netflix_title(spec['type'], title, verified_note=label)
         if item and item['id'] not in seen:
@@ -484,7 +485,11 @@ def fetch_public_netflix(spec):
     results = resolve_netflix_genre_row(spec, live, 'checked ' + str(TODAY))
     if len(results) >= minimum:
         return results, ''
-    snapshot = [NetflixTitle(item) if isinstance(item, str) else NetflixTitle(*item)
+    max_age = spec['snapshot_max_age']
+    age = (TODAY - date.fromisoformat(spec['snapshot_date'])).days
+    if max_age is not None and not 0 <= age <= max_age:
+        return [], 'Current Netflix row unavailable and dated snapshot expired'
+    snapshot = [NetflixTitle(*(item if isinstance(item, tuple) else (item,)), kind=spec['type'])
                 for item in spec['titles']]
     results = resolve_netflix_genre_row(spec, snapshot, 'snapshot ' + spec['snapshot_date'])
     if len(results) >= minimum:

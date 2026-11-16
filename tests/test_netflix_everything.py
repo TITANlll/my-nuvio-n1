@@ -26,7 +26,8 @@ class NetflixEverythingTests(unittest.TestCase):
         self.assertTrue(all(r["source_url"].startswith("https://www.netflix.com/sa-en/")
                             for r in rows))
         self.assertTrue(all(len(r["titles"]) >= 10 for r in rows if r['minimum_items'] == 5))
-        self.assertTrue(all(not r['titles'] for r in rows if r['source_row'] == 'New on Netflix'))
+        self.assertTrue(all(r['snapshot_max_age'] == 7 for r in rows
+                            if r['source_row'] == 'New on Netflix'))
 
     def test_public_page_resolution_keeps_source_order_and_skips_ambiguity(self):
         spec = build_public_netflix_rows()[0]
@@ -75,9 +76,41 @@ class NetflixEverythingTests(unittest.TestCase):
                 NetflixTitle('Unknown media type', 11),
                 NetflixTitle('Newest Movie', 12, kind='movie')]
         with patch.object(g, 'netflix_genre_rows', return_value={'New on Netflix': rows}), \
-                patch.object(g, 'resolve_netflix_title', return_value={'id': 'tt1234567'}) as resolve:
+                patch.object(g, 'enrich_from_imdb', return_value=None), \
+                patch.object(g, 'match_netflix_chart_title', return_value={'id': 12}) as resolve, \
+                patch.object(g, 'preview', return_value={'id': 'tt1234567'}):
             self.assertEqual(g.fetch_public_netflix(spec), ([{'id': 'tt1234567'}], ''))
-        self.assertEqual(resolve.call_args.args, ('movie', rows[2]))
+        self.assertEqual(resolve.call_args.args, ('movie', rows[2].name))
+
+    def test_recent_editorial_fallback_expires_when_live_row_is_missing(self):
+        spec = next(row for row in build_public_netflix_rows()
+                    if row['id'] == 'netflix_sa_public_arab_new_movies')
+        with patch.object(g, 'netflix_genre_rows', return_value={}), \
+                patch.object(g, 'tmdb', return_value={'results': []}), \
+                patch.object(g, 'TODAY', date(2026, 11, 16)):
+            rows, reason = g.fetch_public_netflix(spec)
+        self.assertEqual(reason, '')
+        self.assertEqual([row['id'] for row in rows], ['tt43738050'])
+        self.assertIn('snapshot 2026-11-16', rows[0]['description'])
+        with patch.object(g, 'netflix_genre_rows', return_value={}), \
+                patch.object(g, 'tmdb') as tmdb, \
+                patch.object(g, 'TODAY', date(2026, 11, 24)):
+            rows, reason = g.fetch_public_netflix(spec)
+        self.assertEqual(rows, [])
+        self.assertIn('expired', reason)
+        tmdb.assert_not_called()
+
+    def test_unlocalized_link_requires_saudi_market_on_genre_page(self):
+        row = '''<div data-uia="locp-collections-title-row"><h2>New on Netflix</h2>
+          <a href="/title/123" aria-label="Go to New Film">New Film</a></div>'''
+        for price in ('SAR 35', 'USD 9'):
+            data = {'data': {
+                'movie': {'__typename': 'Movie', 'videoId': 123},
+                'ROOT_QUERY': {'growthPlans': {'plans': [{'price': {'priceFormatted': price}}]}},
+            }}
+            page = row + 'netflix.reactContext.models.graphql = JSON.parse(' + repr(json.dumps(data)) + ')'
+            expected = {'New on Netflix': [NetflixTitle('New Film', 123, kind='movie')]} if price.startswith('SAR') else {}
+            self.assertEqual(parse_saudi_genre_rows(page), expected)
 
     def test_release_rows_use_saudi_availability_and_real_season_start(self):
         _, series = build_netflix_release_rows()

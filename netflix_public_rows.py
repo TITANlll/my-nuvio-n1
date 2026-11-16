@@ -136,9 +136,14 @@ PUBLIC_ROWS = [
         "Shaun the Sheep", "Carmen Sandiego", "Hilda",
     ]),
     ("netflix_sa_public_arab_new_movies", "Arabic · New on Netflix Movies",
-     "movie", ARABIC_URL, "New on Netflix", []),
+     "movie", ARABIC_URL, "New on Netflix", [
+        ("Crazy Rich, Incredibly Broke", 81952372), ("Depth", 83103868),
+    ]),
     ("netflix_sa_public_arab_new_series", "Arabic · New on Netflix Series",
-     "series", ARABIC_URL, "New on Netflix", []),
+     "series", ARABIC_URL, "New on Netflix", [
+        ("Love Is Blind, Habibi", 81622654), ("Jinn Wedding", 82915757),
+        ("Obsess", 81925711), ("Years of Darkness", 82915560),
+    ]),
 ]
 
 
@@ -156,5 +161,6 @@ def build_public_netflix_rows():
             "source_row": source_row,
             "snapshot_date": SNAPSHOT_DATE,
             "minimum_items": 1 if source_row == "New on Netflix" else 5,
+            "snapshot_max_age": 7 if source_row == "New on Netflix" else None,
         })
     return output

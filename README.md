@@ -175,10 +175,10 @@ Both importable collection templates now map the Shahid cover to eight Arabic, S
 
 **Rollout safety:** Regression tests verify Netflix-only poster scope, image-source restrictions, genuine rank data, source provenance, graceful poster fallbacks, and isolation of the other collection folders. Publication still fails closed on upstream catalog errors, leaving the previously deployed Pages artifact unchanged.
 
-### Netflix Saudi chart identities and new releases (version 1.7.0)
+### Netflix Saudi chart identities and new releases (version 1.7.1)
 
 The movie row keeps Netflix's weekly Saudi order. The builder checks title IDs and years on the public Tudum chart against country, week, rank and title in the official TSV. Verified Netflix-to-IMDb IDs resolve alternate names and same-name films. Multiple parts of one series appear on its highest-ranked card, with the other positions in its description.
 
-The daily build reads the public Saudi genre pages in their published order. The Netflix folder includes Children & Family Movies, Kids TV Shows, Arabic Action Movies and the Arabic page's `New on Netflix` movie and series selections. Editorial categories have dated fallback selections. `New on Netflix` uses the current public row and requires a confirmed media type.
+The daily build reads the public Saudi genre pages in their published order. The Netflix folder includes Children & Family Movies, Kids TV Shows, Arabic Action Movies and the Arabic page's `New on Netflix` movie and series selections. Editorial categories have dated fallback selections. When Netflix omits its public `New on Netflix` row, the build can use the confirmed, dated selection for up to seven days.
 
 New Arabic & Gulf Movies and Series use a rolling 30-day window, original Arabic audio, and Netflix subscription availability in Saudi Arabia from TMDB/JustWatch. Movies use the release date or a documented Saudi digital release. Series use premiere dates for the show or a season. Credits are read per title, including smaller or newly indexed networks and studios. Netflix's own `New on Netflix` row provides its current editorial picks separately from those release dates.

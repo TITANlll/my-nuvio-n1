@@ -34,6 +34,8 @@ VERIFIED_IMDB = {
     81772075: ('series', 'tt29625288'), # Akka: The Protectors
     81925711: ('series', 'tt36838527'), # Obsess
     82915757: ('series', 'tt40238655'), # Jinn Wedding
+    81622654: ('series', 'tt31408266'), # Love Is Blind, Habibi
+    82915560: ('series', 'tt40123384'), # Years of Darkness
     81997887: ('series', 'tt36458668'), # Dead-End Job
     82682379: ('series', 'tt39328047'), # Doctor X: Mafia in White
     81944880: ('series', 'tt42767924'), # A Couple of Lies
@@ -52,6 +54,7 @@ CHART_DATA = re.compile(
     re.DOTALL,
 )
 TITLE_LINK = re.compile(r'(?:https://www\.netflix\.com)?/sa-en/title/([0-9]+)\Z')
+CANONICAL_TITLE_LINK = re.compile(r'(?:https://www\.netflix\.com)?/title/([0-9]+)\Z')
 NETFLIX_IMAGE_HOST = re.compile(r'(?:dnm\.nflximg\.net|occ-[0-9-]+\.\d+\.nflxso\.net)\Z')
 CARD_IMAGE = re.compile(r'\bbackground-image\s*:\s*url\(([^)]+)\)')
 
@@ -118,8 +121,9 @@ def parse_saudi_chart(html, kind, week):
 
 
 class _GenreRows(HTMLParser):
-    def __init__(self):
+    def __init__(self, saudi_market):
         super().__init__()
+        self.saudi_market = saudi_market
         self.rows = {}
         self.depth = 0
         self.heading = ''
@@ -137,7 +141,10 @@ class _GenreRows(HTMLParser):
         if tag == 'h2':
             self.in_heading = True
         if tag == 'a':
-            match = TITLE_LINK.fullmatch(attrs.get('href') or '')
+            link = attrs.get('href') or ''
+            match = TITLE_LINK.fullmatch(link)
+            if not match and self.saudi_market:
+                match = CANONICAL_TITLE_LINK.fullmatch(link)
             label = attrs.get('aria-label') or ''
             if match and label.startswith('Go to '):
                 self.card = (label.removeprefix('Go to ').strip(), int(match[1]))
@@ -173,13 +180,18 @@ class _GenreRows(HTMLParser):
 
 
 def parse_saudi_genre_rows(html):
-    parser = _GenreRows()
+    data = _page_data(html)
+    root = data.get('ROOT_QUERY') or {}
+    plans = (root.get('growthPlans') or {}).get('plans') or []
+    saudi_market = any(((plan.get('price') or {}).get('priceFormatted') or '').startswith('SAR')
+                       for plan in plans)
+    parser = _GenreRows(saudi_market)
     parser.feed(html)
     parser.close()
     kinds = {'Movie': 'movie', 'Show': 'series'}
     by_id = {
         item.get('videoId'): kinds[item['__typename']]
-        for item in _page_data(html).values()
+        for item in data.values()
         if isinstance(item, dict) and item.get('__typename') in kinds
     }
     return {
