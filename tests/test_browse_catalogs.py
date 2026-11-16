@@ -116,7 +116,7 @@ class BrowseCatalogTests(unittest.TestCase):
             self.assertEqual(status['browse_planned'], 40)
             self.assertEqual(status['shahid_home_planned'], 7)
             self.assertEqual(status['netflix_home_planned'], 6)
-        self.assertEqual(status['netflix_public_planned'], 9)
+            self.assertEqual(status['netflix_public_planned'], 9)
             self.assertEqual(status['planned'], 120)
             manifest = json.loads((output / 'manifest.json').read_text())
             published = {(row['type'], row['id']) for row in manifest['catalogs']}
