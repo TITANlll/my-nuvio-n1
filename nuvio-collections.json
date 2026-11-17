@@ -11,9 +11,10 @@
         "id": "collections.my-nuvio-netflix",
         "title": "Netflix Saudi",
         "tileShape": "LANDSCAPE",
-        "hideTitle": true,
+        "hideTitle": false,
         "focusGifEnabled": false,
         "coverImageUrl": "https://raw.githubusercontent.com/rrevanth/nuvio-assets/main/streaming/netflix/netflix-landscape.gif",
+        "coverEmoji": "🎬",
         "catalogSources": [
           {
             "addonId": "com.mynuvio.buildn1",
@@ -146,9 +147,10 @@
         "id": "collections.my-nuvio-shahid",
         "title": "Shahid Saudi",
         "tileShape": "LANDSCAPE",
-        "hideTitle": true,
+        "hideTitle": false,
         "focusGifEnabled": false,
         "coverImageUrl": "https://www.thefilmcollaborative.org/distripedia/digitaldistributionguide/img/vod/shahid.jpg",
+        "coverEmoji": "📺",
         "catalogSources": [
           {
             "addonId": "com.mynuvio.buildn1",
@@ -207,6 +209,7 @@
         "hideTitle": false,
         "focusGifEnabled": false,
         "coverImageUrl": "https://raw.githubusercontent.com/rrevanth/nuvio-assets/main/genres/international/international-landscape.png",
+        "coverEmoji": "🇹🇷",
         "catalogSources": [
           {
             "addonId": "com.mynuvio.buildn1",

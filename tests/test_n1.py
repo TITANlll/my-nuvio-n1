@@ -48,6 +48,8 @@ class BuildTests(unittest.TestCase):
         self.assertEqual(len(manifest['catalogs']), len(expected))
         for spec, entry in zip(expected, manifest['catalogs']):
             descriptor = {k: spec[k] for k in ('type', 'id', 'name')}
+            if spec['id'].startswith(('netflix_', 'shahid_')):
+                descriptor['showInHome'] = False
             if spec['group'] in BROWSE_GROUPS:
                 descriptor['extra'] = [{'name': 'skip', 'isRequired': False}]
             self.assertEqual(entry, descriptor)
@@ -66,6 +68,41 @@ class BuildTests(unittest.TestCase):
         self.assertEqual(sum(map(len, groups.values())), 126)
         self.assertEqual(next(iter(groups)), 'BetterPosters Discovery')
         self.assertIn(g.BASE + '/manifest.json', (self.out / 'index.html').read_text())
+
+    def test_collection_presets_include_all_active_network_sources(self):
+        unavailable = {'shahid_saudi_originals', 'netflix_sa_new_arabic_movies'}
+
+        def handler(spec, netflix):
+            if spec['mode'] == 'external' or spec['id'] in unavailable:
+                return [], 'Unavailable'
+            return [{'id': 'tt1234567', 'type': spec['type'], 'name': 'Test title'}], ''
+
+        self.build(handler)
+        manifest = json.loads((self.out / 'manifest.json').read_text())
+        for filename in g.COLLECTION_PRESETS:
+            base = json.loads((g.ROOT / filename).read_text())[0]
+            result = json.loads((self.out / filename).read_text())[0]
+            self.assertEqual({k: v for k, v in result.items() if k != 'folders'},
+                             {k: v for k, v in base.items() if k != 'folders'})
+            self.assertEqual(result['folders'][2:], base['folders'][2:])
+            for folder, network in zip(result['folders'], ('netflix', 'shahid')):
+                expected = {
+                    (entry['type'], entry['id']) for entry in manifest['catalogs']
+                    if entry['id'].startswith(network + '_')
+                }
+                original = next(f for f in base['folders'] if f['id'] == folder['id'])
+                self.assertEqual(
+                    {k: v for k, v in folder.items() if k not in ('catalogSources', 'sources')},
+                    {k: v for k, v in original.items() if k not in ('catalogSources', 'sources')},
+                )
+                for field in ('catalogSources', 'sources'):
+                    if field in folder:
+                        sources = folder[field]
+                        self.assertEqual({(s['type'], s['catalogId']) for s in sources}, expected)
+                        self.assertEqual(len(sources), len(expected))
+                        self.assertTrue(all(s['addonId'] == manifest['id'] for s in sources))
+                if network == 'netflix':
+                    self.assertEqual(folder['catalogSources'][0]['catalogId'], 'netflix_sa_top_movies')
 
     def test_shahid_home_rows_are_saudi_filtered_and_clearly_labeled(self):
         from shahid_home_rows import build_shahid_home_rows

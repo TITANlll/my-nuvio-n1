@@ -111,3 +111,30 @@ jobs:
             if [ "$attempt" = 4 ]; then exit 1; fi
             sleep 15
           done
+
+  report:
+    if: ${{ always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+    needs: [test, build, deploy]
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      statuses: write
+    steps:
+      - name: Report live catalog verification
+        uses: actions/github-script@v7
+        env:
+          TEST_RESULT: ${{ needs.test.result }}
+          BUILD_RESULT: ${{ needs.build.result }}
+          DEPLOY_RESULT: ${{ needs.deploy.result }}
+        with:
+          script: |
+            const { TEST_RESULT, BUILD_RESULT, DEPLOY_RESULT } = process.env;
+            const success = [TEST_RESULT, BUILD_RESULT, DEPLOY_RESULT].every(result => result === 'success');
+            await github.rest.repos.createCommitStatus({
+              ...context.repo,
+              sha: context.sha,
+              state: success ? 'success' : 'failure',
+              context: 'N1 / Live catalog verification',
+              description: success ? 'Live manifest, collections, and catalogs verified' : 'N1 publication or verification failed',
+              target_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+            });

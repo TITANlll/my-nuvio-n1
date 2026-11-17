@@ -5,6 +5,7 @@ import argparse
 from urllib.parse import quote
 from urllib.request import urlopen
 from browse_catalogs import BROWSE_GROUPS, BROWSE_PAGE_SIZE
+from generate import COLLECTION_NETWORKS, COLLECTION_PRESETS
 
 
 def read_json(url):
@@ -22,6 +23,27 @@ def read_metas(url, kind):
     ):
         raise ValueError('Invalid catalog metadata')
     return metas
+
+
+def verify_collection_presets(base, addon_id, expected):
+    for filename in COLLECTION_PRESETS:
+        folders = {
+            folder['title'].split(maxsplit=1)[0].lower(): folder
+            for collection in read_json(f'{base}/{filename}')
+            for folder in collection['folders']
+        }
+        for network, routes in expected.items():
+            folder = folders[network]
+            for field in ('catalogSources', 'sources'):
+                if field == 'sources' and field not in folder:
+                    continue
+                actual = [
+                    (source['type'], source['catalogId']) for source in folder[field]
+                    if source.get('addonId') == addon_id
+                    and source['catalogId'].startswith(network + '_')
+                ]
+                if len(actual) != len(routes) or set(actual) != routes:
+                    raise ValueError(f'Incomplete {network} folder in {filename}')
 
 
 def verify(base, expected_version=None):
@@ -50,8 +72,17 @@ def verify(base, expected_version=None):
         if paginated != browse_totals.keys():
             raise ValueError('Unexpected pagination scope')
     seen = set()
+    collection_routes = {}
     for catalog in catalogs:
         key = (catalog['type'], catalog['id'])
+        network = catalog['id'].partition('_')[0]
+        collection_only = network in COLLECTION_NETWORKS
+        if collection_only and catalog.get('showInHome') is not False:
+            raise ValueError('Network catalog still appears on Home')
+        if not collection_only and catalog.get('showInHome') is False:
+            raise ValueError('Unexpected change to Home catalog visibility')
+        if collection_only:
+            collection_routes.setdefault(network, set()).add(key)
         if key in seen or key[0] not in ('movie', 'series'):
             raise ValueError('Invalid or duplicate catalog')
         seen.add(key)
@@ -72,6 +103,10 @@ def verify(base, expected_version=None):
                     raise ValueError('Unexpected second page')
             if read_metas(f'{url}/skip={total}.json', key[0]):
                 raise ValueError('Expected empty page at catalog end')
+    if collection_routes:
+        verify_collection_presets(base, manifest['id'], collection_routes)
+        counts = ', '.join(f'{network}={len(routes)}' for network, routes in sorted(collection_routes.items()))
+        print(f'Verified collection-only catalogs and both presets ({counts})')
     print(f'Verified {len(catalogs)} catalogs and pagination for {len(paginated)}: {base}/manifest.json')
 
 

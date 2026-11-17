@@ -53,7 +53,9 @@ TMDB_REQUEST_INTERVAL = 1 / 25
 TMDB_REQUEST_LOCK = Lock()
 tmdb_next_request = 0.0
 WATCHMODE_ID_MAP_URL = 'https://api.watchmode.com/datasets/title_id_map.csv'
-ADDON_VERSION = '1.8.0'
+ADDON_VERSION = '1.8.1'
+COLLECTION_NETWORKS = ('netflix', 'shahid')
+COLLECTION_PRESETS = ('nuvio-collections.json', 'nuvio-collections-streaming.json')
 
 
 def catalog_plan():
@@ -939,6 +941,8 @@ def write_json(filename,data):
 def publish_catalog(stage, spec, rows):
     route = stage / 'catalog' / spec['type'] / spec['id']
     entry = {key: spec[key] for key in ('type', 'id', 'name')}
+    if entry['id'].partition('_')[0] in COLLECTION_NETWORKS:
+        entry['showInHome'] = False
     if spec['group'] in BROWSE_GROUPS:
         entry['extra'] = [{'name': 'skip', 'isRequired': False}]
         for offset in range(BROWSE_PAGE_SIZE, len(rows), BROWSE_PAGE_SIZE):
@@ -952,6 +956,40 @@ def publish_catalog(stage, spec, rows):
         rows = rows[:BROWSE_PAGE_SIZE]
     write_json(route.with_name(route.name + '.json'), {'metas': rows})
     return entry
+
+
+def publish_collection_presets(stage, manifest):
+    addon_id = manifest['id']
+    for filename in COLLECTION_PRESETS:
+        collections = json.loads((ROOT / filename).read_text(encoding='utf-8'))
+        for collection in collections:
+            for folder in collection['folders']:
+                network = folder['title'].split(maxsplit=1)[0].lower()
+                if network not in COLLECTION_NETWORKS:
+                    continue
+                active = {
+                    (entry['type'], entry['id']): {
+                        'addonId': addon_id, 'type': entry['type'], 'catalogId': entry['id'],
+                    }
+                    for entry in manifest['catalogs'] if entry['id'].startswith(network + '_')
+                }
+                for field in ('catalogSources', 'sources'):
+                    if field not in folder:
+                        continue
+                    remaining = dict(active)
+                    ordered = []
+                    for source in folder[field]:
+                        if (source.get('addonId') != addon_id or
+                                not source['catalogId'].startswith(network + '_')):
+                            ordered.append(source)
+                        elif remaining.pop((source['type'], source['catalogId']), None):
+                            ordered.append(source)
+                    for source in remaining.values():
+                        if field == 'sources':
+                            source = {'provider': 'addon', **source, 'genre': None}
+                        ordered.append(source)
+                    folder[field] = ordered
+        write_json(stage / filename, collections)
 
 
 def safe_error(err):
@@ -1010,6 +1048,7 @@ def main():
           'types':['movie','series'],'resources':['catalog'],
           'catalogs':active,'behaviorHints':{'configurable':False}}
         write_json(stage/'manifest.json',manifest)
+        publish_collection_presets(stage, manifest)
         write_json(stage/'status.json',{'built_utc':datetime.now(timezone.utc).isoformat(),
             'planned':len(planned),'original_planned':len(ALL),
             'browse_planned':40,'shahid_home_planned':len(build_shahid_home_rows()),
