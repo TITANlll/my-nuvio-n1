@@ -212,7 +212,7 @@ class NetflixEverythingTests(unittest.TestCase):
                 self.assertTrue(changed((5, 5, 175, 190)), "top-left rank")
                 self.assertTrue(changed((420, 20, 485, 85)), "top-right Netflix icon")
                 self.assertTrue(changed((10, 680, 490, 750)), "bottom ribbon")
-                self.assertEqual(poster.getpixel((250, 733))[0] < 65, True)
+                self.assertEqual(poster.getpixel((15, 737))[0] < 65, True)
             self.assertIn("-ttv2-top-10-in-saudi-arabia.jpg", rows[0]["poster"])
             self.assertNotIn("_tmdb_score", rows[0])
 
