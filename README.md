@@ -188,3 +188,12 @@ New Arabic & Gulf Movies and Series use a rolling 30-day window, original Arabic
 All 40 existing genre and mood sources support scrolling through pages of 100 posters in Nuvio collection folders. The build follows each TMDB Discover query through its available pages, up to TMDB's 500-page query limit. It keeps the existing filters and popularity order and deduplicates by IMDb ID within a source. Each source ends when its eligible posters run out. The catalog and collection IDs stay the same.
 
 The daily build uses the public [Watchmode title ID map](https://api.watchmode.com/) to match TMDB IDs with IMDb IDs in bulk and asks TMDB for missing or conflicting matches.
+
+
+### Netflix artwork revision — version 1.8.2 (TopToday screenshot comparison)
+
+The 1.8.1 poster style had a bottom-left #1 ranking, small TMDB rating and red NETFLIX SA tags, which did **not** match the supplied TopToday Everything screenshot.
+
+The Netflix-only artwork renderer now uses the reference's **large translucent rank number at upper left**, **small black Netflix N service icon at upper right**, and **full-width rounded label ribbon at the bottom**. The movie/year and TMDB rating pills are intentionally **not displayed** on these posters, to match the simpler visual hierarchy in the screenshot. We draw an original service icon and do not claim to use TopToday's proprietary image API. Ranking numbers appear only on the verified official Saudi weekly charts. For other rows the ribbon says "Netflix Saudi" unless a new-season, series-premiere or first-party "New on Netflix" label is supported by source evidence. Poster filenames contain the suffix "-ttv2-" so Sony TV/Nuvio clients won't reuse the old artwork URL cache.
+
+Only netflix_everything.py, its regression tests, the version number, and this documentation changed in the revision. Collection folders, streaming sources, Shahid, Turkish and BetterPosters remain untouched.
