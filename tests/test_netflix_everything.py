@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 import generate as g
 from netflix_everything import (rank_label, safe_tmdb_image_url,
-                                score_label, style_netflix_catalog)
+                                score_label, status_label, style_netflix_catalog)
 from netflix_home_rows import build_netflix_release_rows
 from netflix_public_rows import build_public_netflix_rows
 from netflix_sources import NetflixTitle, parse_saudi_genre_rows
@@ -198,12 +198,40 @@ class NetflixEverythingTests(unittest.TestCase):
                     {"type": "movie", "group": "Netflix Saudi",
                      "mode": "netflix_official"}, rows,
                     "https://example.org/my-nuvio-n1", {})
-            output = Path(temp, "posters", "netflix", "tt1234567-rank2.jpg")
+            output = Path(temp, "posters", "netflix", "tt1234567-rank2-ttv2-top-10-in-saudi-arabia.jpg")
             self.assertTrue(output.is_file())
             with Image.open(output) as poster:
                 self.assertEqual(poster.size, (500, 750))
-            self.assertTrue(rows[0]["poster"].endswith("/tt1234567-rank2.jpg"))
+                # Source image was a uniform blue card. The three poster
+                # decorations must occupy the reference's visible positions.
+                from PIL import ImageChops
+                original = Image.new("RGB", (500, 750), "#51718a")
+                def changed(bounds):
+                    return ImageChops.difference(poster.crop(bounds),
+                        original.crop(bounds)).getbbox() is not None
+                self.assertTrue(changed((5, 5, 175, 190)), "top-left rank")
+                self.assertTrue(changed((420, 20, 485, 85)), "top-right Netflix icon")
+                self.assertTrue(changed((10, 680, 490, 750)), "bottom ribbon")
+                self.assertEqual(poster.getpixel((15, 737))[0] < 65, True)
+            self.assertIn("-ttv2-top-10-in-saudi-arabia.jpg", rows[0]["poster"])
             self.assertNotIn("_tmdb_score", rows[0])
+
+    def test_status_labels_need_evidence_and_never_invent_a_premiere(self):
+        fresh = (date.today() - __import__('datetime').timedelta(days=5)).isoformat()
+        old = (date.today() - __import__('datetime').timedelta(days=90)).isoformat()
+        spec = {'mode': 'netflix_public', 'group': 'Netflix Saudi'}
+        self.assertEqual(status_label({}, spec, 3), "Top 10 in Saudi Arabia")
+        self.assertEqual(status_label({'description': 'Season 3 premiere ' + fresh},
+                                      spec, None), "New Season")
+        self.assertEqual(status_label({'description': 'Series premiere ' + fresh},
+                                      spec, None), "New Series")
+        self.assertEqual(status_label({'description': 'Season 3 premiere ' + old},
+                                      spec, None), "Netflix Saudi")
+        self.assertEqual(status_label({'description': 'Some popular show'},
+                                      spec, None), "Netflix Saudi")
+        self.assertEqual(status_label({'description': ''},
+                                      {**spec, 'source_row': 'New on Netflix'},
+                                      None), "New on Netflix")
 
     def test_failure_preserves_original_image_and_movie(self):
         rows = [{"id": "tt1234567", "type": "movie",
