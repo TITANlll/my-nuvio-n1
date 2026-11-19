@@ -53,7 +53,7 @@ TMDB_REQUEST_INTERVAL = 1 / 25
 TMDB_REQUEST_LOCK = Lock()
 tmdb_next_request = 0.0
 WATCHMODE_ID_MAP_URL = 'https://api.watchmode.com/datasets/title_id_map.csv'
-ADDON_VERSION = '1.8.2'
+ADDON_VERSION = '1.9.0'
 COLLECTION_NETWORKS = ('netflix', 'shahid')
 COLLECTION_PRESETS = ('nuvio-collections.json', 'nuvio-collections-streaming.json')
 
@@ -156,6 +156,9 @@ def preview(kind, item, *, verified_note=None, source_rank=None, source_week=Non
     if not title:
         return None
     p = {'id':imdb, 'type':'movie' if kind == 'movie' else 'series', 'name':title}
+    # Internal TMDB identifier for genuine TopToday poster URLs; never published.
+    if type(item.get('id')) is int and 1 <= item['id'] <= 999999999:
+        p['_tmdb_id'] = item['id']
     # Internal source score used by Netflix artwork; never expose as an IMDb rating.
     if isinstance(item.get('vote_average'), (float, int)):
         p['_tmdb_score'] = item['vote_average']
@@ -1027,6 +1030,7 @@ def main():
                     else:
                         for item in rows:
                             item.pop('_tmdb_score', None)
+                            item.pop('_tmdb_id', None)
                     active.append(publish_catalog(stage, spec, rows))
                     state='active'
                 else:
