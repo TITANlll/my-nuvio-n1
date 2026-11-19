@@ -173,48 +173,38 @@ class NetflixEverythingTests(unittest.TestCase):
         self.assertIs(result, untouched)
         self.assertEqual(untouched[0]["poster"], valid)
 
-    def test_rendered_netflix_image_with_rank_and_score(self):
-        try:
-            from PIL import Image
-        except ImportError:
-            self.skipTest("Pillow installed in GitHub Actions")
-        image = Image.new("RGB", (500, 750), "#51718a")
-        buf = io.BytesIO()
-        image.save(buf, "JPEG")
-        data = buf.getvalue()
+    def test_native_toptoday_poster_url_instead_of_custom_art(self):
+        from netflix_everything import top_today_poster_url, TOPTODAY_BASE
+        self.assertEqual(
+            top_today_poster_url(84773, "series", rank=1, tag="new_season"),
+            TOPTODAY_BASE + "/poster/84773.jpg?type=series&tag=new_season&rank=1&lang=en&logos=1"
+        )
+        rows = [{"id":"tt1234567", "type":"movie", "_tmdb_id":1368337,
+                 "_tmdb_score":7.9, "poster":"https://image.tmdb.org/t/p/w500/x.jpg",
+                 "description":"Original chart position #2"}]
+        with tempfile.TemporaryDirectory() as tmp:
+            style_netflix_catalog(Path(tmp), {"type":"movie",
+                "group":"Netflix Saudi","mode":"netflix_official"}, rows,
+                "https://example.org", {})
+        self.assertEqual(rows[0]["poster"],
+            TOPTODAY_BASE + "/poster/1368337.jpg?type=movie&tag=none&rank=2&lang=en&logos=1")
+        self.assertNotIn("_tmdb_id", rows[0])
+        self.assertNotIn("_tmdb_score", rows[0])
 
-        class Reply:
-            def __enter__(self): return self
-            def __exit__(self, *args): return None
-            def read(self, size): return data
-
-        rows = [{"id": "tt1234567", "type": "movie", "releaseInfo": "2026",
-                 "poster": "https://image.tmdb.org/t/p/w500/x.jpg",
-                 "_tmdb_score": 7.85,
-                 "description": "Original chart position #2"}]
+    def test_native_toptoday_url_validates_id_and_falls_back(self):
+        from netflix_everything import top_today_poster_url
+        self.assertIsNone(top_today_poster_url("84773", "series"))
+        self.assertIsNone(top_today_poster_url(0, "series"))
+        self.assertIsNone(top_today_poster_url(84773, "tv"))
+        self.assertIsNone(top_today_poster_url(84773, "series", rank=11))
+        self.assertIsNone(top_today_poster_url(84773, "series", tag="fake_premiere"))
+        source="https://image.tmdb.org/t/p/w500/x.jpg"
+        rows=[{"id":"tt1234567","type":"movie","poster":source}]
         with tempfile.TemporaryDirectory() as temp:
-            with patch("netflix_everything.urlopen", return_value=Reply()):
-                style_netflix_catalog(Path(temp),
-                    {"type": "movie", "group": "Netflix Saudi",
-                     "mode": "netflix_official"}, rows,
-                    "https://example.org/my-nuvio-n1", {})
-            output = Path(temp, "posters", "netflix", "tt1234567-rank2-ttv2-top-10-in-saudi-arabia.jpg")
-            self.assertTrue(output.is_file())
-            with Image.open(output) as poster:
-                self.assertEqual(poster.size, (500, 750))
-                # Source image was a uniform blue card. The three poster
-                # decorations must occupy the reference's visible positions.
-                from PIL import ImageChops
-                original = Image.new("RGB", (500, 750), "#51718a")
-                def changed(bounds):
-                    return ImageChops.difference(poster.crop(bounds),
-                        original.crop(bounds)).getbbox() is not None
-                self.assertTrue(changed((5, 5, 175, 190)), "top-left rank")
-                self.assertTrue(changed((420, 20, 485, 85)), "top-right Netflix icon")
-                self.assertTrue(changed((10, 680, 490, 750)), "bottom ribbon")
-                self.assertEqual(poster.getpixel((15, 737))[0] < 65, True)
-            self.assertIn("-ttv2-top-10-in-saudi-arabia.jpg", rows[0]["poster"])
-            self.assertNotIn("_tmdb_score", rows[0])
+            style_netflix_catalog(Path(temp),
+                {"group":"Netflix Saudi","type":"movie","mode":"netflix_public"},
+                rows,"https://example.org")
+        self.assertEqual(rows[0]["poster"],source)
 
     def test_status_labels_need_evidence_and_never_invent_a_premiere(self):
         fresh = (date.today() - __import__('datetime').timedelta(days=5)).isoformat()
@@ -233,17 +223,18 @@ class NetflixEverythingTests(unittest.TestCase):
                                       {**spec, 'source_row': 'New on Netflix'},
                                       None), "New on Netflix")
 
-    def test_failure_preserves_original_image_and_movie(self):
-        rows = [{"id": "tt1234567", "type": "movie",
-                 "poster": "https://image.tmdb.org/t/p/w500/x.jpg"}]
+    def test_unranked_title_uses_original_toptoday_without_fake_badges(self):
+        from netflix_everything import top_today_poster_url
+        rows=[{"id":"tt1234567","type":"series","_tmdb_id":84773,
+               "poster":"https://image.tmdb.org/t/p/w500/x.jpg"}]
         with tempfile.TemporaryDirectory() as temp:
-            with patch("netflix_everything.urlopen", side_effect=OSError("network down")), \
-                    contextlib.redirect_stdout(io.StringIO()):
-                style_netflix_catalog(Path(temp),
-                    {"group": "Netflix Saudi", "type": "movie",
-                     "mode": "netflix_public"}, rows, "https://example.org")
-            self.assertEqual(rows[0]["poster"],
-                             "https://image.tmdb.org/t/p/w500/x.jpg")
+            style_netflix_catalog(Path(temp),
+                {"group":"Netflix Saudi","type":"series","mode":"netflix_public"},
+                rows,"https://example.org")
+        self.assertEqual(rows[0]["poster"],
+            top_today_poster_url(84773,"series",tag="none"))
+        self.assertIn("rank=none",rows[0]["poster"])
+        self.assertIn("logos=1",rows[0]["poster"])
 
     def test_saved_collections_change_only_netflix_folder(self):
         root = Path(__file__).resolve().parents[1]
