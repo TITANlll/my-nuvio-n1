@@ -1,13 +1,17 @@
-"""Netflix-only 'Everything'-inspired poster artwork for Nuvio catalog rows.
+"""Netflix-only poster artwork inspired by the TopToday *layout* reference.
 
-This is an original design, NOT the TopToday poster API or an official Netflix
-artwork feed. Never paint a Netflix original claim onto licensed content.
-Artwork falls back to the existing poster if Pillow or the source image fails.
+Matches the user-supplied reference's placement of a large translucent number
+at the upper left, a small black Netflix-service icon at the upper right, and
+a full-width editorial ribbon at the bottom. The visuals are original artwork,
+not fetched from or represented as TopToday's API. Labels are evidence-based:
+no invented season status, streaming premiere, or Netflix Originals claims.
+Artwork falls back to its original URL if image generation fails.
 """
 from __future__ import annotations
 
 import io
 import re
+from datetime import date, timedelta
 from pathlib import Path
 from urllib.parse import urlsplit
 from urllib.request import Request, urlopen
@@ -73,42 +77,94 @@ def _pill(draw, xy, label, fill, font, text_fill="white", border=None):
     return w, h
 
 
-def _render(raw, meta, kind, rank):
-    """Create one 500x750 JPEG with legible restrained OTT badges."""
-    from PIL import Image, ImageDraw, ImageOps
-    source = Image.open(io.BytesIO(raw))
-    source = ImageOps.fit(source.convert("RGB"), POSTER_SIZE, method=Image.Resampling.LANCZOS)
-    image = source.convert("RGBA")
-    shade = Image.new("RGBA", POSTER_SIZE, (0, 0, 0, 0))
-    shades = ImageDraw.Draw(shade, "RGBA")
-    for y in range(0, 150, 2):
-        a = max(0, 182 - int(y * 1.15))
-        shades.rectangle((0, y, 500, y + 1), fill=(0, 0, 0, a))
-    for y in range(565, 750, 2):
-        a = min(211, int((y - 565) * 1.4))
-        shades.rectangle((0, y, 500, y + 1), fill=(0, 0, 0, a))
-    image = Image.alpha_composite(image, shade)
-    draw = ImageDraw.Draw(image)
-    badge_font = _font(20)
-    micro_font = _font(18)
-    score = score_label(meta)
-    if score:
-        _pill(draw, (18, 19), score, (17, 20, 26, 239), badge_font,
-              border=(234, 234, 234, 160))
-    # A Netflix Saudi *availability* or catalog badge, not an Originals badge.
-    label = "NETFLIX SA"
-    w = draw.textbbox((0, 0), label, font=badge_font)[2] + 24
-    _pill(draw, (500 - w - 18, 19), label, (183, 18, 32, 245), badge_font)
-    media_type = "MOVIE" if kind == "movie" else "SERIES"
-    year = str(meta.get("releaseInfo") or "").strip()
-    subtitle = media_type + (("  /  " + year) if re.fullmatch(r"[0-9]{4}", year) else "")
-    _pill(draw, (18, 697), subtitle, (20, 24, 30, 216), micro_font)
+def status_label(meta, spec, rank):
+    """Prefer only editorial labels demonstrably supported by the source."""
     if rank is not None:
-        draw.text((12, 561), "#" + str(rank), fill=(255, 255, 255, 249),
-                  font=_font(97), stroke_width=4, stroke_fill=(4, 5, 10, 240))
-        draw.rectangle((21, 667, 132, 676), fill=(232, 25, 45, 255))
+        return "Top 10 in Saudi Arabia"
+    desc = str(meta.get("description") or "")
+    season = re.search(r"Season ([2-9][0-9]*) premiere ([0-9]{4}-[0-9]{2}-[0-9]{2})", desc)
+    if season:
+        try:
+            age = (date.today() - date.fromisoformat(season.group(2))).days
+            if 0 <= age <= 45:
+                return "New Season"
+        except ValueError:
+            pass
+    series = re.search(r"Series premiere ([0-9]{4}-[0-9]{2}-[0-9]{2})", desc)
+    if series:
+        try:
+            age = (date.today() - date.fromisoformat(series.group(1))).days
+            if 0 <= age <= 45:
+                return "New Series"
+        except ValueError:
+            pass
+    if spec.get("source_row") == "New on Netflix" or (
+        "Netflix Saudi public category: New on Netflix" in desc
+    ):
+        return "New on Netflix"
+    # Do not imply a fresh premiere or a season renewal without evidence.
+    return "Netflix Saudi"
+
+
+def _draw_netflix_icon(draw):
+    """Compact black rounded service-logo badge, like the supplied reference."""
+    x, y, side = 417, 17, 65
+    draw.rounded_rectangle((x, y, x + side, y + side),
+                           radius=12, fill=(15, 15, 18, 246))
+    red = (229, 9, 20, 255)
+    # Stylized N composed of three strokes, not an 'Original' attribution.
+    draw.polygon(((x + 14, y + 11), (x + 25, y + 11),
+                  (x + 25, y + 53), (x + 14, y + 53)), fill=red)
+    draw.polygon(((x + 39, y + 11), (x + 50, y + 11),
+                  (x + 50, y + 53), (x + 39, y + 53)), fill=red)
+    draw.polygon(((x + 22, y + 11), (x + 32, y + 11),
+                  (x + 43, y + 53), (x + 33, y + 53)), fill=(249, 34, 44, 255))
+
+
+def _render(raw, meta, kind, rank, ribbon):
+    """Create a 500x750 poster styled after the user's TopToday screenshot."""
+    from PIL import Image, ImageDraw, ImageOps, ImageStat
+    with Image.open(io.BytesIO(raw)) as opened:
+        poster = ImageOps.fit(opened.convert("RGB"), POSTER_SIZE,
+                              method=Image.Resampling.LANCZOS)
+    image = poster.convert("RGBA")
+    draw = ImageDraw.Draw(image, "RGBA")
+
+    # The reference uses a large unprefixed translucent number high in the
+    # poster, unlike N1's former "#1" at the bottom.
+    if rank is not None:
+        large = _font(139)
+        value = str(rank)
+        # A subdued shadow is visible on both dark and light cover art.
+        draw.text((19, 1), value, font=large, fill=(0, 0, 0, 135),
+                  stroke_width=2, stroke_fill=(0, 0, 0, 105))
+        draw.text((14, -4), value, font=large, fill=(245, 245, 242, 224))
+
+    _draw_netflix_icon(draw)
+
+    # The reference has a full-width title/status ribbon at the bottom, not
+    # separate rating and movie/year pills. Choose a light or dark ribbon
+    # based on the source's actual luminance.
+    brightness = ImageStat.Stat(poster.crop((80, 150, 420, 500)).convert("L")).mean[0]
+    light = brightness >= 166
+    if light:
+        fill, foreground = (240, 235, 225, 248), (31, 32, 36, 255)
+    else:
+        fill, foreground = (24, 26, 31, 239), (245, 245, 245, 255)
+    top = 674
+    draw.rounded_rectangle((0, top, 500, 762), radius=20, fill=fill)
+    f = _font(27, bold=True)
+    bbox = draw.textbbox((0, 0), ribbon, font=f)
+    width = bbox[2] - bbox[0]
+    if width > 466:
+        f = _font(23, bold=True)
+        bbox = draw.textbbox((0, 0), ribbon, font=f)
+        width = bbox[2] - bbox[0]
+    draw.text(((500 - width) / 2, 705 - bbox[1]), ribbon,
+              font=f, fill=foreground)
+
     out = io.BytesIO()
-    image.convert("RGB").save(out, "JPEG", quality=85, optimize=True)
+    image.convert("RGB").save(out, "JPEG", quality=87, optimize=True)
     return out.getvalue()
 
 
@@ -127,13 +183,14 @@ def style_netflix_catalog(stage: Path, spec: dict, rows: list, base: str,
         original = meta.get("poster")
         imdb = meta.get("id", "")
         rank = rank_label(meta, spec)
-        score = score_label(meta)
+        label = status_label(meta, spec, rank)
         if not IMDB_ID.fullmatch(imdb) or not (safe_tmdb_image_url(original) or netflix_image_url(original)):
             meta.pop("_tmdb_score", None)
             continue
-        # A ranked image differs from an unranked image. Ratings are factual
-        # TMDB data, never labeled as IMDb scores.
-        key = (imdb, rank, score, original, meta.get("releaseInfo"), meta.get("type"))
+        # The changed image filename busts old artwork caches on Sony TV.
+        # Include label in the cache key so different catalog labels cannot
+        # overwrite each other's image.
+        key = (imdb, rank, label, original, meta.get("type"))
         if key not in cache:
             try:
                 req = Request(original, headers={"User-Agent": "MyNuvioN1/1.0"})
@@ -141,9 +198,11 @@ def style_netflix_catalog(stage: Path, spec: dict, rows: list, base: str,
                     raw = response.read(3 * 1024 * 1024 + 1)
                 if len(raw) > 3 * 1024 * 1024:
                     raise ValueError("Poster image exceeds size limit")
-                image_bytes = _render(raw, meta, spec["type"], rank)
+                image_bytes = _render(raw, meta, spec["type"], rank, label)
                 suffix = ("-rank" + str(rank)) if rank else ""
-                destination = stage / "posters" / "netflix" / (imdb + suffix + ".jpg")
+                label_slug = re.sub(r"[^a-z0-9]+", "-", label.lower()).strip("-")
+                destination = stage / "posters" / "netflix" / (
+                    imdb + suffix + "-ttv2-" + label_slug + ".jpg")
                 destination.parent.mkdir(parents=True, exist_ok=True)
                 destination.write_bytes(image_bytes)
                 cache[key] = base + "/posters/netflix/" + destination.name
