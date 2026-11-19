@@ -42,7 +42,7 @@ try:
                         request = urllib.request.Request(sample_url,headers={'User-Agent':'NuvioN1/1.0'})
                         with urllib.request.urlopen(request,timeout=20) as response:
                             head = response.read(16)
-                            print("ACTUAL_POSTER",json.dumps({"url":sample_url,"status":response.status,"image":head.startswith(b'\\xff\\xd8\\xff'),"location":response.geturl(),"content_type":response.headers.get('Content-Type')}))
+                            print("ACTUAL_POSTER",json.dumps({"url":sample_url,"status":response.status,"image":head.startswith(b'\xff\xd8\xff'),"location":response.geturl(),"content_type":response.headers.get('Content-Type')}))
                     except Exception as e:
                         print("ACTUAL_POSTER_ERROR",type(e).__name__,str(e)[:120])
         except Exception as e:
