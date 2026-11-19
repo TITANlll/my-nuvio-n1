@@ -177,7 +177,7 @@ class NetflixEverythingTests(unittest.TestCase):
         from netflix_everything import top_today_poster_url, TOPTODAY_BASE
         self.assertEqual(
             top_today_poster_url(84773, "series", rank=1, tag="new_season"),
-            TOPTODAY_BASE + "/poster/84773.jpg?type=series&tag=new_season&rank=1&lang=en&logos=1"
+            TOPTODAY_BASE + "/poster/84773.jpg?type=series&tag=new_season&rank=1&lang=en&logos=1&textless=1&titleStyle=gradient-v9"
         )
         rows = [{"id":"tt1234567", "type":"movie", "_tmdb_id":1368337,
                  "_tmdb_score":7.9, "poster":"https://image.tmdb.org/t/p/w500/x.jpg",
@@ -187,7 +187,7 @@ class NetflixEverythingTests(unittest.TestCase):
                 "group":"Netflix Saudi","mode":"netflix_official"}, rows,
                 "https://example.org", {})
         self.assertEqual(rows[0]["poster"],
-            TOPTODAY_BASE + "/poster/1368337.jpg?type=movie&tag=now_streaming&rank=2&lang=en&logos=1")
+            TOPTODAY_BASE + "/poster/1368337.jpg?type=movie&tag=now_streaming&rank=2&lang=en&logos=1&textless=1&titleStyle=gradient-v9")
         self.assertNotIn("_tmdb_id", rows[0])
         self.assertNotIn("_tmdb_score", rows[0])
 
@@ -236,6 +236,8 @@ class NetflixEverythingTests(unittest.TestCase):
         self.assertIn("rank=none",rows[0]["poster"])
         self.assertIn("logos=1",rows[0]["poster"])
         self.assertIn("tag=now_streaming",rows[0]["poster"])
+        self.assertIn("textless=1",rows[0]["poster"])
+        self.assertIn("titleStyle=gradient-v9",rows[0]["poster"])
 
     def test_saved_collections_change_only_netflix_folder(self):
         root = Path(__file__).resolve().parents[1]

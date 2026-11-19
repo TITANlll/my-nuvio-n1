@@ -12,8 +12,8 @@ BASE = ("https://toptoday.llamayu.com/"
         "backdropTags=false%7CbackdropLogos=false%7CbackdropRanked=false%7C"
         "backdropLanguage=null%7CbackdropTextlessArtwork=false%7C"
         "posterTags=true%7CposterLogos=true%7CposterRanked=true%7C"
-        "posterLanguage=en%7CtextlessArtwork=false%7CposterShape=portrait%7C"
-        "digitalOnly=true%7ClistLang=en")
+        "posterLanguage=en%7CtextlessArtwork=true%7CposterShape=portrait%7C"
+        "digitalOnly=false%7ClistLang=en")
 def fetch(url):
     with urllib.request.urlopen(urllib.request.Request(
             url, headers={'User-Agent':'NuvioN1/1.0'}), timeout=15) as res:
@@ -35,6 +35,16 @@ try:
             samples=[{k:meta.get(k) for k in ("id","type","name","poster","background")}
                     for meta in metas[:3]]
             print("CATALOG",json.dumps({"id":id,"type":t,"count":len(metas),"samples":samples},ensure_ascii=False))
+            for meta in metas[:2]:
+                sample_url = meta.get("poster", "")
+                if sample_url.startswith("https://toptoday.llamayu.com/poster/"):
+                    try:
+                        request = urllib.request.Request(sample_url,headers={'User-Agent':'NuvioN1/1.0'})
+                        with urllib.request.urlopen(request,timeout=20) as response:
+                            head = response.read(16)
+                            print("ACTUAL_POSTER",json.dumps({"url":sample_url,"status":response.status,"image":head.startswith(b'\xff\xd8\xff'),"location":response.geturl(),"content_type":response.headers.get('Content-Type')}))
+                    except Exception as e:
+                        print("ACTUAL_POSTER_ERROR",type(e).__name__,str(e)[:120])
         except Exception as e:
             print("CATALOG_ERROR",id,type(e).__name__,str(e)[:120])
 except Exception as e:

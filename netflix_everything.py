@@ -1,7 +1,7 @@
 """Netflix-only integration with genuine TopToday artwork URLs.
 
-The user-provided TMDB Top Today addon manifest includes poster URLs such as
-https://toptoday.llamayu.com/poster/84773.jpg?type=series&tag=new_season&rank=1&lang=en&logos=1
+The user's updated TMDB Top Today manifest includes poster URLs such as
+https://toptoday.llamayu.com/poster/84773.jpg?type=series&tag=new_season&rank=2&lang=en&logos=1&textless=1&titleStyle=gradient-v9
 N1 uses that real poster service, not an imitation or local renderer.
 Netflix Saudi content selection and all other collections remain untouched.
 """
@@ -104,6 +104,10 @@ def top_today_poster_url(tmdb_id, kind, *, rank=None, tag="none"):
         ("rank", rank if rank is not None else "none"),
         ("lang", "en"),
         ("logos", 1),
+        # Exact settings observed from the user's revised TopToday manifest:
+        # textlessArtwork=true, portrait posters, gradient-v9 title styling.
+        ("textless", 1),
+        ("titleStyle", "gradient-v9"),
     ))
     return f"{TOPTODAY_BASE}/poster/{tmdb_id}.jpg?{qs}"
 

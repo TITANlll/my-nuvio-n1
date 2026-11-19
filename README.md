@@ -223,3 +223,13 @@ TopToday's genuine poster service **does not infer a label from the installed ad
 The Netflix Saudi renderer now supplies the upstream service's already-observed `tag=now_streaming` for rows whose membership is established by the Saudi Netflix public page, official Saudi weekly chart, or TMDB/JustWatch Netflix-SA provider. The native TopToday renderer therefore draws its **real bottom "Now Streaming" label**, without any local imitation. Where N1 has source-backed recent release notes, existing `tag=new_season` or `tag=premiere` takes precedence; don't invent a new-season, finale, release-date or coming-soon label for other titles. The existing country-chart rank and upstream network logo are kept.
 
 This update affects only Netflix Saudi poster URL parameters. It does not change catalog membership, Nuvio collections, the TopToday worldwide catalogs, Shahid, Turkish or BetterPosters. The third-party renderer may redirect/rewrite images and Nuvio can cache artwork or override poster priority.
+
+
+### User-selected TopToday textless artwork (version 1.9.2)
+
+The updated user-supplied TopToday addon manifest is:
+https://toptoday.llamayu.com/backdropTags=false%7CbackdropLogos=false%7CbackdropRanked=false%7CbackdropLanguage=null%7CbackdropTextlessArtwork=false%7CposterTags=true%7CposterLogos=true%7CposterRanked=true%7CposterLanguage=en%7CtextlessArtwork=true%7CposterShape=portrait%7CdigitalOnly=false%7ClistLang=en/manifest.json
+
+The exact URL was fetched by the GitHub Actions diagnostic script. It produced native sample poster URLs with the two additional parameters **textless=1&titleStyle=gradient-v9**. N1 now uses those exact observed native parameters on **Netflix Saudi** posters: genuine TopToday tags and logos, chart ranks only if independently verified from the Saudi Netflix official weekly chart, portrait, English, and textless artwork. Neither a mockup nor a custom poster renderer is involved. The textless option selects source artwork without baked-in titles when available, while TopToday's native overlay still controls labels/logos.
+
+The user's new **digitalOnly=false** flag changes which worldwide TopToday titles would be selected in TopToday's own separate catalogs. N1 intentionally does not insert worldwide trending or theatrical titles into the existing Netflix Saudi collection. It preserves the user's Netflix Saudi membership/discovery sources and folder layout. That flag is not a native poster URL argument in the observed poster service. The other collections remain unchanged.
