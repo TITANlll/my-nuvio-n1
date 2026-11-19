@@ -27,9 +27,6 @@ jobs:
           python-version: '3.12'
       - name: Run offline regression tests
         run: python -m unittest discover -s tests -v
-      - name: Inspect exact textless TopToday user configuration (PR)
-        if: github.event_name == 'pull_request'
-        run: python scripts/inspect_toptoday.py
 
   build:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
