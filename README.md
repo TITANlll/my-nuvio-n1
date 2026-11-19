@@ -215,3 +215,11 @@ The user's unchanged Netflix Saudi catalogs still determine the content. Do **no
 Only the Netflix Saudi group is rewritten; its saved folder, Shahid, Turkish, BetterPosters, and other groups remain unchanged. Any record missing a valid TMDB numeric ID keeps its existing poster URL. The old poster service can be unavailable at viewing time; Nuvio may then display a placeholder. TopToday itself can redirect undecorated poster requests to original TMDB artwork, as confirmed through the exact user-selected manifest on GitHub Actions. This is the native service's behavior, not an N1-generated replacement.
 
 The native image endpoint is a third-party service: it may change its URL contract, images, logos, tags or availability without notice. It does not authorize modification of the user's installed Nuvio profile; the existing N1 manifest URL remains unchanged. The GitHub repo does not include the user's personal account information.
+
+### Netflix TopToday status ribbon fix (version 1.9.1)
+
+TopToday's genuine poster service **does not infer a label from the installed addon manifest alone**. The /poster endpoint requires a `tag` query argument. Prior N1 behavior sent `tag=none` for most Netflix Saudi titles, so only the streaming-service logo and (where documented) numeric rank were visible. This issue was reported from the Sony TV.
+
+The Netflix Saudi renderer now supplies the upstream service's already-observed `tag=now_streaming` for rows whose membership is established by the Saudi Netflix public page, official Saudi weekly chart, or TMDB/JustWatch Netflix-SA provider. The native TopToday renderer therefore draws its **real bottom "Now Streaming" label**, without any local imitation. Where N1 has source-backed recent release notes, existing `tag=new_season` or `tag=premiere` takes precedence; don't invent a new-season, finale, release-date or coming-soon label for other titles. The existing country-chart rank and upstream network logo are kept.
+
+This update affects only Netflix Saudi poster URL parameters. It does not change catalog membership, Nuvio collections, the TopToday worldwide catalogs, Shahid, Turkish or BetterPosters. The third-party renderer may redirect/rewrite images and Nuvio can cache artwork or override poster priority.

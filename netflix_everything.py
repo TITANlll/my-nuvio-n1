@@ -65,7 +65,13 @@ def status_label(meta, spec, rank):
         "Netflix Saudi public category: New on Netflix" in desc
     ):
         return "New on Netflix"
-    return "Netflix Saudi"
+    # Each published Netflix Saudi row comes from one of: (1) the official
+    # country chart, (2) a Saudi Netflix public title list, or (3) TMDB's
+    # Saudi Netflix subscription-provider listing. In that context the
+    # evidenced default status is availability, not a fabricated premiere.
+    # Use TopToday's REAL native 'now_streaming' tag instead of 'none', so
+    # the artwork renderer displays its signature bottom status ribbon.
+    return "Now Streaming"
 
 
 def top_today_tag(meta, spec, rank):
@@ -74,6 +80,9 @@ def top_today_tag(meta, spec, rank):
         "New Season": "new_season",
         "New Series": "premiere",
         "New on Netflix": "now_streaming",
+        "Now Streaming": "now_streaming",
+        # Official Netflix Saudi chart entries are actually being streamed.
+        "Top 10 in Saudi Arabia": "now_streaming",
     }.get(status_label(meta, spec, rank), "none")
 
 
