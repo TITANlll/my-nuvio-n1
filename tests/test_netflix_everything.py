@@ -187,7 +187,7 @@ class NetflixEverythingTests(unittest.TestCase):
                 "group":"Netflix Saudi","mode":"netflix_official"}, rows,
                 "https://example.org", {})
         self.assertEqual(rows[0]["poster"],
-            TOPTODAY_BASE + "/poster/1368337.jpg?type=movie&tag=none&rank=2&lang=en&logos=1")
+            TOPTODAY_BASE + "/poster/1368337.jpg?type=movie&tag=now_streaming&rank=2&lang=en&logos=1")
         self.assertNotIn("_tmdb_id", rows[0])
         self.assertNotIn("_tmdb_score", rows[0])
 
@@ -216,9 +216,9 @@ class NetflixEverythingTests(unittest.TestCase):
         self.assertEqual(status_label({'description': 'Series premiere ' + fresh},
                                       spec, None), "New Series")
         self.assertEqual(status_label({'description': 'Season 3 premiere ' + old},
-                                      spec, None), "Netflix Saudi")
+                                      spec, None), "Now Streaming")
         self.assertEqual(status_label({'description': 'Some popular show'},
-                                      spec, None), "Netflix Saudi")
+                                      spec, None), "Now Streaming")
         self.assertEqual(status_label({'description': ''},
                                       {**spec, 'source_row': 'New on Netflix'},
                                       None), "New on Netflix")
@@ -232,9 +232,10 @@ class NetflixEverythingTests(unittest.TestCase):
                 {"group":"Netflix Saudi","type":"series","mode":"netflix_public"},
                 rows,"https://example.org")
         self.assertEqual(rows[0]["poster"],
-            top_today_poster_url(84773,"series",tag="none"))
+            top_today_poster_url(84773,"series",tag="now_streaming"))
         self.assertIn("rank=none",rows[0]["poster"])
         self.assertIn("logos=1",rows[0]["poster"])
+        self.assertIn("tag=now_streaming",rows[0]["poster"])
 
     def test_saved_collections_change_only_netflix_folder(self):
         root = Path(__file__).resolve().parents[1]
