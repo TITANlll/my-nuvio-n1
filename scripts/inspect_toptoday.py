@@ -39,3 +39,21 @@ try:
             print("CATALOG_ERROR",id,type(e).__name__,str(e)[:120])
 except Exception as e:
     print("SOURCE_ERROR",type(e).__name__,str(e)[:180])
+
+# Verify the exact renderer also accepts arbitrary metadata IDs without a
+# TopToday worldwide-ranking entry and without a fabricated title badge.
+for kind,tmdb_id in (("series",84773),("movie",1368337)):
+    url=("https://toptoday.llamayu.com/poster/"+str(tmdb_id)+".jpg"+
+         "?type="+kind+"&tag=none&rank=none&lang=en&logos=1")
+    try:
+        with urllib.request.urlopen(urllib.request.Request(
+                url,headers={'User-Agent':'NuvioN1/1.0'}),timeout=20) as response:
+            head=response.read(16)
+            print("ARTWORK_SOURCE",json.dumps({
+                "tmdb_id":tmdb_id,"media_type":kind,"status":response.status,
+                "content_type":response.headers.get("Content-Type"),
+                "jpeg_signature":head.startswith(b'\xff\xd8\xff'),
+                "response_host":urllib.parse.urlsplit(response.geturl()).hostname,
+            }))
+    except Exception as e:
+        print("ARTWORK_SOURCE_ERROR",tmdb_id,type(e).__name__,str(e)[:140])
