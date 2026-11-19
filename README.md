@@ -197,3 +197,21 @@ The 1.8.1 poster style had a bottom-left #1 ranking, small TMDB rating and red N
 The Netflix-only artwork renderer now uses the reference's **large translucent rank number at upper left**, **small black Netflix N service icon at upper right**, and **full-width rounded label ribbon at the bottom**. The movie/year and TMDB rating pills are intentionally **not displayed** on these posters, to match the simpler visual hierarchy in the screenshot. We draw an original service icon and do not claim to use TopToday's proprietary image API. Ranking numbers appear only on the verified official Saudi weekly charts. For other rows the ribbon says "Netflix Saudi" unless a new-season, series-premiere or first-party "New on Netflix" label is supported by source evidence. Poster filenames contain the suffix "-ttv2-" so Sony TV/Nuvio clients won't reuse the old artwork URL cache.
 
 Only netflix_everything.py, its regression tests, the version number, and this documentation changed in the revision. Collection folders, streaming sources, Shahid, Turkish and BetterPosters remain untouched.
+
+
+### Netflix poster artwork via genuine TopToday service (version 1.9.0)
+
+The Sony TV user selected this exact TopToday addon configuration:
+https://toptoday.llamayu.com/backdropTags=false%7CbackdropLogos=false%7CbackdropRanked=false%7CbackdropLanguage=null%7CbackdropTextlessArtwork=false%7CposterTags=true%7CposterLogos=true%7CposterRanked=true%7CposterLanguage=en%7CtextlessArtwork=false%7CposterShape=portrait%7CdigitalOnly=true%7ClistLang=en/manifest.json
+
+We fetched and inspected its actual manifest on a GitHub Actions runner. The manifest identifies the TMDB Top Today addon, with the movie and series catalogs top_movies_today and top_shows_today. Its actual catalog data supplies poster URLs of the form:
+
+https://toptoday.llamayu.com/poster/84773.jpg?type=series&tag=new_season&rank=1&lang=en&logos=1
+
+N1 now uses these **real upstream TopToday poster URLs**, with the existing TMDB IDs for Netflix Saudi titles. No custom drawing, imitation layout, ImageGen, or Pillow generation remains. In the Netflix Saudi official weekly Top 10 rows, rank is the verified **Saudi Netflix weekly rank**; in all other Netflix rows rank is none. Evidence-backed new-season/series-premiere labels use actual TopToday tag codes; otherwise tag is none. Poster language is en and logos are enabled, matching the user's selected configuration. These logos are selected by the TopToday provider, not fabricated Netflix Originals logos.
+
+The user's unchanged Netflix Saudi catalogs still determine the content. Do **not** install TopToday's worldwide trending catalogs into the Netflix collection; they may include Prime Video or other services. Do **not** use TopToday's current global chart ranking as a Netflix Saudi rank. The provided manifest controls TopToday's own catalog selection (including digitalOnly=true); it is not a Netflix-only content source. The reusable /poster endpoint has no digitalOnly argument in the observed response.
+
+Only the Netflix Saudi group is rewritten; its saved folder, Shahid, Turkish, BetterPosters, and other groups remain unchanged. Any record missing a valid TMDB numeric ID keeps its existing poster URL. The old poster service can be unavailable at viewing time; Nuvio may then display a placeholder. TopToday itself can redirect undecorated poster requests to original TMDB artwork, as confirmed through the exact user-selected manifest on GitHub Actions. This is the native service's behavior, not an N1-generated replacement.
+
+The native image endpoint is a third-party service: it may change its URL contract, images, logos, tags or availability without notice. It does not authorize modification of the user's installed Nuvio profile; the existing N1 manifest URL remains unchanged. The GitHub repo does not include the user's personal account information.
