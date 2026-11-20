@@ -27,6 +27,7 @@ from urllib.parse import urlencode, quote
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 from http.client import IncompleteRead
+from arabic_details import title_details
 from browse_catalogs import BROWSE_GROUPS, BROWSE_PAGE_SIZE, build_browse_catalogs
 from shahid_home_rows import build_shahid_home_rows
 from netflix_home_rows import build_netflix_home_rows, build_netflix_release_rows
@@ -53,7 +54,7 @@ TMDB_REQUEST_INTERVAL = 1 / 25
 TMDB_REQUEST_LOCK = Lock()
 tmdb_next_request = 0.0
 WATCHMODE_ID_MAP_URL = 'https://api.watchmode.com/datasets/title_id_map.csv'
-ADDON_VERSION = '1.9.4'
+ADDON_VERSION = '1.9.5'
 COLLECTION_NETWORKS = ('netflix', 'shahid')
 COLLECTION_PRESETS = ('nuvio-collections.json', 'nuvio-collections-streaming.json')
 
@@ -1108,17 +1109,37 @@ def main():
         active=[]
         status=[]
         poster_cache={}
+        detail_ids = defaultdict(set)
         planned=catalog_plan()
         for spec in planned:
             try:
                 rows,reason=catalog(spec,netflix)
                 if rows:
+                    arabic = []
+                    if spec['id'].startswith(('shahid_', 'netflix_')):
+                        arabic = [item for item in rows if item.get('_trailer_language') == 'ar-SA'
+                                  or (item['type'], item['id']) in VERIFIED_TRAILERS]
                     if spec['id'].startswith('netflix_'):
                         with ThreadPoolExecutor(max_workers=6) as pool:
                             list(pool.map(attach_netflix_trailer, rows))
                     else:
+                        for item in arabic:
+                            attach_netflix_trailer(item)
                         for item in rows:
                             item.pop('_trailer_language', None)
+                    for item in arabic:
+                        kind, imdb = item['type'], item['id']
+                        if imdb in detail_ids[kind] or not item.get('trailers') or not item.get('_tmdb_id'):
+                            continue
+                        try:
+                            detail = title_details(item, item['_tmdb_id'], tmdb)
+                        except HTTPError as err:
+                            if err.code == 404:
+                                continue
+                            raise
+                        if detail:
+                            write_json(stage / 'meta' / kind / (imdb + '.json'), {'meta': detail})
+                            detail_ids[kind].add(imdb)
                     if spec.get('group') == 'Netflix Saudi':
                         style_netflix_catalog(stage, spec, rows, BASE, poster_cache)
                     else:
@@ -1145,6 +1166,9 @@ def main():
           'description':'Personal discovery catalogs. Genuine Netflix weekly positions, TMDB classifications, verified-only exclusives. No playback or subtitle streams. BetterPosters remains separate.',
           'types':['movie','series'],'resources':['catalog'],
           'catalogs':active,'behaviorHints':{'configurable':False}}
+        for kind, ids in sorted(detail_ids.items()):
+            if ids:
+                manifest['resources'].append({'name': 'meta', 'types': [kind], 'idPrefixes': sorted(ids)})
         write_json(stage/'manifest.json',manifest)
         publish_collection_presets(stage, manifest)
         write_json(stage/'status.json',{'built_utc':datetime.now(timezone.utc).isoformat(),

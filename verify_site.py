@@ -53,8 +53,19 @@ def verify(base, expected_version=None):
     manifest = read_json(base + '/manifest.json')
     if expected_version and manifest.get('version') != expected_version:
         raise ValueError('Expected updated addon version')
-    if manifest.get('id') != 'com.mynuvio.buildn1' or manifest.get('resources') != ['catalog']:
+    if manifest.get('id') != 'com.mynuvio.buildn1' or 'catalog' not in manifest.get('resources', []):
         raise ValueError('Unexpected addon manifest')
+    for resource in manifest['resources']:
+        if resource == 'catalog':
+            continue
+        if resource.get('name') != 'meta' or not resource.get('idPrefixes'):
+            raise ValueError('Unexpected addon resource')
+        for imdb in resource['idPrefixes']:
+            if imdb == 'tt36838527':
+                detail = read_json(base + '/meta/series/' + imdb + '.json')['meta']
+                if (detail['id'] != imdb or not any(t['source'] == 'xo0g9Y5syCE' for t in detail['trailers'])
+                        or not {f'{imdb}:1:{n}' for n in range(1, 5)} <= {v['id'] for v in detail['videos']}):
+                    raise ValueError('Obsess trailer or episodes missing')
     catalogs = manifest.get('catalogs', [])
     if not catalogs:
         raise ValueError('Manifest contains no catalogs')
