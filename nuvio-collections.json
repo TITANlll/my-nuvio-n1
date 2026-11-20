@@ -9,7 +9,7 @@
     "folders": [
       {
         "id": "collections.my-nuvio-netflix",
-        "title": "Netflix Saudi",
+        "title": "Netflix",
         "tileShape": "LANDSCAPE",
         "hideTitle": false,
         "focusGifEnabled": false,
@@ -145,7 +145,7 @@
       },
       {
         "id": "collections.my-nuvio-shahid",
-        "title": "Shahid Saudi",
+        "title": "Shahid",
         "tileShape": "LANDSCAPE",
         "hideTitle": false,
         "focusGifEnabled": false,

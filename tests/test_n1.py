@@ -48,6 +48,7 @@ class BuildTests(unittest.TestCase):
         self.assertEqual(len(manifest['catalogs']), len(expected))
         for spec, entry in zip(expected, manifest['catalogs']):
             descriptor = {k: spec[k] for k in ('type', 'id', 'name')}
+            descriptor['name'] = g.COLLECTION_ROW_TITLES.get(spec['id'], spec['name'])
             if spec['id'].startswith(('netflix_', 'shahid_')):
                 descriptor['showInHome'] = False
             if spec['group'] in BROWSE_GROUPS:

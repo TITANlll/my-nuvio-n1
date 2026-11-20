@@ -53,9 +53,62 @@ TMDB_REQUEST_INTERVAL = 1 / 25
 TMDB_REQUEST_LOCK = Lock()
 tmdb_next_request = 0.0
 WATCHMODE_ID_MAP_URL = 'https://api.watchmode.com/datasets/title_id_map.csv'
-ADDON_VERSION = '1.9.2'
+ADDON_VERSION = '1.9.3'
 COLLECTION_NETWORKS = ('netflix', 'shahid')
 COLLECTION_PRESETS = ('nuvio-collections.json', 'nuvio-collections-streaming.json')
+
+
+COLLECTION_ROW_TITLES = {
+    "netflix_sa_top_movies": "Top 10 Movies in Saudi Arabia",
+    "netflix_sa_top_series": "Top 10 Shows in Saudi Arabia",
+    "netflix_sa_popular_movies": "Popular Movies",
+    "netflix_sa_popular_series": "Popular TV Shows",
+    "netflix_sa_highly_rated_movies": "Highly Rated Movies",
+    "netflix_sa_highly_rated_series": "Highly Rated TV Shows",
+    "netflix_sa_new": "Recent Movie Releases",
+    "netflix_sa_recent_series": "New TV Shows",
+    "netflix_sa_arabic_series": "Arabic-Language TV Shows",
+    "netflix_sa_crime_series": "Crime TV Shows",
+    "netflix_sa_new_arabic_movies": "New Arabic & Gulf Movies",
+    "netflix_sa_new_arabic_series": "New Arabic & Gulf TV Shows",
+    "netflix_sa_public_arab_series": "International TV Shows",
+    "netflix_sa_public_arab_movies": "Arabic-Language Movies",
+    "netflix_sa_public_arab_tv_comedies": "TV Comedies",
+    "netflix_sa_public_arab_comedy_movies": "Comedy Movies",
+    "netflix_sa_public_arab_action_movies": "Action Movies",
+    "netflix_sa_public_arab_drama_movies": "Drama Movies",
+    "netflix_sa_public_arab_weekend_series": "Watch in One Weekend",
+    "netflix_sa_public_arab_emotional_movies": "Emotional Movies",
+    "netflix_sa_public_only_on_netflix": "Only on Netflix",
+    "netflix_sa_public_family_movies": "Children & Family Movies",
+    "netflix_sa_public_kids_series": "Kids TV Shows",
+    "netflix_sa_public_arab_new_movies": "New on Netflix: Arabic Movies",
+    "netflix_sa_public_arab_new_series": "New on Netflix: Arabic TV Shows",
+    "shahid_saudi_originals": "Saudi Originals",
+    "shahid_top_arabic_series": "Arabic Series",
+    "shahid_home_arabic_drama": "Arabic Drama",
+    "shahid_home_egyptian_series": "Egyptian Series",
+    "shahid_top_arabic_movies": "Arabic Movies",
+    "shahid_home_turkish_movies": "Turkish Movies",
+    "shahid_home_syrian_classics": "Syrian Classics",
+    "shahid_trending_arabic": "New Arabic Series",
+    "shahid_home_saudi_series": "Saudi Series",
+    "shahid_home_gulf_series": "Khaleeji Series",
+    "shahid_home_arabic_comedy": "Arabic Comedy",
+    "shahid_vip_new": "New Arabic Exclusives",
+    "shahid_gulf": "Saudi & Gulf Exclusives",
+    "turkish_top_movies": "Popular Turkish Movies",
+    "turkish_trending_movies": "Turkish Comedy Movies",
+    "turkish_new_movies": "New Turkish Movies",
+    "turkish_rated_movies": "Top-Rated Turkish Movies",
+    "turkish_top_series": "Popular Turkish Series",
+    "turkish_trending_series": "Turkish Drama Series",
+    "turkish_new_series": "New Turkish Series",
+    "turkish_new_episodes": "New Episodes in the Last 14 Days",
+    "turkish_streaming_originals": "Turkish Crime Series",
+    "netflix_turkish_movies": "Turkish Movies on Netflix",
+    "netflix_turkish_series": "Turkish TV Shows on Netflix"
+}
 
 
 def catalog_plan():
@@ -944,6 +997,7 @@ def write_json(filename,data):
 def publish_catalog(stage, spec, rows):
     route = stage / 'catalog' / spec['type'] / spec['id']
     entry = {key: spec[key] for key in ('type', 'id', 'name')}
+    entry['name'] = COLLECTION_ROW_TITLES.get(spec['id'], spec['name'])
     if entry['id'].partition('_')[0] in COLLECTION_NETWORKS:
         entry['showInHome'] = False
     if spec['group'] in BROWSE_GROUPS:
