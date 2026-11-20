@@ -13,7 +13,7 @@
         "tileShape": "LANDSCAPE",
         "hideTitle": false,
         "focusGifEnabled": false,
-        "coverImageUrl": "https://raw.githubusercontent.com/rrevanth/nuvio-assets/main/streaming/netflix/netflix-landscape.gif",
+        "coverImageUrl": "https://raw.githubusercontent.com/TITANlll/my-nuvio-n1/main/covers/netflix.webp",
         "coverEmoji": "🎬",
         "catalogSources": [
           {
@@ -149,7 +149,7 @@
         "tileShape": "LANDSCAPE",
         "hideTitle": false,
         "focusGifEnabled": false,
-        "coverImageUrl": "https://www.thefilmcollaborative.org/distripedia/digitaldistributionguide/img/vod/shahid.jpg",
+        "coverImageUrl": "https://raw.githubusercontent.com/TITANlll/my-nuvio-n1/main/covers/shahid.webp",
         "coverEmoji": "📺",
         "catalogSources": [
           {
