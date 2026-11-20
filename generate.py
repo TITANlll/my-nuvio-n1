@@ -53,7 +53,7 @@ TMDB_REQUEST_INTERVAL = 1 / 25
 TMDB_REQUEST_LOCK = Lock()
 tmdb_next_request = 0.0
 WATCHMODE_ID_MAP_URL = 'https://api.watchmode.com/datasets/title_id_map.csv'
-ADDON_VERSION = '1.9.3'
+ADDON_VERSION = '1.9.4'
 COLLECTION_NETWORKS = ('netflix', 'shahid')
 COLLECTION_PRESETS = ('nuvio-collections.json', 'nuvio-collections-streaming.json')
 
@@ -212,6 +212,8 @@ def preview(kind, item, *, verified_note=None, source_rank=None, source_week=Non
     # Internal TMDB identifier for genuine TopToday poster URLs; never published.
     if type(item.get('id')) is int and 1 <= item['id'] <= 999999999:
         p['_tmdb_id'] = item['id']
+    if item.get('original_language') == 'ar':
+        p['_trailer_language'] = 'ar-SA'
     # Internal source score used by Netflix artwork; never expose as an IMDb rating.
     if isinstance(item.get('vote_average'), (float, int)):
         p['_tmdb_score'] = item['vote_average']
@@ -994,6 +996,38 @@ def write_json(filename,data):
     filename.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
 
 
+# Official Netflix MENA trailer, keyed by media type and IMDb identity.
+VERIFIED_TRAILERS = {('series', 'tt36838527'): 'xo0g9Y5syCE'}
+
+
+@lru_cache(maxsize=None)
+def netflix_trailer(kind, tmdb_id, first_language):
+    languages = (first_language, 'en-US', 'ar-SA')
+    for language in dict.fromkeys(languages):
+        try:
+            data = tmdb(f'/{kind}/{tmdb_id}/videos', {'language': language})
+        except HTTPError as err:
+            if err.code == 404:
+                return None
+            raise
+        for video in data.get('results', []):
+            key = video.get('key') or ''
+            if (video.get('site') == 'YouTube' and video.get('type') == 'Trailer'
+                    and video.get('official') is True and re.fullmatch(r'[A-Za-z0-9_-]{11}', key)):
+                return key
+    return None
+
+
+def attach_netflix_trailer(item):
+    language = item.pop('_trailer_language', 'en-US')
+    key = VERIFIED_TRAILERS.get((item['type'], item['id']))
+    if not key and item.get('_tmdb_id'):
+        kind = 'movie' if item['type'] == 'movie' else 'tv'
+        key = netflix_trailer(kind, item['_tmdb_id'], language)
+    if key:
+        item['trailers'] = [{'source': key, 'type': 'Trailer'}]
+
+
 def publish_catalog(stage, spec, rows):
     route = stage / 'catalog' / spec['type'] / spec['id']
     entry = {key: spec[key] for key in ('type', 'id', 'name')}
@@ -1079,6 +1113,12 @@ def main():
             try:
                 rows,reason=catalog(spec,netflix)
                 if rows:
+                    if spec['id'].startswith('netflix_'):
+                        with ThreadPoolExecutor(max_workers=6) as pool:
+                            list(pool.map(attach_netflix_trailer, rows))
+                    else:
+                        for item in rows:
+                            item.pop('_trailer_language', None)
                     if spec.get('group') == 'Netflix Saudi':
                         style_netflix_catalog(stage, spec, rows, BASE, poster_cache)
                     else:
