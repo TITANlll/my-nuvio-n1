@@ -9,14 +9,14 @@ function entry(id, airDate, watched=true) {
     next_episode:{season:2,episode:4,title:"An episode",air_date:airDate}
   };
 }
-test("newest first, old unwatched episodes retained, future excluded",()=>{
+test("newest first, old unwatched episodes excluded, future excluded",()=>{
   const metas=selectNewEpisodes([
     entry("tt0000001","2026-11-12T10:00:00Z"),
     entry("tt0000002","2026-11-20T10:00:00Z"),
     entry("tt0000003","2026-11-24T10:00:00Z"),
     entry("tt0000004","2026-11-21T10:00:00Z")
   ],now);
-  assert.deepEqual(metas.map(m=>m.id),["tt0000004","tt0000002","tt0000001"]);
+  assert.deepEqual(metas.map(m=>m.id),["tt0000004","tt0000002"]);
   assert.match(metas[0].description,/S02E04/);
 });
 test("one card per show, supports TMDB fallback, skips malformed",()=>{
