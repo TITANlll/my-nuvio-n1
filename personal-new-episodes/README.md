@@ -73,3 +73,11 @@ The tests use dummy data and make no real MDBList requests.
   MDBList history sync may delay/miss a row entry.
 - The user must deploy the Worker and install its addon URL separately;
   opening/merging this PR does **not** add the row to the television.
+
+## Cloudflare Git deployment troubleshooting
+
+When Cloudflare is linked to GitHub, select production branch
+`feature/personal-new-episodes-mdblist` and use repository root `/` with
+deploy command `cd personal-new-episodes && npx wrangler deploy`.
+A retry of an earlier `main` build can still fail with `can't cd to
+personal-new-episodes`; trigger a **new** build from the feature branch instead.
