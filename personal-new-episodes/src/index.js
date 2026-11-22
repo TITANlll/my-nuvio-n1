@@ -1,6 +1,5 @@
 // Private, dynamic Stremio/Nuvio catalog backed by the user's own MDBList Up Next.
 // Do not publish MDBList keys or watch history in the public GitHub Pages site.
-const WINDOW_DAYS = 7;
 const MAX_PAGES = 5; // 500 in-progress series at the API's 100-item page limit.
 const MD_API = "https://api.mdblist.com/upnext";
 const CORS = {
@@ -25,15 +24,14 @@ function posterUrl(poster) {
 }
 
 export function selectNewEpisodes(items, now = new Date()) {
-  const start = now.getTime() - WINDOW_DAYS * 86400000;
   const newestByShow = new Map();
   for (const item of (Array.isArray(items) ? items : [])) {
     const show = item?.show;
     const ep = item?.next_episode;
     if (!show || !ep || typeof ep.air_date !== "string") continue;
     const date = Date.parse(ep.air_date);
-    // Do not show future episodes or old backlog episodes.
-    if (!Number.isFinite(date) || date > now.getTime() || date < start) continue;
+    // Show the next unwatched aired episode regardless of how long ago it aired.
+    if (!Number.isFinite(date) || date > now.getTime()) continue;
     const imdb = show.ids?.imdb;
     const tmdb = show.ids?.tmdb;
     const id = (typeof imdb === "string" && /^tt\d+$/.test(imdb)) ? imdb
@@ -96,7 +94,7 @@ export default {
         id: "com.personal.mdblist.new-episodes",
         version: "1.0.0",
         name: "New Episodes",
-        description: "Newly aired next-unwatched episodes from your existing MDBList viewing history.",
+        description: "Next unwatched aired episodes from your existing MDBList viewing history.",
         resources: ["catalog"],
         types: ["series"],
         catalogs: [{ type: "series", id: "my-new-episodes", name: "New Episodes" }],
