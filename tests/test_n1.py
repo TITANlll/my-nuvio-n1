@@ -49,7 +49,7 @@ class BuildTests(unittest.TestCase):
         for spec, entry in zip(expected, manifest['catalogs']):
             descriptor = {k: spec[k] for k in ('type', 'id', 'name')}
             descriptor['name'] = g.COLLECTION_ROW_TITLES.get(spec['id'], spec['name'])
-            if spec['id'].startswith(('netflix_', 'shahid_')):
+            if spec['id'].startswith(('netflix_', 'shahid_', 'turkish_')):
                 descriptor['showInHome'] = False
             if spec['group'] in BROWSE_GROUPS:
                 descriptor['extra'] = [{'name': 'skip', 'isRequired': False}]
@@ -63,10 +63,10 @@ class BuildTests(unittest.TestCase):
         self.assertEqual(status['netflix_home_planned'], 6)
         self.assertEqual(status['netflix_release_planned'], 2)
         self.assertEqual(status['netflix_public_planned'], 13)
-        self.assertEqual(status['planned'], 126)
-        self.assertEqual(len(status['catalogs']), 126)
+        self.assertEqual(status['planned'], 135)
+        self.assertEqual(len(status['catalogs']), 135)
         groups = json.loads((self.out / 'grouping-plan.json').read_text())
-        self.assertEqual(sum(map(len, groups.values())), 126)
+        self.assertEqual(sum(map(len, groups.values())), 135)
         self.assertEqual(next(iter(groups)), 'BetterPosters Discovery')
         self.assertIn(g.BASE + '/manifest.json', (self.out / 'index.html').read_text())
 
@@ -85,13 +85,16 @@ class BuildTests(unittest.TestCase):
             result = json.loads((self.out / filename).read_text())[0]
             self.assertEqual({k: v for k, v in result.items() if k != 'folders'},
                              {k: v for k, v in base.items() if k != 'folders'})
-            self.assertEqual(result['folders'][2:], base['folders'][2:])
-            for folder, network in zip(result['folders'], ('netflix', 'shahid')):
+            for folder, network in zip(result['folders'], ('netflix', 'shahid', 'turkish')):
                 expected = {
                     (entry['type'], entry['id']) for entry in manifest['catalogs']
                     if entry['id'].startswith(network + '_')
                 }
                 original = next(f for f in base['folders'] if f['id'] == folder['id'])
+                if network == 'turkish':
+                    expected.update((s['type'], s['catalogId']) for s in original['catalogSources']
+                                    if s['catalogId'].startswith('netflix_'))
+                    self.assertEqual(folder['catalogSources'][0]['catalogId'], 'turkish_weekly_top10')
                 self.assertEqual(
                     {k: v for k, v in folder.items() if k not in ('catalogSources', 'sources')},
                     {k: v for k, v in original.items() if k not in ('catalogSources', 'sources')},
@@ -127,8 +130,8 @@ class BuildTests(unittest.TestCase):
         originals = {(r['type'], r['id']) for r in g.ALL}
         self.assertFalse(originals & {(r['type'], r['id']) for r in rows})
         planned = g.catalog_plan()
-        self.assertEqual(len(planned), 126)
-        self.assertEqual(len({(r['type'], r['id']) for r in planned}), 126)
+        self.assertEqual(len(planned), 135)
+        self.assertEqual(len({(r['type'], r['id']) for r in planned}), 135)
         for r in rows:
             self.assertEqual(sum(p['id'] == r['id'] for p in planned), 1)
 
@@ -145,7 +148,7 @@ class BuildTests(unittest.TestCase):
                             for r in rows))
         self.assertTrue(all('TMDB' in r['name'] for r in rows))
         self.assertFalse(any('official' in r['name'].lower() for r in rows))
-        self.assertEqual(len(g.catalog_plan()), 126)
+        self.assertEqual(len(g.catalog_plan()), 135)
         self.assertFalse({(r['type'], r['id']) for r in rows} &
                          {(r['type'], r['id']) for r in g.ALL})
 

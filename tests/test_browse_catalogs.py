@@ -44,8 +44,8 @@ class BrowseCatalogTests(unittest.TestCase):
         self.assertEqual(len(retained), 58)
         self.assertEqual({(row['type'], row['id']): row for row in retained}, original_by_route)
         self.assertEqual(g.ALL, frozen)
-        self.assertEqual(len(planned), 126)
-        self.assertEqual(len({(row['type'], row['id']) for row in planned}), 126)
+        self.assertEqual(len(planned), 135)
+        self.assertEqual(len({(row['type'], row['id']) for row in planned}), 135)
         self.assertEqual([row['group'] for row in planned[:10]], ['BetterPosters Discovery'] * 10)
         # The saved N1 order is retained after moving only BetterPosters first.
         self.assertEqual([row for row in retained if row['group'] != 'BetterPosters Discovery'],
@@ -119,7 +119,7 @@ class BrowseCatalogTests(unittest.TestCase):
             self.assertEqual(status['netflix_home_planned'], 6)
             self.assertEqual(status['netflix_release_planned'], 2)
             self.assertEqual(status['netflix_public_planned'], 13)
-            self.assertEqual(status['planned'], 126)
+            self.assertEqual(status['planned'], 135)
             manifest = json.loads((output / 'manifest.json').read_text())
             published = {(row['type'], row['id']) for row in manifest['catalogs']}
             for row in self.rows:

@@ -32,7 +32,8 @@ from browse_catalogs import BROWSE_GROUPS, BROWSE_PAGE_SIZE, build_browse_catalo
 from shahid_home_rows import build_shahid_home_rows
 from netflix_home_rows import build_netflix_home_rows, build_netflix_release_rows
 from netflix_public_rows import build_public_netflix_rows
-from netflix_everything import style_netflix_catalog
+import turkish_rows
+from netflix_everything import style_netflix_catalog, top_today_poster_url
 from netflix_sources import (NetflixTitle, VERIFIED_IMDB, parse_saudi_chart,
                              parse_saudi_genre_rows)
 
@@ -54,8 +55,8 @@ TMDB_REQUEST_INTERVAL = 1 / 25
 TMDB_REQUEST_LOCK = Lock()
 tmdb_next_request = 0.0
 WATCHMODE_ID_MAP_URL = 'https://api.watchmode.com/datasets/title_id_map.csv'
-ADDON_VERSION = '1.9.5'
-COLLECTION_NETWORKS = ('netflix', 'shahid')
+ADDON_VERSION = '1.10.0'
+COLLECTION_NETWORKS = ('netflix', 'shahid', 'turkish')
 COLLECTION_PRESETS = ('nuvio-collections.json', 'nuvio-collections-streaming.json')
 
 
@@ -98,14 +99,14 @@ COLLECTION_ROW_TITLES = {
     "shahid_home_arabic_comedy": "Arabic Comedy",
     "shahid_vip_new": "New Arabic Exclusives",
     "shahid_gulf": "Saudi & Gulf Exclusives",
-    "turkish_top_movies": "Popular Turkish Movies",
+    "turkish_top_movies": "Popular Movies",
     "turkish_trending_movies": "Turkish Comedy Movies",
-    "turkish_new_movies": "New Turkish Movies",
+    "turkish_new_movies": "New Movies",
     "turkish_rated_movies": "Top-Rated Turkish Movies",
     "turkish_top_series": "Popular Turkish Series",
     "turkish_trending_series": "Turkish Drama Series",
-    "turkish_new_series": "New Turkish Series",
-    "turkish_new_episodes": "New Episodes in the Last 14 Days",
+    "turkish_new_series": "New Series",
+    "turkish_new_episodes": "Latest Episodes",
     "turkish_streaming_originals": "Turkish Crime Series",
     "netflix_turkish_movies": "Turkish Movies on Netflix",
     "netflix_turkish_series": "Turkish TV Shows on Netflix"
@@ -131,7 +132,7 @@ def catalog_plan():
     for row in original:
         plan.append(row)
         plan.extend(after.get(row['id'], []))
-    return plan + build_browse_catalogs(labels, TODAY)
+    return plan + turkish_rows.definitions() + build_browse_catalogs(labels, TODAY)
 
 
 def fetch(url, *, headers=None, retries=3, timeout=40):
@@ -218,6 +219,9 @@ def preview(kind, item, *, verified_note=None, source_rank=None, source_week=Non
     # Internal source score used by Netflix artwork; never expose as an IMDb rating.
     if isinstance(item.get('vote_average'), (float, int)):
         p['_tmdb_score'] = item['vote_average']
+    if (kind == 'tv' and item.get('original_name') == 'Güneşin Doğduğu Yer'
+            and str(item.get('first_air_date', ''))[:4] == '2026'):
+        p['trailers'] = [{'source': 'RX4VAHs2DLM', 'type': 'Trailer'}]
     if item.get('poster_path'):
         p['poster'] = 'https://image.tmdb.org/t/p/w500' + item['poster_path']
     # Only use a URL pattern actually copied from the user's own BetterPosters
@@ -933,6 +937,8 @@ def fetch_premieres(spec):
 
 def catalog(spec, netflix=None):
     mode=spec['mode']
+    if mode == 'turkish_networks':
+        return turkish_rows.row(spec, TODAY, fetch, tmdb, fetch_discover, preview, LIMIT, top_today_poster_url)
     if mode=='external':
         return None,'Handled by independently installed BetterPosters / personalized addon'
     if mode=='verified':
@@ -1029,6 +1035,53 @@ def attach_netflix_trailer(item):
         item['trailers'] = [{'source': key, 'type': 'Trailer'}]
 
 
+@lru_cache(maxsize=None)
+def turkish_trailer(path):
+    teaser = None
+    for language in ('tr-TR', 'en-US'):
+        try:
+            videos = tmdb(path + '/videos', {'language': language}).get('results', [])
+        except HTTPError as error:
+            if error.code == 404:
+                continue
+            raise
+        for video in videos:
+            key = video.get('key', '')
+            if (video.get('official') and video.get('site') == 'YouTube'
+                    and re.fullmatch(r'[A-Za-z0-9_-]{11}', key)):
+                if video.get('type') == 'Trailer':
+                    return key
+                if video.get('type') == 'Teaser' and not teaser:
+                    teaser = key
+    return teaser
+
+
+def attach_turkish_trailer(item):
+    if item.get('_tmdb_id') and not item.get('trailers'):
+        kind = 'movie' if item['type'] == 'movie' else 'tv'
+        key = turkish_trailer(f"/{kind}/{item['_tmdb_id']}")
+        if key:
+            item['trailers'] = [{'source': key, 'type': 'Trailer'}]
+
+
+def attach_episode_preview(item, upcoming):
+    if not item.get('_tmdb_id'):
+        return
+    record = details('tv', item['_tmdb_id'])
+    ep = record.get('next_episode_to_air' if upcoming else 'last_episode_to_air') or {}
+    when = ep.get('air_date', '')
+    start = TODAY if upcoming else TODAY - timedelta(days=14)
+    end = TODAY + timedelta(days=6) if upcoming else TODAY
+    if not str(start) <= when <= str(end):
+        return
+    item['_episode_date'] = when
+    season, episode = ep.get('season_number'), ep.get('episode_number')
+    if isinstance(season, int) and isinstance(episode, int):
+        key = turkish_trailer(f"/tv/{item['_tmdb_id']}/season/{season}/episode/{episode}")
+        if key:
+            item['trailers'] = [{'source': key, 'type': 'Trailer'}]
+
+
 def publish_catalog(stage, spec, rows):
     route = stage / 'catalog' / spec['type'] / spec['id']
     entry = {key: spec[key] for key in ('type', 'id', 'name')}
@@ -1080,6 +1133,9 @@ def publish_collection_presets(stage, manifest):
                         if field == 'sources':
                             source = {'provider': 'addon', **source, 'genre': None}
                         ordered.append(source)
+                    if network == 'turkish':
+                        priority = {'turkish_' + key: n for n, key in enumerate(turkish_rows.ORDER)}
+                        ordered.sort(key=lambda source: priority.get(source['catalogId'], len(priority)))
                     folder[field] = ordered
         write_json(stage / filename, collections)
 
@@ -1119,7 +1175,10 @@ def main():
                     if spec['id'].startswith(('shahid_', 'netflix_')):
                         arabic = [item for item in rows if item.get('_trailer_language') == 'ar-SA'
                                   or (item['type'], item['id']) in VERIFIED_TRAILERS]
-                    if spec['id'].startswith('netflix_'):
+                    if spec['group'] == 'Turkish Content':
+                        with ThreadPoolExecutor(max_workers=6) as pool:
+                            list(pool.map(attach_turkish_trailer, rows))
+                    elif spec['id'].startswith('netflix_'):
                         with ThreadPoolExecutor(max_workers=6) as pool:
                             list(pool.map(attach_netflix_trailer, rows))
                     else:
@@ -1127,7 +1186,8 @@ def main():
                             attach_netflix_trailer(item)
                         for item in rows:
                             item.pop('_trailer_language', None)
-                    for item in arabic:
+                    detail_rows = rows if spec['group'] == 'Turkish Content' else arabic
+                    for item in detail_rows:
                         kind, imdb = item['type'], item['id']
                         if imdb in detail_ids[kind] or not item.get('trailers') or not item.get('_tmdb_id'):
                             continue
@@ -1140,6 +1200,12 @@ def main():
                         if detail:
                             write_json(stage / 'meta' / kind / (imdb + '.json'), {'meta': detail})
                             detail_ids[kind].add(imdb)
+                    if spec['id'] in ('turkish_new_episodes', 'turkish_on_tv'):
+                        upcoming = spec['id'] == 'turkish_on_tv'
+                        for item in rows:
+                            attach_episode_preview(item, upcoming)
+                        rows.sort(key=lambda item: item.pop('_episode_date', '9999' if upcoming else ''),
+                                  reverse=not upcoming)
                     if spec.get('group') == 'Netflix Saudi':
                         style_netflix_catalog(stage, spec, rows, BASE, poster_cache)
                     else:
