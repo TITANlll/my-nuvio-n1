@@ -3,7 +3,7 @@
 **Status:** Implementation prepared, not installed or deployed by this pull request.
 
 This is a **separate** Stremio-protocol catalog for Nuvio. It does not change
-\`generate.py\`, \`catalogs.json\`, the public Nuvio GitHub Pages site, or
+`generate.py`, `catalogs.json`, the public Nuvio GitHub Pages site, or
 any Netflix/Shahid/Turkish rows.
 
 ## Behavior
@@ -21,7 +21,7 @@ any Netflix/Shahid/Turkish rows.
 
 ## Why separate hosting?
 
-The existing \`my-nuvio-n1\` catalog is hosted as **public static files on
+The existing `my-nuvio-n1` catalog is hosted as **public static files on
 GitHub Pages**. Adding personal MDBList watch history to that public build
 would expose what you watch. A live Worker can keep the API key secret and
 respond dynamically without making watch history part of the public repo.
@@ -32,13 +32,13 @@ This addon is **not** hosted by GitHub Pages. It needs a Cloudflare Worker
 ## Setup (Cloudflare Workers, after reviewing the code)
 
 1. Create a Cloudflare account and install Node.js.
-2. From this folder run \`npx wrangler login\` then \`npx wrangler deploy\`.
+2. From this folder run `npx wrangler login` then `npx wrangler deploy`.
 3. In Cloudflare Workers & Pages → **new-episodes-mdblist** → Settings →
    Variables and Secrets add **encrypted secrets**:
-   - \`MDBLIST_API_KEY\`: your personal key from https://mdblist.com/preferences/
-   - \`ADDON_ACCESS_TOKEN\`: a **random, private string at least 24 characters long**.
+   - `MDBLIST_API_KEY`: your personal key from https://mdblist.com/preferences/
+   - `ADDON_ACCESS_TOKEN`: a **random, private string at least 24 characters long**.
 4. For Nuvio, install the generated worker URL with a private path:
-   \`https://YOUR-WORKER.SUBDOMAIN.workers.dev/YOUR_ADDON_ACCESS_TOKEN/manifest.json\`
+   `https://YOUR-WORKER.SUBDOMAIN.workers.dev/YOUR_ADDON_ACCESS_TOKEN/manifest.json`
 5. In Nuvio, open **Settings → Addons → Reorder Home Catalogs**. Enable
    **New Episodes** and put it immediately below **Continue Watching**.
 6. Make sure Nuvio → Settings → Tracking → MDBList is connected and that
@@ -48,19 +48,19 @@ This addon is **not** hosted by GitHub Pages. It needs a Cloudflare Worker
 private install URL can see the catalog; this is a personal-use addon, not
 multi-user authentication. Neither secret belongs in this public GitHub repo,
 a commit, a screenshot, or a chat. If you leak the URL, rotate
-\`ADDON_ACCESS_TOKEN\` in Worker settings and reinstall the new URL.
+`ADDON_ACCESS_TOKEN` in Worker settings and reinstall the new URL.
 
-MDBList documented endpoint: \`GET /upnext?limit=100&offset=0&hide_unreleased=true\`.
+MDBList documented endpoint: `GET /upnext?limit=100&offset=0&hide_unreleased=true`.
 The endpoint returns the next **unwatched aired** episode for each
-in-progress show, with \`next_episode.air_date\` and show IDs/posters.
+in-progress show, with `next_episode.air_date` and show IDs/posters.
 This addon requests up to five pages (500 in-progress shows).
 
 ## Local tests
 
-\`\`\`bash
+```bash
 cd personal-new-episodes
 node --test
-\`\`\`
+```
 
 The tests use dummy data and make no real MDBList requests.
 
