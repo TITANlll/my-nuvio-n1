@@ -10,12 +10,11 @@ any Netflix/Shahid/Turkish rows.
 
 - Exactly one row: **New Episodes**, intended immediately under Continue Watching.
 - Uses **your existing MDBList watch history** (no new watchlist or library).
-- Shows the *next unwatched episode* of an in-progress show **only if that
-  episode aired during the last 7 days**.
+- Shows the *next unwatched aired episode* of an in-progress show, even if
+  that episode was released weeks or months ago.
 - Newest air dates first; one poster per show; no unreleased episodes.
-- If you are several episodes behind and the *next unwatched* episode is older
-  than seven days, that series is not displayed. This is intentional and
-  distinguishes this row from the full **Up Next** backlog.
+- The row stays populated until MDBList marks the next episode watched.
+  It then advances to the following aired episode, if available.
 - The row's contents change when MDBList's watch progress changes and the
   addon is reloaded by Nuvio. Air date is not a guarantee that a stream exists.
 
@@ -66,9 +65,9 @@ The tests use dummy data and make no real MDBList requests.
 
 ## Limitations
 
-- Newly released episodes from shows with an *older unwatched backlog* are
-  not shown. Showing **every** new episode regardless of backlog requires
-  a separate episode-calendar reconciliation implementation.
+- This is an **Up Next** experience, not a strict newly-released-only feed.
+  If a series has an older unwatched backlog, its next unwatched episode
+  appears rather than skipping ahead to the newest broadcast.
 - Only shows present in MDBList's in-progress Up Next data are eligible.
 - A partial-month gap, incorrectly mapped episode numbering, or delayed
   MDBList history sync may delay/miss a row entry.
