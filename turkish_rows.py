@@ -1,5 +1,7 @@
 """Turkish network rows and the weekly broadcast chart."""
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
+from pathlib import Path
+import json
 from html import unescape
 import re
 import unicodedata
@@ -52,13 +54,26 @@ def exact_show(title, tmdb):
 def row(spec, today, fetch, tmdb, discover, preview, limit, numbered_poster):
     section = spec['section']
     if section == 'weekly_top10':
+        saved = json.loads((Path(__file__).parent / 'data/turkish_weekly_ratings.json').read_text())
+        saved_week = date.fromisoformat(saved['week_ending'])
+        identities = {folded(r['series']): r.get('imdb_id') for r in saved['entries']}
         try:
             chart = weekly_chart(fetch(WEEKLY_URL, timeout=10, retries=2).decode(), today)
         except OSError:
-            return [], 'Weekly ratings source unavailable'
+            chart = []
+        if 0 <= (today - saved_week).days <= 14 and (not chart or chart[0][3] < saved_week.isoformat()):
+            chart = [(r['rank'], r['series'], r['network'], saved_week.isoformat())
+                     for r in saved['entries'] if 1 <= r['rank'] <= 10]
         result = []
         for rank, title, channel, week in chart:
-            show = exact_show(title, tmdb)
+            imdb = identities.get(folded(title))
+            show = None
+            if imdb:
+                matches = tmdb('/find/' + imdb, {'external_source': 'imdb_id'}).get('tv_results', [])
+                if len(matches) == 1 and matches[0].get('original_language') == 'tr':
+                    show = matches[0]
+            if not show:
+                show = exact_show(title, tmdb)
             if show and show.get('poster_path'):
                 item = preview('tv', show, source_rank=rank, source_week=week,
                                verified_note='Turkish weekly TOTAL ratings · ' + channel)
