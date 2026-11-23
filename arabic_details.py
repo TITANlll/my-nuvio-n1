@@ -2,11 +2,12 @@
 from datetime import date
 
 
-def title_details(item, tmdb_id, tmdb):
+def title_details(item, tmdb_id, tmdb, *, record=None):
     kind = 'movie' if item['type'] == 'movie' else 'tv'
     path = f'/{kind}/{tmdb_id}'
-    record = tmdb(path, {'append_to_response': 'external_ids,credits,images',
-                         'include_image_language': 'en,ar,null'})
+    if record is None:
+        record = tmdb(path, {'append_to_response': 'external_ids,credits,images',
+                             'include_image_language': 'en,ar,null'})
     if record.get('external_ids', {}).get('imdb_id') != item['id']:
         return None
     meta = {k: item[k] for k in ('id', 'name', 'type', 'poster', 'background',

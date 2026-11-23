@@ -189,6 +189,22 @@ class BrowseCatalogTests(unittest.TestCase):
         self.assertEqual([row['id'] for row in rows],
                          [f'tt{i:07d}' for i in range(1, 249) if i not in {23, 24}])
 
+    def test_action_trailers_match_the_movie_on_catalog_and_detail_pages(self):
+        key = 'abcdefghij1'
+        item = {'type': 'movie', 'id': 'tt1234567', 'name': 'Movie', '_tmdb_id': 45}
+        record = {'external_ids': {'imdb_id': item['id']}, 'videos': {'results': [
+            {'site': 'YouTube', 'type': 'Trailer', 'official': False, 'key': '0123456789A'},
+            {'site': 'YouTube', 'type': 'Trailer', 'official': True, 'key': key}]}}
+        with patch.object(g, 'tmdb', return_value=record) as tmdb:
+            detail = g.action_movie_details(item)
+            tmdb.assert_called_once()
+            self.assertEqual(item['trailers'], [{'type': 'Trailer', 'source': key}])
+            self.assertEqual(item['trailerStreams'], detail['trailerStreams'])
+            self.assertEqual(detail['trailerStreams'][0]['ytId'], key)
+            other = dict(type='movie', id='tt0000001', _tmdb_id=45)
+            self.assertIsNone(g.action_movie_details(other))
+            self.assertNotIn('trailers', other)
+
     def test_browse_publisher_matches_clients_actual_skip_offsets(self):
         spec = self.rows[0]
         rows = [{'id': f'tt{i:07d}', 'type': spec['type'], 'name': f'Title {i}'}

@@ -55,7 +55,7 @@ TMDB_REQUEST_INTERVAL = 1 / 25
 TMDB_REQUEST_LOCK = Lock()
 tmdb_next_request = 0.0
 WATCHMODE_ID_MAP_URL = 'https://api.watchmode.com/datasets/title_id_map.csv'
-ADDON_VERSION = '1.10.1'
+ADDON_VERSION = '1.10.2'
 COLLECTION_NETWORKS = ('netflix', 'shahid', 'turkish')
 COLLECTION_PRESETS = ('nuvio-collections.json', 'nuvio-collections-streaming.json')
 
@@ -1017,12 +1017,44 @@ def netflix_trailer(kind, tmdb_id, first_language):
             if err.code == 404:
                 return None
             raise
-        for video in data.get('results', []):
-            key = video.get('key') or ''
-            if (video.get('site') == 'YouTube' and video.get('type') == 'Trailer'
-                    and video.get('official') is True and re.fullmatch(r'[A-Za-z0-9_-]{11}', key)):
-                return key
+        key = official_trailer_key(data)
+        if key:
+            return key
     return None
+
+
+def official_trailer_key(data):
+    for video in data.get('results', []):
+        key = video.get('key') or ''
+        if (video.get('site') == 'YouTube' and video.get('type') == 'Trailer'
+                and video.get('official') is True and re.fullmatch(r'[A-Za-z0-9_-]{11}', key)):
+            return key
+    return None
+
+
+def action_movie_details(item):
+    movie_id = item.get('_tmdb_id')
+    if not movie_id:
+        return None
+    try:
+        record = tmdb(f'/movie/{movie_id}', {
+            'append_to_response': 'videos,external_ids,credits,images',
+            'include_image_language': 'en,null',
+        }, cache=False)
+    except HTTPError as err:
+        if err.code == 404:
+            return None
+        raise
+    if record.get('external_ids', {}).get('imdb_id') != item['id']:
+        return None
+    key = official_trailer_key(record.get('videos', {}))
+    if not key:
+        return None
+    item['trailers'] = [{'source': key, 'type': 'Trailer'}]
+    detail = title_details(item, movie_id, tmdb, record=record)
+    item['trailerStreams'] = detail['trailerStreams']
+    return detail
+
 
 
 def attach_netflix_trailer(item):
@@ -1201,6 +1233,13 @@ def main():
                             attach_netflix_trailer(item)
                         for item in rows:
                             item.pop('_trailer_language', None)
+                    if spec['id'] == 'browse_genre_action_movie':
+                        with ThreadPoolExecutor(max_workers=12) as pool:
+                            for detail in pool.map(action_movie_details, rows):
+                                if detail and detail['id'] not in detail_ids['movie']:
+                                    write_json(stage / 'meta' / 'movie' / (detail['id'] + '.json'),
+                                               {'meta': detail})
+                                    detail_ids['movie'].add(detail['id'])
                     detail_rows = rows if spec['group'] == 'Turkish Content' else arabic
                     for item in detail_rows:
                         kind, imdb = item['type'], item['id']
