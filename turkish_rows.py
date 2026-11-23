@@ -68,22 +68,25 @@ def row(spec, today, fetch, tmdb, discover, preview, limit, numbered_poster):
         for rank, title, channel, week in chart:
             identity = identities.get(folded(title), {})
             imdb = identity.get('imdb_id')
+            note = 'Turkish weekly TOTAL ratings · ' + channel
+            if imdb and identity.get('tmdb_id'):
+                # Both IDs are independently verified in the dated chart snapshot.
+                # Incomplete provider crosswalks must not drop a published position.
+                tmdb_id = identity['tmdb_id']
+                result.append({'id': imdb, 'type': 'series', 'name': title.title(),
+                               '_tmdb_id': tmdb_id,
+                               'poster': numbered_poster(tmdb_id, 'series', rank=rank),
+                               'description': f'Original chart position #{rank} · Chart week ending {week} · {note}'})
+                continue
             show = None
             if imdb:
                 matches = tmdb('/find/' + imdb, {'external_source': 'imdb_id'}).get('tv_results', [])
                 if len(matches) == 1 and matches[0].get('original_language') == 'tr':
                     show = matches[0]
-            if not show and identity.get('tmdb_id'):
-                candidate = tmdb('/tv/' + str(identity['tmdb_id']))
-                if (candidate.get('original_language') == 'tr'
-                        and folded(candidate.get('original_name', '')) == folded(title)):
-                    show = candidate
             if not show:
                 show = exact_show(title, tmdb)
-            if show and (show.get('poster_path') or show['id'] == identity.get('tmdb_id')):
-                verified_imdb = imdb if show['id'] == identity.get('tmdb_id') else None
-                item = preview('tv', show, imdb_id=verified_imdb, source_rank=rank, source_week=week,
-                               verified_note='Turkish weekly TOTAL ratings · ' + channel)
+            if show and show.get('poster_path'):
+                item = preview('tv', show, source_rank=rank, source_week=week, verified_note=note)
                 if item:
                     item['poster'] = numbered_poster(show['id'], 'series', rank=rank)
                     result.append(item)
