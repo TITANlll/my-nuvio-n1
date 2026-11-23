@@ -1,6 +1,6 @@
 {
   "source": "https://turkish.vartolo.net/weekly-recap/",
-  "week_ending": "2026-11-15",
+  "week_ending": "2026-11-22",
   "entries": [
     {
       "rank": 1,
@@ -42,7 +42,8 @@
       "rank": 7,
       "series": "DAHA 17",
       "network": "Kanal D",
-      "imdb_id": "tt42764103"
+      "imdb_id": "tt42764103",
+      "tmdb_id": 317883
     },
     {
       "rank": 8,
