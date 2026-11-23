@@ -130,15 +130,27 @@ class NetflixEverythingTests(unittest.TestCase):
                     'id': f'tt{item["id"]:07}', 'description': kw['verified_note']}):
             rows, reason = g.catalog(series)
         self.assertEqual(reason, '')
-        self.assertEqual([row['id'] for row in rows], ['tt0000004', 'tt0000001'])
+        self.assertEqual([row['id'] for row in rows], ['tt0000004', 'tt0000001', 'tt0000002'])
+        self.assertIn('2024-07-02', rows[2]['description'])
         self.assertIn('Season 2 premiere 2026-11-12', rows[1]['description'])
         self.assertIn('Networks: Shasha', rows[1]['description'])
         self.assertIn('Production: Shasha Studios', rows[1]['description'])
         for call, field in zip(discover.call_args_list, ('first_air_date', 'air_date')):
             params = call.args[0]['params']
             self.assertEqual((params['watch_region'], params['with_watch_providers']), ('SA', '8'))
-            self.assertEqual(params[field + '.gte'], '2026-08-19')
+            self.assertEqual(params[field + '.gte'], '2021-11-17')
             self.assertEqual(params[field + '.lte'], '2026-11-16')
+
+    def test_new_and_noteworthy_rows_keep_new_titles_first(self):
+        for spec in build_public_netflix_rows():
+            if spec['source_row'] != 'New on Netflix':
+                continue
+            with patch.object(g, 'fetch_public_netflix', side_effect=[
+                    ([{'id': 'new'}], ''), ([{'id': 'pick'}, {'id': 'new'}], '')]) as fetch:
+                rows, reason = g.catalog(spec)
+            self.assertEqual(rows, [{'id': 'new'}, {'id': 'pick'}])
+            self.assertEqual(reason, '')
+            self.assertEqual(fetch.call_args.args[0]['type'], spec['type'])
 
     def test_digital_release_must_be_in_saudi_arabia_and_have_the_digital_type(self):
         with patch.object(g, 'tmdb', return_value={'results': [

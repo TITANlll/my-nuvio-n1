@@ -55,7 +55,7 @@ TMDB_REQUEST_INTERVAL = 1 / 25
 TMDB_REQUEST_LOCK = Lock()
 tmdb_next_request = 0.0
 WATCHMODE_ID_MAP_URL = 'https://api.watchmode.com/datasets/title_id_map.csv'
-ADDON_VERSION = '1.10.4'
+ADDON_VERSION = '1.10.5'
 COLLECTION_NETWORKS = ('netflix', 'shahid', 'turkish')
 COLLECTION_PRESETS = ('nuvio-collections.json', 'nuvio-collections-streaming.json')
 
@@ -71,8 +71,8 @@ COLLECTION_ROW_TITLES = {
     "netflix_sa_recent_series": "New TV Shows",
     "netflix_sa_arabic_series": "Arabic-Language TV Shows",
     "netflix_sa_crime_series": "Crime TV Shows",
-    "netflix_sa_new_arabic_movies": "New Arabic & Gulf Movies",
-    "netflix_sa_new_arabic_series": "New Arabic & Gulf TV Shows",
+    "netflix_sa_new_arabic_movies": "Latest Arabic & Gulf Movies",
+    "netflix_sa_new_arabic_series": "Latest Arabic & Gulf TV Shows",
     "netflix_sa_public_arab_series": "International TV Shows",
     "netflix_sa_public_arab_movies": "Arabic-Language Movies",
     "netflix_sa_public_arab_tv_comedies": "TV Comedies",
@@ -84,8 +84,8 @@ COLLECTION_ROW_TITLES = {
     "netflix_sa_public_only_on_netflix": "Only on Netflix",
     "netflix_sa_public_family_movies": "Children & Family Movies",
     "netflix_sa_public_kids_series": "Kids TV Shows",
-    "netflix_sa_public_arab_new_movies": "New on Netflix: Arabic Movies",
-    "netflix_sa_public_arab_new_series": "New on Netflix: Arabic TV Shows",
+    "netflix_sa_public_arab_new_movies": "New & Noteworthy Arabic Movies",
+    "netflix_sa_public_arab_new_series": "New & Noteworthy Arabic TV Shows",
     "shahid_saudi_originals": "Saudi Originals",
     "shahid_top_arabic_series": "Arabic Series",
     "shahid_home_arabic_drama": "Arabic Drama",
@@ -429,7 +429,7 @@ def discover_netflix(spec):
 def discover_netflix_releases(spec):
     """Find original Arabic releases and keep their actual network/studio credits."""
     kind = media_type(spec)
-    since = TODAY - timedelta(days=89)
+    since = TODAY - timedelta(days=365 * 5)
     if kind == 'movie':
         searches = [('primary_release_date', {}),
                     ('release_date', {'region': 'SA', 'with_release_type': '4'})]
@@ -476,7 +476,7 @@ def discover_netflix_releases(spec):
         if len(found) >= NETFLIX_LIMIT:
             break
 
-    return list(found.values()), '' if found else 'No matched Arabic releases in the last 90 days'
+    return list(found.values()), '' if found else 'No matched Arabic releases in the last five years'
 
 
 def netflix_release_dates(kind, record, check_digital):
@@ -958,7 +958,19 @@ def catalog(spec, netflix=None):
     if mode=='discover' and spec.get('group')=='Turkish Content':
         return discover_turkish(spec)
     if mode=='netflix_public' and spec.get('group')=='Netflix Saudi':
-        return fetch_public_netflix(spec)
+        rows, reason = fetch_public_netflix(spec)
+        if spec['source_row'] != 'New on Netflix' or len(rows) >= NETFLIX_LIMIT:
+            return rows, reason
+        # Keep Netflix's current picks first, then complete the row with
+        # same-type Arab Stories picks from the Saudi storefront.
+        suffix = 'movies' if spec['type'] == 'movie' else 'series'
+        picks_spec = next(row for row in build_public_netflix_rows()
+                          if row['id'] == 'netflix_sa_public_arab_' + suffix)
+        picks, picks_reason = fetch_public_netflix(picks_spec)
+        unique = {}
+        for item in rows + picks:
+            unique.setdefault(item['id'], item)
+        return list(unique.values())[:NETFLIX_LIMIT], '' if unique else reason or picks_reason
     if mode=='netflix_discover' and spec.get('group')=='Netflix Saudi':
         return discover_netflix(spec)
     if mode=='netflix_releases' and spec.get('group')=='Netflix Saudi':
