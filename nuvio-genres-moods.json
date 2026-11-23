@@ -1,0 +1,802 @@
+[
+  {
+    "id": "collections.my-nuvio-genre-covers",
+    "title": "Genres",
+    "viewMode": "TABBED_GRID",
+    "pinToTop": true,
+    "focusGlowEnabled": true,
+    "showAllTab": true,
+    "folders": [
+      {
+        "id": "collections.my-nuvio-genre-action",
+        "title": "Action",
+        "tileShape": "LANDSCAPE",
+        "hideTitle": false,
+        "focusGifEnabled": false,
+        "coverImageUrl": "https://raw.githubusercontent.com/rrevanth/nuvio-assets/main/genres/action/action-landscape.png",
+        "coverEmoji": "💥",
+        "catalogSources": [
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_genre_action_movie",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_genre_action_series",
+            "genre": null
+          }
+        ],
+        "sources": [
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_genre_action_movie",
+            "genre": null
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_genre_action_series",
+            "genre": null
+          }
+        ]
+      },
+      {
+        "id": "collections.my-nuvio-genre-comedy",
+        "title": "Comedy",
+        "tileShape": "LANDSCAPE",
+        "hideTitle": false,
+        "focusGifEnabled": false,
+        "coverImageUrl": "https://raw.githubusercontent.com/rrevanth/nuvio-assets/main/genres/comedy/comedy-landscape.png",
+        "coverEmoji": "😂",
+        "catalogSources": [
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_genre_comedy_movie",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_genre_comedy_series",
+            "genre": null
+          }
+        ],
+        "sources": [
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_genre_comedy_movie",
+            "genre": null
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_genre_comedy_series",
+            "genre": null
+          }
+        ]
+      },
+      {
+        "id": "collections.my-nuvio-genre-romance",
+        "title": "Romance",
+        "tileShape": "LANDSCAPE",
+        "hideTitle": false,
+        "focusGifEnabled": false,
+        "coverImageUrl": "https://raw.githubusercontent.com/rrevanth/nuvio-assets/main/genres/romance/romance-landscape.png",
+        "coverEmoji": "💕",
+        "catalogSources": [
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_genre_romance_movie",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_genre_romance_series",
+            "genre": null
+          }
+        ],
+        "sources": [
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_genre_romance_movie",
+            "genre": null
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_genre_romance_series",
+            "genre": null
+          }
+        ]
+      },
+      {
+        "id": "collections.my-nuvio-genre-horror",
+        "title": "Horror",
+        "tileShape": "LANDSCAPE",
+        "hideTitle": false,
+        "focusGifEnabled": false,
+        "coverImageUrl": "https://raw.githubusercontent.com/rrevanth/nuvio-assets/main/genres/horror/horror-landscape.png",
+        "coverEmoji": "👻",
+        "catalogSources": [
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_genre_horror_movie",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_genre_horror_series",
+            "genre": null
+          }
+        ],
+        "sources": [
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_genre_horror_movie",
+            "genre": null
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_genre_horror_series",
+            "genre": null
+          }
+        ]
+      },
+      {
+        "id": "collections.my-nuvio-genre-mystery",
+        "title": "Mystery",
+        "tileShape": "LANDSCAPE",
+        "hideTitle": false,
+        "focusGifEnabled": false,
+        "coverImageUrl": "https://raw.githubusercontent.com/rrevanth/nuvio-assets/main/genres/whodunits/whodunits-landscape.png",
+        "coverEmoji": "🕵️",
+        "catalogSources": [
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_genre_mystery_movie",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_genre_mystery_series",
+            "genre": null
+          }
+        ],
+        "sources": [
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_genre_mystery_movie",
+            "genre": null
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_genre_mystery_series",
+            "genre": null
+          }
+        ]
+      },
+      {
+        "id": "collections.my-nuvio-genre-thriller",
+        "title": "Thriller",
+        "tileShape": "LANDSCAPE",
+        "hideTitle": false,
+        "focusGifEnabled": false,
+        "coverImageUrl": "https://raw.githubusercontent.com/rrevanth/nuvio-assets/main/genres/thriller/thriller-landscape.png",
+        "coverEmoji": "🔪",
+        "catalogSources": [
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_genre_thriller_movie",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_genre_thriller_series",
+            "genre": null
+          }
+        ],
+        "sources": [
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_genre_thriller_movie",
+            "genre": null
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_genre_thriller_series",
+            "genre": null
+          }
+        ]
+      },
+      {
+        "id": "collections.my-nuvio-genre-sci-fi",
+        "title": "Sci-Fi",
+        "tileShape": "LANDSCAPE",
+        "hideTitle": false,
+        "focusGifEnabled": false,
+        "coverImageUrl": "https://raw.githubusercontent.com/rrevanth/nuvio-assets/main/genres/sci-fi/sci-fi-landscape.png",
+        "coverEmoji": "🚀",
+        "catalogSources": [
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_genre_sci_fi_movie",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_genre_sci_fi_series",
+            "genre": null
+          }
+        ],
+        "sources": [
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_genre_sci_fi_movie",
+            "genre": null
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_genre_sci_fi_series",
+            "genre": null
+          }
+        ]
+      },
+      {
+        "id": "collections.my-nuvio-genre-fantasy",
+        "title": "Fantasy",
+        "tileShape": "LANDSCAPE",
+        "hideTitle": false,
+        "focusGifEnabled": false,
+        "coverImageUrl": "https://raw.githubusercontent.com/rrevanth/nuvio-assets/main/genres/fantasy/fantasy-landscape.png",
+        "coverEmoji": "🐉",
+        "catalogSources": [
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_genre_fantasy_movie",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_genre_fantasy_series",
+            "genre": null
+          }
+        ],
+        "sources": [
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_genre_fantasy_movie",
+            "genre": null
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_genre_fantasy_series",
+            "genre": null
+          }
+        ]
+      },
+      {
+        "id": "collections.my-nuvio-genre-adventure",
+        "title": "Adventure",
+        "tileShape": "LANDSCAPE",
+        "hideTitle": false,
+        "focusGifEnabled": false,
+        "coverImageUrl": "https://raw.githubusercontent.com/rrevanth/nuvio-assets/main/genres/adventure/adventure-landscape.png",
+        "coverEmoji": "🧭",
+        "catalogSources": [
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_genre_adventure_movie",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_genre_adventure_series",
+            "genre": null
+          }
+        ],
+        "sources": [
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_genre_adventure_movie",
+            "genre": null
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_genre_adventure_series",
+            "genre": null
+          }
+        ]
+      },
+      {
+        "id": "collections.my-nuvio-genre-drama",
+        "title": "Drama",
+        "tileShape": "LANDSCAPE",
+        "hideTitle": false,
+        "focusGifEnabled": false,
+        "coverImageUrl": "https://raw.githubusercontent.com/rrevanth/nuvio-assets/main/genres/drama/drama-landscape.png",
+        "coverEmoji": "🎭",
+        "catalogSources": [
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_genre_drama_movie",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_genre_drama_series",
+            "genre": null
+          }
+        ],
+        "sources": [
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_genre_drama_movie",
+            "genre": null
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_genre_drama_series",
+            "genre": null
+          }
+        ]
+      },
+      {
+        "id": "collections.my-nuvio-genre-crime",
+        "title": "Crime",
+        "tileShape": "LANDSCAPE",
+        "hideTitle": false,
+        "focusGifEnabled": false,
+        "coverImageUrl": "https://raw.githubusercontent.com/rrevanth/nuvio-assets/main/genres/crime/crime-landscape.png",
+        "coverEmoji": "🚨",
+        "catalogSources": [
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_genre_crime_movie",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_genre_crime_series",
+            "genre": null
+          }
+        ],
+        "sources": [
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_genre_crime_movie",
+            "genre": null
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_genre_crime_series",
+            "genre": null
+          }
+        ]
+      },
+      {
+        "id": "collections.my-nuvio-genre-music",
+        "title": "Music",
+        "tileShape": "LANDSCAPE",
+        "hideTitle": false,
+        "focusGifEnabled": false,
+        "coverImageUrl": "https://raw.githubusercontent.com/rrevanth/nuvio-assets/main/genres/music/music-landscape.png",
+        "coverEmoji": "🎶",
+        "catalogSources": [
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_genre_music_movie",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_genre_music_series",
+            "genre": null
+          }
+        ],
+        "sources": [
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_genre_music_movie",
+            "genre": null
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_genre_music_series",
+            "genre": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "collections.my-nuvio-moods",
+    "title": "Moods",
+    "viewMode": "TABBED_GRID",
+    "pinToTop": true,
+    "focusGlowEnabled": true,
+    "showAllTab": true,
+    "folders": [
+      {
+        "id": "collections.my-nuvio-mood-feel-good",
+        "title": "Feel-Good",
+        "tileShape": "LANDSCAPE",
+        "hideTitle": false,
+        "focusGifEnabled": false,
+        "coverImageUrl": "https://raw.githubusercontent.com/rrevanth/nuvio-assets/main/genres/family-movie-night/family-movie-night-landscape.png",
+        "coverEmoji": "😊",
+        "catalogSources": [
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_mood_feel_good_movie",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_mood_feel_good_series",
+            "genre": null
+          }
+        ],
+        "sources": [
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_mood_feel_good_movie",
+            "genre": null
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_mood_feel_good_series",
+            "genre": null
+          }
+        ]
+      },
+      {
+        "id": "collections.my-nuvio-mood-mind-bending",
+        "title": "Mind-Bending",
+        "tileShape": "LANDSCAPE",
+        "hideTitle": false,
+        "focusGifEnabled": false,
+        "coverImageUrl": "https://raw.githubusercontent.com/rrevanth/nuvio-assets/main/genres/robots-and-ai/robots-and-ai-landscape.png",
+        "coverEmoji": "🧠",
+        "catalogSources": [
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_mood_mind_bending_movie",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_mood_mind_bending_series",
+            "genre": null
+          }
+        ],
+        "sources": [
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_mood_mind_bending_movie",
+            "genre": null
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_mood_mind_bending_series",
+            "genre": null
+          }
+        ]
+      },
+      {
+        "id": "collections.my-nuvio-mood-dark-suspenseful",
+        "title": "Dark & Suspenseful",
+        "tileShape": "LANDSCAPE",
+        "hideTitle": false,
+        "focusGifEnabled": false,
+        "coverImageUrl": "https://raw.githubusercontent.com/rrevanth/nuvio-assets/main/genres/psychological-terror/psychological-terror-landscape.png",
+        "coverEmoji": "🌑",
+        "catalogSources": [
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_mood_dark_suspenseful_movie",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_mood_dark_suspenseful_series",
+            "genre": null
+          }
+        ],
+        "sources": [
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_mood_dark_suspenseful_movie",
+            "genre": null
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_mood_dark_suspenseful_series",
+            "genre": null
+          }
+        ]
+      },
+      {
+        "id": "collections.my-nuvio-mood-light-funny",
+        "title": "Light & Funny",
+        "tileShape": "LANDSCAPE",
+        "hideTitle": false,
+        "focusGifEnabled": false,
+        "coverImageUrl": "https://raw.githubusercontent.com/rrevanth/nuvio-assets/main/genres/workplace-comedies/workplace-comedies-landscape.png",
+        "coverEmoji": "😄",
+        "catalogSources": [
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_mood_light_funny_movie",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_mood_light_funny_series",
+            "genre": null
+          }
+        ],
+        "sources": [
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_mood_light_funny_movie",
+            "genre": null
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_mood_light_funny_series",
+            "genre": null
+          }
+        ]
+      },
+      {
+        "id": "collections.my-nuvio-mood-emotional-stories",
+        "title": "Emotional Stories",
+        "tileShape": "LANDSCAPE",
+        "hideTitle": false,
+        "focusGifEnabled": false,
+        "coverImageUrl": "https://raw.githubusercontent.com/rrevanth/nuvio-assets/main/genres/tearjerkers/tearjerkers-landscape.png",
+        "coverEmoji": "❤️",
+        "catalogSources": [
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_mood_emotional_stories_movie",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_mood_emotional_stories_series",
+            "genre": null
+          }
+        ],
+        "sources": [
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_mood_emotional_stories_movie",
+            "genre": null
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_mood_emotional_stories_series",
+            "genre": null
+          }
+        ]
+      },
+      {
+        "id": "collections.my-nuvio-mood-high-adrenaline",
+        "title": "High-Adrenaline",
+        "tileShape": "LANDSCAPE",
+        "hideTitle": false,
+        "focusGifEnabled": false,
+        "coverImageUrl": "https://raw.githubusercontent.com/rrevanth/nuvio-assets/main/genres/action-thrillers/action-thrillers-landscape.png",
+        "coverEmoji": "⚡",
+        "catalogSources": [
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_mood_high_adrenaline_movie",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_mood_high_adrenaline_series",
+            "genre": null
+          }
+        ],
+        "sources": [
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_mood_high_adrenaline_movie",
+            "genre": null
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_mood_high_adrenaline_series",
+            "genre": null
+          }
+        ]
+      },
+      {
+        "id": "collections.my-nuvio-mood-easy-watching",
+        "title": "Easy Watching",
+        "tileShape": "LANDSCAPE",
+        "hideTitle": false,
+        "focusGifEnabled": false,
+        "coverImageUrl": "https://raw.githubusercontent.com/rrevanth/nuvio-assets/main/genres/short-films/short-films-landscape.png",
+        "coverEmoji": "🍿",
+        "catalogSources": [
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_mood_easy_watching_movie",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_mood_easy_watching_series",
+            "genre": null
+          }
+        ],
+        "sources": [
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_mood_easy_watching_movie",
+            "genre": null
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_mood_easy_watching_series",
+            "genre": null
+          }
+        ]
+      },
+      {
+        "id": "collections.my-nuvio-mood-twists-mysteries",
+        "title": "Twists & Mysteries",
+        "tileShape": "LANDSCAPE",
+        "hideTitle": false,
+        "focusGifEnabled": false,
+        "coverImageUrl": "https://raw.githubusercontent.com/rrevanth/nuvio-assets/main/genres/whodunits/whodunits-landscape.png",
+        "coverEmoji": "🔎",
+        "catalogSources": [
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_mood_twists_mysteries_movie",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_mood_twists_mysteries_series",
+            "genre": null
+          }
+        ],
+        "sources": [
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_mood_twists_mysteries_movie",
+            "genre": null
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_mood_twists_mysteries_series",
+            "genre": null
+          }
+        ]
+      }
+    ]
+  }
+]

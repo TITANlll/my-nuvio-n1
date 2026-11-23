@@ -52,6 +52,7 @@ class BuildTests(unittest.TestCase):
             if spec['id'].startswith(('netflix_', 'shahid_', 'turkish_')):
                 descriptor['showInHome'] = False
             if spec['group'] in BROWSE_GROUPS:
+                descriptor['showInHome'] = False
                 descriptor['extra'] = [{'name': 'skip', 'isRequired': False}]
             self.assertEqual(entry, descriptor)
             route = self.out / 'catalog' / entry['type'] / (entry['id'] + '.json')

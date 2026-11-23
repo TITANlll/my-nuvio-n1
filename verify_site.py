@@ -87,12 +87,12 @@ def verify(base, expected_version=None):
     for catalog in catalogs:
         key = (catalog['type'], catalog['id'])
         network = collection_network(catalog['id'])
-        collection_only = network in COLLECTION_NETWORKS
+        collection_only = network in COLLECTION_NETWORKS or key in browse_totals
         if collection_only and catalog.get('showInHome') is not False:
             raise ValueError('Network catalog still appears on Home')
         if not collection_only and catalog.get('showInHome') is False:
             raise ValueError('Unexpected change to Home catalog visibility')
-        if collection_only:
+        if network in COLLECTION_NETWORKS:
             collection_routes.setdefault(network, set()).add(key)
         if key in seen or key[0] not in ('movie', 'series'):
             raise ValueError('Invalid or duplicate catalog')
@@ -114,6 +114,15 @@ def verify(base, expected_version=None):
                     raise ValueError('Unexpected second page')
             if read_metas(f'{url}/skip={total}.json', key[0]):
                 raise ValueError('Expected empty page at catalog end')
+    if browse_totals:
+        collections = read_json(base + '/nuvio-genres-moods.json')
+        for title, prefix in [('Genres', 'browse_genre_'), ('Moods', 'browse_mood_')]:
+            expected = {key for key in browse_totals if key[1].startswith(prefix)}
+            for field in ('sources', 'catalogSources'):
+                rows = [(s['type'], s['catalogId']) for c in collections if c['title'] == title
+                        for f in c['folders'] for s in f[field] if s['addonId'] == manifest['id']]
+                if len(rows) != len(expected) or set(rows) != expected:
+                    raise ValueError(f'Incomplete or duplicate rows in {title}')
     if collection_routes:
         verify_collection_presets(base, manifest['id'], collection_routes)
         counts = ', '.join(f'{network}={len(routes)}' for network, routes in sorted(collection_routes.items()))

@@ -55,7 +55,7 @@ TMDB_REQUEST_INTERVAL = 1 / 25
 TMDB_REQUEST_LOCK = Lock()
 tmdb_next_request = 0.0
 WATCHMODE_ID_MAP_URL = 'https://api.watchmode.com/datasets/title_id_map.csv'
-ADDON_VERSION = '1.10.0'
+ADDON_VERSION = '1.10.1'
 COLLECTION_NETWORKS = ('netflix', 'shahid', 'turkish')
 COLLECTION_PRESETS = ('nuvio-collections.json', 'nuvio-collections-streaming.json')
 
@@ -1086,7 +1086,7 @@ def publish_catalog(stage, spec, rows):
     route = stage / 'catalog' / spec['type'] / spec['id']
     entry = {key: spec[key] for key in ('type', 'id', 'name')}
     entry['name'] = COLLECTION_ROW_TITLES.get(spec['id'], spec['name'])
-    if entry['id'].partition('_')[0] in COLLECTION_NETWORKS:
+    if entry['id'].partition('_')[0] in COLLECTION_NETWORKS or spec['group'] in BROWSE_GROUPS:
         entry['showInHome'] = False
     if spec['group'] in BROWSE_GROUPS:
         entry['extra'] = [{'name': 'skip', 'isRequired': False}]
@@ -1110,6 +1110,15 @@ def collection_network(catalog_id):
 
 
 def publish_collection_presets(stage, manifest):
+    browse_file = 'nuvio-genres-moods.json'
+    browse = json.loads((ROOT / browse_file).read_text(encoding='utf-8'))
+    active = {(entry['type'], entry['id']) for entry in manifest['catalogs']}
+    for collection in browse:
+        for folder in collection['folders']:
+            for field in ('catalogSources', 'sources'):
+                folder[field] = [s for s in folder[field] if (s['type'], s['catalogId']) in active]
+        collection['folders'] = [f for f in collection['folders'] if f['catalogSources']]
+    write_json(stage / browse_file, [c for c in browse if c['folders']])
     addon_id = manifest['id']
     for filename in COLLECTION_PRESETS:
         collections = json.loads((ROOT / filename).read_text(encoding='utf-8'))
