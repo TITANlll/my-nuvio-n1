@@ -55,7 +55,7 @@ TMDB_REQUEST_INTERVAL = 1 / 25
 TMDB_REQUEST_LOCK = Lock()
 tmdb_next_request = 0.0
 WATCHMODE_ID_MAP_URL = 'https://api.watchmode.com/datasets/title_id_map.csv'
-ADDON_VERSION = '1.10.3'
+ADDON_VERSION = '1.10.4'
 COLLECTION_NETWORKS = ('netflix', 'shahid', 'turkish')
 COLLECTION_PRESETS = ('nuvio-collections.json', 'nuvio-collections-streaming.json')
 
@@ -409,6 +409,7 @@ def discover_netflix(spec):
     if spec.get('release_window_days'):
         params[date_field + '.gte'] = str(
             TODAY - timedelta(days=spec['release_window_days']))
+    limit = 100 if spec['id'] in ('netflix_sa_new', 'netflix_sa_recent_series') else NETFLIX_LIMIT
     _, candidates = fetch_discover({**spec, 'params': params},
                                    max_pages=10, pool_size=max(200, NETFLIX_LIMIT * 6))
     found = []
@@ -418,7 +419,7 @@ def discover_netflix(spec):
         if poster and poster['id'] not in seen:
             seen.add(poster['id'])
             found.append(poster)
-        if len(found) >= NETFLIX_LIMIT:
+        if len(found) >= limit:
             break
     if len(found) < 5:
         return [], 'Fewer than five Netflix Saudi titles with reliable IMDb poster metadata'
@@ -428,7 +429,7 @@ def discover_netflix(spec):
 def discover_netflix_releases(spec):
     """Find original Arabic releases and keep their actual network/studio credits."""
     kind = media_type(spec)
-    since = TODAY - timedelta(days=29)
+    since = TODAY - timedelta(days=89)
     if kind == 'movie':
         searches = [('primary_release_date', {}),
                     ('release_date', {'region': 'SA', 'with_release_type': '4'})]
@@ -475,7 +476,7 @@ def discover_netflix_releases(spec):
         if len(found) >= NETFLIX_LIMIT:
             break
 
-    return list(found.values()), '' if found else 'No matched Arabic releases in the last 30 days'
+    return list(found.values()), '' if found else 'No matched Arabic releases in the last 90 days'
 
 
 def netflix_release_dates(kind, record, check_digital):
@@ -1186,6 +1187,11 @@ def publish_collection_presets(stage, manifest):
                         if field == 'sources':
                             source = {'provider': 'addon', **source, 'genre': None}
                         ordered.append(source)
+                    if network == 'netflix':
+                        leading = ('netflix_sa_top_movies', 'netflix_sa_top_series', 'netflix_sa_new',
+                                   'netflix_sa_recent_series')
+                        priority = {key: n for n, key in enumerate(leading)}
+                        ordered.sort(key=lambda source: priority.get(source['catalogId'], len(priority)))
                     if network == 'turkish':
                         priority = {'turkish_' + key: n for n, key in enumerate(turkish_rows.ORDER)}
                         ordered.sort(key=lambda source: priority.get(source['catalogId'], len(priority)))

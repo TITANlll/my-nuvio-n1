@@ -137,7 +137,7 @@ class NetflixEverythingTests(unittest.TestCase):
         for call, field in zip(discover.call_args_list, ('first_air_date', 'air_date')):
             params = call.args[0]['params']
             self.assertEqual((params['watch_region'], params['with_watch_providers']), ('SA', '8'))
-            self.assertEqual(params[field + '.gte'], '2026-10-18')
+            self.assertEqual(params[field + '.gte'], '2026-08-19')
             self.assertEqual(params[field + '.lte'], '2026-11-16')
 
     def test_digital_release_must_be_in_saudi_arabia_and_have_the_digital_type(self):
