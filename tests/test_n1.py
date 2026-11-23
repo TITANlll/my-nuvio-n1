@@ -88,12 +88,11 @@ class BuildTests(unittest.TestCase):
             for folder, network in zip(result['folders'], ('netflix', 'shahid', 'turkish')):
                 expected = {
                     (entry['type'], entry['id']) for entry in manifest['catalogs']
-                    if entry['id'].startswith(network + '_')
+                    if ('turkish' if entry['id'].startswith('netflix_turkish_')
+                        else entry['id'].partition('_')[0]) == network
                 }
                 original = next(f for f in base['folders'] if f['id'] == folder['id'])
                 if network == 'turkish':
-                    expected.update((s['type'], s['catalogId']) for s in original['catalogSources']
-                                    if s['catalogId'].startswith('netflix_'))
                     self.assertEqual(folder['catalogSources'][0]['catalogId'], 'turkish_weekly_top10')
                 self.assertEqual(
                     {k: v for k, v in folder.items() if k not in ('catalogSources', 'sources')},

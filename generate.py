@@ -1103,6 +1103,12 @@ def publish_catalog(stage, spec, rows):
     return entry
 
 
+def collection_network(catalog_id):
+    if catalog_id.startswith('netflix_turkish_'):
+        return 'turkish'
+    return catalog_id.partition('_')[0]
+
+
 def publish_collection_presets(stage, manifest):
     addon_id = manifest['id']
     for filename in COLLECTION_PRESETS:
@@ -1116,7 +1122,7 @@ def publish_collection_presets(stage, manifest):
                     (entry['type'], entry['id']): {
                         'addonId': addon_id, 'type': entry['type'], 'catalogId': entry['id'],
                     }
-                    for entry in manifest['catalogs'] if entry['id'].startswith(network + '_')
+                    for entry in manifest['catalogs'] if collection_network(entry['id']) == network
                 }
                 for field in ('catalogSources', 'sources'):
                     if field not in folder:
@@ -1124,10 +1130,10 @@ def publish_collection_presets(stage, manifest):
                     remaining = dict(active)
                     ordered = []
                     for source in folder[field]:
-                        if (source.get('addonId') != addon_id or
-                                not source['catalogId'].startswith(network + '_')):
+                        owner = collection_network(source['catalogId'])
+                        if source.get('addonId') != addon_id or owner not in COLLECTION_NETWORKS:
                             ordered.append(source)
-                        elif remaining.pop((source['type'], source['catalogId']), None):
+                        elif owner == network and remaining.pop((source['type'], source['catalogId']), None):
                             ordered.append(source)
                     for source in remaining.values():
                         if field == 'sources':

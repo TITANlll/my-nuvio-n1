@@ -5,7 +5,7 @@ import argparse
 from urllib.parse import quote
 from urllib.request import urlopen
 from browse_catalogs import BROWSE_GROUPS, BROWSE_PAGE_SIZE
-from generate import COLLECTION_NETWORKS, COLLECTION_PRESETS
+from generate import COLLECTION_NETWORKS, COLLECTION_PRESETS, collection_network
 
 
 def read_json(url):
@@ -40,7 +40,7 @@ def verify_collection_presets(base, addon_id, expected):
                 actual = [
                     (source['type'], source['catalogId']) for source in folder[field]
                     if source.get('addonId') == addon_id
-                    and source['catalogId'].startswith(network + '_')
+                    and collection_network(source['catalogId']) in COLLECTION_NETWORKS
                 ]
                 if len(actual) != len(routes) or set(actual) != routes:
                     raise ValueError(f'Incomplete {network} folder in {filename}')
@@ -86,7 +86,7 @@ def verify(base, expected_version=None):
     collection_routes = {}
     for catalog in catalogs:
         key = (catalog['type'], catalog['id'])
-        network = catalog['id'].partition('_')[0]
+        network = collection_network(catalog['id'])
         collection_only = network in COLLECTION_NETWORKS
         if collection_only and catalog.get('showInHome') is not False:
             raise ValueError('Network catalog still appears on Home')
