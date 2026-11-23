@@ -38,7 +38,7 @@ class NetflixEverythingTests(unittest.TestCase):
             return {"id": ids[title], "name": title, "vote_average": 7.1}
         def preview(kind, item, **kw):
             return {"id": "tt" + str(item["id"]).zfill(7), "type": "series",
-                    "name": item["name"], "description": kw["verified_note"]}
+                    "name": item["name"], "description": "A plot synopsis."}
         with patch.object(g, "netflix_genre_rows", return_value={}), \
                 patch.object(g, "match_netflix_chart_title", side_effect=find), \
                 patch.object(g, "preview", side_effect=preview):
@@ -46,7 +46,7 @@ class NetflixEverythingTests(unittest.TestCase):
         self.assertEqual(note, "")
         self.assertEqual(items[0]["name"], spec["titles"][0])
         self.assertNotIn(spec["titles"][2], [p["name"] for p in items])
-        self.assertIn(spec["source_url"], items[0]["description"])
+        self.assertEqual(items[0]["description"], "A plot synopsis.")
         self.assertNotIn("Original chart position #", items[0]["description"])
         self.assertLessEqual(len(items), g.NETFLIX_LIMIT)
 
@@ -91,7 +91,7 @@ class NetflixEverythingTests(unittest.TestCase):
             rows, reason = g.fetch_public_netflix(spec)
         self.assertEqual(reason, '')
         self.assertEqual([row['id'] for row in rows], ['tt43738050'])
-        self.assertIn('snapshot 2026-11-16', rows[0]['description'])
+        self.assertNotIn('snapshot', rows[0]['description'])
         with patch.object(g, 'netflix_genre_rows', return_value={}), \
                 patch.object(g, 'tmdb') as tmdb, \
                 patch.object(g, 'TODAY', date(2026, 11, 24)):

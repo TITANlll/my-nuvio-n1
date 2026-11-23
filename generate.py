@@ -55,7 +55,7 @@ TMDB_REQUEST_INTERVAL = 1 / 25
 TMDB_REQUEST_LOCK = Lock()
 tmdb_next_request = 0.0
 WATCHMODE_ID_MAP_URL = 'https://api.watchmode.com/datasets/title_id_map.csv'
-ADDON_VERSION = '1.10.2'
+ADDON_VERSION = '1.10.3'
 COLLECTION_NETWORKS = ('netflix', 'shahid', 'turkish')
 COLLECTION_PRESETS = ('nuvio-collections.json', 'nuvio-collections-streaming.json')
 
@@ -534,6 +534,14 @@ def resolve_netflix_title(kind, title, **source):
         meta = enrich_from_imdb(imdb, kind)
         if not meta or meta['id'] != imdb:
             meta = {'id': imdb, 'name': title.name, 'type': kind}
+        # The IMDb cross-reference for this Kuwaiti drama can be missing on TMDB.
+        if title.netflix_id == 82915560 and not meta.get('_tmdb_id'):
+            record = details('tv', 308941)
+            if record.get('id') == 308941:
+                meta = preview('tv', record, imdb_id=imdb) or meta
+                if not meta.get('description'):
+                    meta['description'] = ('A wrongful conviction costs a young man seven years '
+                                           'of his life. Freedom brings its own struggle.')
         meta['name'] = title.name
         meta['description'] = source_description(meta.get('description') or '', **source)
         if title.poster and not meta.get('poster'):
@@ -546,15 +554,13 @@ def resolve_netflix_title(kind, title, **source):
     return preview(target, match, **source) if match else None
 
 
-def resolve_netflix_genre_row(spec, titles, date_note):
-    label = ('Netflix Saudi public category: ' + spec['source_row'] +
-             ' (' + date_note + ') · Source: ' + spec['source_url'])
+def resolve_netflix_genre_row(spec, titles):
     results = []
     seen = set()
     for title in titles:
         if spec['source_row'] == 'New on Netflix' and not title.kind and title.netflix_id not in VERIFIED_IMDB:
             continue
-        item = resolve_netflix_title(spec['type'], title, verified_note=label)
+        item = resolve_netflix_title(spec['type'], title)
         if item and item['id'] not in seen:
             seen.add(item['id'])
             results.append(item)
@@ -567,7 +573,7 @@ def fetch_public_netflix(spec):
     """Keep the order of the public page and use the dated snapshot as fallback."""
     live = netflix_genre_rows(spec['source_url']).get(spec['source_row'], [])
     minimum = spec['minimum_items']
-    results = resolve_netflix_genre_row(spec, live, 'checked ' + str(TODAY))
+    results = resolve_netflix_genre_row(spec, live)
     if len(results) >= minimum:
         return results, ''
     max_age = spec['snapshot_max_age']
@@ -576,7 +582,7 @@ def fetch_public_netflix(spec):
         return [], 'Current Netflix row unavailable and dated snapshot expired'
     snapshot = [NetflixTitle(*(item if isinstance(item, tuple) else (item,)), kind=spec['type'])
                 for item in spec['titles']]
-    results = resolve_netflix_genre_row(spec, snapshot, 'snapshot ' + spec['snapshot_date'])
+    results = resolve_netflix_genre_row(spec, snapshot)
     if len(results) >= minimum:
         return results, ''
     return [], f'Fewer than {minimum} unambiguous IMDb matches from Netflix public page'
