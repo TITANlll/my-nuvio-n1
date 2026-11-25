@@ -55,7 +55,7 @@ TMDB_REQUEST_INTERVAL = 1 / 25
 TMDB_REQUEST_LOCK = Lock()
 tmdb_next_request = 0.0
 WATCHMODE_ID_MAP_URL = 'https://api.watchmode.com/datasets/title_id_map.csv'
-ADDON_VERSION = '1.10.7'
+ADDON_VERSION = '1.10.8'
 MDBLIST_AWARDS_LIMIT = 100
 MDBLIST_API_KEY = os.getenv('MDBLIST_API_KEY', '').strip()
 AWARDS_LIMIT = 30
@@ -974,8 +974,8 @@ def fetch_mdblist_cinema(spec):
     pools = []
     for owner, slug in MDBLIST_CINEMA_SOURCES[spec['id']]:
         url = ('https://api.mdblist.com/lists/' + quote(owner, safe='') + '/' +
-               quote(slug, safe='') + '/items/' + medium + '/?' +
-               urlencode({'apikey': MDBLIST_API_KEY, 'limit': 200}))
+               quote(slug, safe='') + '/items/?' +
+               urlencode({'apikey': MDBLIST_API_KEY, 'limit': 1000}))
         try:
             payload = json.loads(fetch(url, retries=1, timeout=25))
             if isinstance(payload, dict):
