@@ -49,6 +49,7 @@ jobs:
         env:
           TMDB_BEARER_TOKEN: ${{ secrets.TMDB_BEARER_TOKEN }}
           TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+          MDBLIST_API_KEY: ${{ secrets.MDBLIST_API_KEY }}
           PAGE_URL: ${{ steps.pages.outputs.base_url }}
         run: python generate.py
       - name: Select Pages artifact for this build attempt
