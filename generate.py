@@ -55,7 +55,9 @@ TMDB_REQUEST_INTERVAL = 1 / 25
 TMDB_REQUEST_LOCK = Lock()
 tmdb_next_request = 0.0
 WATCHMODE_ID_MAP_URL = 'https://api.watchmode.com/datasets/title_id_map.csv'
-ADDON_VERSION = '1.10.6'
+ADDON_VERSION = '1.10.7'
+MDBLIST_AWARDS_LIMIT = 100
+MDBLIST_API_KEY = os.getenv('MDBLIST_API_KEY', '').strip()
 AWARDS_LIMIT = 30
 COLLECTION_NETWORKS = ('netflix', 'shahid', 'turkish')
 COLLECTION_PRESETS = ('nuvio-collections.json', 'nuvio-collections-streaming.json')
@@ -951,8 +953,74 @@ def fetch_premieres(spec):
     return [p for x in items if (p:=preview(kind,x,verified_note='Scheduled premiere; not confirmed streaming availability'))][:LIMIT]
 
 
+# Public community lists, not official award-organizer feeds.
+MDBLIST_CINEMA_SOURCES = {
+    'oscar_winners': [('nobnobz', 'awards-oscar-winners')],
+    'emmy_winners': [('nobnobz', 'awards-emmy-winner')],
+    'golden_bafta': [('nobnobz', 'awards-golden-globe-winners'),
+                     ('nobnobz', 'awards-bafta-winners')],
+    'cannes_winners': [('kackebob', 'cannes-film-festival-palme-dor')],
+    'cinema_classics': [('trakt-ambition142', 'classic-movies-1990-or-earlier')],
+    'hidden_gems': [('scottjscobie-icloud-com', 'hidden-gems-brilliantly-overlooked')],
+}
+
+
+def fetch_mdblist_cinema(spec):
+    """Optional MDBList membership; TMDB provides metadata and artwork."""
+    if not MDBLIST_API_KEY or spec['id'] not in MDBLIST_CINEMA_SOURCES:
+        return []
+    bucket = 'movies' if spec['type'] == 'movie' else 'shows'
+    medium = 'movie' if bucket == 'movies' else 'show'
+    pools = []
+    for owner, slug in MDBLIST_CINEMA_SOURCES[spec['id']]:
+        url = ('https://api.mdblist.com/lists/' + quote(owner, safe='') + '/' +
+               quote(slug, safe='') + '/items/' + medium + '/?' +
+               urlencode({'apikey': MDBLIST_API_KEY, 'limit': 200}))
+        try:
+            payload = json.loads(fetch(url, retries=1, timeout=25))
+            if isinstance(payload, dict):
+                items = payload.get(bucket, [])
+            elif isinstance(payload, list):
+                items = payload
+            else:
+                items = []
+            if isinstance(items, list):
+                pools.append((owner, slug, items))
+        except (OSError, ValueError, IncompleteRead):
+            # Do not leak credentials or replace a working row with an API error.
+            continue
+    rows, seen = [], set()
+    # Interleave sources so the combined awards row represents both awards.
+    for index in range(max((len(items) for _, _, items in pools), default=0)):
+        for owner, slug, items in pools:
+            if index >= len(items):
+                continue
+            item = items[index]
+            if not isinstance(item, dict) or item.get('mediatype', medium) != medium:
+                continue
+            imdb = item.get('imdb_id')
+            if not isinstance(imdb, str) or not re.fullmatch(r'tt\d+', imdb) or imdb in seen:
+                continue
+            seen.add(imdb)
+            p = enrich_from_imdb(imdb, spec['type'])
+            if not p or not p.get('poster') or p['id'] != imdb:
+                continue
+            p['description'] = ('MDBList community list: https://mdblist.com/lists/' +
+                                owner + '/' + slug + '. ' + p.get('description', ''))
+            rows.append(p)
+            if len(rows) >= MDBLIST_AWARDS_LIMIT:
+                return rows
+    return rows
+
+
 def catalog(spec, netflix=None):
     mode=spec['mode']
+    if spec.get('group') == 'Awards & Collections' and spec['id'] in MDBLIST_CINEMA_SOURCES:
+        rows = fetch_mdblist_cinema(spec)
+        if len(rows) >= 10:
+            return rows, 'MDBList community list; TMDB metadata'
+        # Preserve the existing curated/discovery fallback if the optional source
+        # is missing, unauthenticated or unusually sparse.
     if mode == 'turkish_networks':
         return turkish_rows.row(spec, TODAY, fetch, tmdb, fetch_discover, preview, LIMIT, top_today_poster_url)
     if mode=='external':
