@@ -55,7 +55,8 @@ TMDB_REQUEST_INTERVAL = 1 / 25
 TMDB_REQUEST_LOCK = Lock()
 tmdb_next_request = 0.0
 WATCHMODE_ID_MAP_URL = 'https://api.watchmode.com/datasets/title_id_map.csv'
-ADDON_VERSION = '1.10.5'
+ADDON_VERSION = '1.10.6'
+AWARDS_LIMIT = 30
 COLLECTION_NETWORKS = ('netflix', 'shahid', 'turkish')
 COLLECTION_PRESETS = ('nuvio-collections.json', 'nuvio-collections-streaming.json')
 
@@ -724,6 +725,13 @@ def fetch_verified(spec):
                 rows.append(p)
         except (KeyError, ValueError):
             continue
+    # Awards rows should fill with distinct, source-backed posters only.
+    if spec.get('group') == 'Awards & Collections':
+        unique = {}
+        for item in rows:
+            if item.get('poster'):
+                unique.setdefault(item['id'], item)
+        return list(unique.values())[:AWARDS_LIMIT]
     return rows[:LIMIT]
 
 
@@ -884,6 +892,7 @@ def fetch_kids(spec):
 def fetch_collection(spec):
     out=[]
     seen=set()
+    row_limit = AWARDS_LIMIT if spec.get('group') == 'Awards & Collections' else LIMIT
     for colid in spec['collection_ids']:
         info=tmdb(f'/collection/{colid}')
         for x in sorted(info.get('parts',[]), key=lambda p:p.get('release_date') or '9999'):
@@ -891,11 +900,11 @@ def fetch_collection(spec):
                 seen.add(x['id'])
                 if x.get('poster_path'):
                     out.append(x)
-            if len(out)>=LIMIT:
+            if len(out)>=row_limit * 2:
                 break
-        if len(out)>=LIMIT:
+        if len(out)>=row_limit * 2:
             break
-    return [p for x in out if (p:=preview('movie',x))]
+    return [p for x in out if (p:=preview('movie',x))][:row_limit]
 
 
 def fetch_airing(spec):
@@ -990,13 +999,18 @@ def catalog(spec, netflix=None):
             spec={**spec,'params':{**spec['params'],
                 'primary_release_date.gte':str(TODAY-timedelta(days=120)),
                 'primary_release_date.lte':str(TODAY)}}
-        kind,items=(fetch_discover(spec) if mode=='discover' else fetch_keyword(spec))
+        awards = spec.get('group') == 'Awards & Collections'
+        row_limit = AWARDS_LIMIT if awards else LIMIT
+        kind,items=(fetch_discover(spec, max_pages=6, pool_size=120) if awards and mode=='discover'
+                    else fetch_discover(spec) if mode=='discover' else fetch_keyword(spec))
         rows=[]
+        seen=set()
         for item in items:
             p=preview(kind,item,verified_note=spec.get('note'))
-            if p:
+            if p and (not awards or (p.get('poster') and p['id'] not in seen)):
                 rows.append(p)
-            if len(rows)>=LIMIT:
+                seen.add(p['id'])
+            if len(rows)>=row_limit:
                 break
         return rows,'' if rows else 'No reliable IMDb-mapped titles returned'
     if mode=='kids':
