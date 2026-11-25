@@ -1,33 +1,63 @@
 [
   {
-    "imdb_id":"tt15398776","type":"movie","tags":["oscar_winners"],
-    "verified":true,"label":"Best Picture winner · 2024 Academy Awards",
-    "source_url":"https://www.oscars.org/oscars/ceremonies/2024"
+    "imdb_id": "tt15398776",
+    "type": "movie",
+    "tags": [
+      "oscar_winners"
+    ],
+    "verified": true,
+    "label": "Best Picture winner · 2024 Academy Awards",
+    "source_url": "https://www.oscars.org/oscars/ceremonies/2024"
   },
   {
-    "imdb_id":"tt2788316","type":"series","tags":["emmy_winners"],
-    "verified":true,"label":"Outstanding Drama Series winner · 2024 Emmys",
-    "source_url":"https://www.televisionacademy.com/awards/nominees-winners/2024/outstanding-drama-series"
+    "imdb_id": "tt2788316",
+    "type": "series",
+    "tags": [
+      "emmy_winners"
+    ],
+    "verified": true,
+    "label": "Outstanding Drama Series winner · 2024 Emmys",
+    "source_url": "https://www.televisionacademy.com/awards/nominees-winners/2024/outstanding-drama-series"
   },
   {
-    "imdb_id":"tt6751668","type":"movie","tags":["cannes_winners"],
-    "verified":true,"label":"Palme d'Or winner · Cannes 2019",
-    "source_url":"https://www.festival-cannes.com/en/retrospective/2019/palmares/"
+    "imdb_id": "tt6751668",
+    "type": "movie",
+    "tags": [
+      "cannes_winners"
+    ],
+    "verified": true,
+    "label": "Palme d'Or winner · Cannes 2019",
+    "source_url": "https://www.festival-cannes.com/en/retrospective/2019/palmares/"
   },
   {
-    "imdb_id":"tt2861424","type":"series","tags":["adult_animation"],
-    "verified":true,"label":"Adult animation",
-    "source_url":"https://www.hulu.com/hub/tv/collections/2729"
+    "imdb_id": "tt2861424",
+    "type": "series",
+    "tags": [
+      "adult_animation"
+    ],
+    "verified": true,
+    "label": "Adult animation",
+    "source_url": "https://www.hulu.com/hub/tv/collections/2729"
   },
   {
-    "imdb_id":"tt0182576","type":"series","tags":["adult_animation"],
-    "verified":true,"label":"Adult animation",
-    "source_url":"https://www.hulu.com/hub/tv/collections/2729"
+    "imdb_id": "tt0182576",
+    "type": "series",
+    "tags": [
+      "adult_animation"
+    ],
+    "verified": true,
+    "label": "Adult animation",
+    "source_url": "https://www.hulu.com/hub/tv/collections/2729"
   },
   {
-    "imdb_id":"tt0149460","type":"series","tags":["adult_animation"],
-    "verified":true,"label":"Adult animation",
-    "source_url":"https://www.hulu.com/hub/tv/collections/2729"
+    "imdb_id": "tt0149460",
+    "type": "series",
+    "tags": [
+      "adult_animation"
+    ],
+    "verified": true,
+    "label": "Adult animation",
+    "source_url": "https://www.hulu.com/hub/tv/collections/2729"
   },
   {
     "imdb_id": "tt15398776",
@@ -94,5 +124,1055 @@
     "subtitle_source_url": "https://www.netflix.com/sa-en/title/81610272",
     "provider": "netflix",
     "region": "SA"
+  },
+  {
+    "imdb_id": "tt28607951",
+    "type": "movie",
+    "tags": [
+      "oscar_winners"
+    ],
+    "verified": true,
+    "label": "Academy Award Best Picture winner · 2025",
+    "source_url": "https://www.oscars.org/oscars/ceremonies/2025"
+  },
+  {
+    "imdb_id": "tt6710474",
+    "type": "movie",
+    "tags": [
+      "oscar_winners"
+    ],
+    "verified": true,
+    "label": "Academy Award Best Picture winner · 2023",
+    "source_url": "https://www.oscars.org/oscars/ceremonies/2023"
+  },
+  {
+    "imdb_id": "tt10366460",
+    "type": "movie",
+    "tags": [
+      "oscar_winners"
+    ],
+    "verified": true,
+    "label": "Academy Award Best Picture winner · 2022",
+    "source_url": "https://www.oscars.org/oscars/ceremonies/2022"
+  },
+  {
+    "imdb_id": "tt9770150",
+    "type": "movie",
+    "tags": [
+      "oscar_winners"
+    ],
+    "verified": true,
+    "label": "Academy Award Best Picture winner · 2021",
+    "source_url": "https://www.oscars.org/oscars/ceremonies/2021"
+  },
+  {
+    "imdb_id": "tt6751668",
+    "type": "movie",
+    "tags": [
+      "oscar_winners"
+    ],
+    "verified": true,
+    "label": "Academy Award Best Picture winner · 2020",
+    "source_url": "https://www.oscars.org/oscars/ceremonies/2020"
+  },
+  {
+    "imdb_id": "tt6966692",
+    "type": "movie",
+    "tags": [
+      "oscar_winners"
+    ],
+    "verified": true,
+    "label": "Academy Award Best Picture winner · 2019",
+    "source_url": "https://www.oscars.org/oscars/ceremonies/2019"
+  },
+  {
+    "imdb_id": "tt5580390",
+    "type": "movie",
+    "tags": [
+      "oscar_winners"
+    ],
+    "verified": true,
+    "label": "Academy Award Best Picture winner · 2018",
+    "source_url": "https://www.oscars.org/oscars/ceremonies/2018"
+  },
+  {
+    "imdb_id": "tt4975722",
+    "type": "movie",
+    "tags": [
+      "oscar_winners"
+    ],
+    "verified": true,
+    "label": "Academy Award Best Picture winner · 2017",
+    "source_url": "https://www.oscars.org/oscars/ceremonies/2017"
+  },
+  {
+    "imdb_id": "tt1895587",
+    "type": "movie",
+    "tags": [
+      "oscar_winners"
+    ],
+    "verified": true,
+    "label": "Academy Award Best Picture winner · 2016",
+    "source_url": "https://www.oscars.org/oscars/ceremonies/2016"
+  },
+  {
+    "imdb_id": "tt2562232",
+    "type": "movie",
+    "tags": [
+      "oscar_winners"
+    ],
+    "verified": true,
+    "label": "Academy Award Best Picture winner · 2015",
+    "source_url": "https://www.oscars.org/oscars/ceremonies/2015"
+  },
+  {
+    "imdb_id": "tt2024544",
+    "type": "movie",
+    "tags": [
+      "oscar_winners"
+    ],
+    "verified": true,
+    "label": "Academy Award Best Picture winner · 2014",
+    "source_url": "https://www.oscars.org/oscars/ceremonies/2014"
+  },
+  {
+    "imdb_id": "tt1024648",
+    "type": "movie",
+    "tags": [
+      "oscar_winners"
+    ],
+    "verified": true,
+    "label": "Academy Award Best Picture winner · 2013",
+    "source_url": "https://www.oscars.org/oscars/ceremonies/2013"
+  },
+  {
+    "imdb_id": "tt1655442",
+    "type": "movie",
+    "tags": [
+      "oscar_winners"
+    ],
+    "verified": true,
+    "label": "Academy Award Best Picture winner · 2012",
+    "source_url": "https://www.oscars.org/oscars/ceremonies/2012"
+  },
+  {
+    "imdb_id": "tt1504320",
+    "type": "movie",
+    "tags": [
+      "oscar_winners"
+    ],
+    "verified": true,
+    "label": "Academy Award Best Picture winner · 2011",
+    "source_url": "https://www.oscars.org/oscars/ceremonies/2011"
+  },
+  {
+    "imdb_id": "tt0887912",
+    "type": "movie",
+    "tags": [
+      "oscar_winners"
+    ],
+    "verified": true,
+    "label": "Academy Award Best Picture winner · 2010",
+    "source_url": "https://www.oscars.org/oscars/ceremonies/2010"
+  },
+  {
+    "imdb_id": "tt1010048",
+    "type": "movie",
+    "tags": [
+      "oscar_winners"
+    ],
+    "verified": true,
+    "label": "Academy Award Best Picture winner · 2009",
+    "source_url": "https://www.oscars.org/oscars/ceremonies/2009"
+  },
+  {
+    "imdb_id": "tt0477348",
+    "type": "movie",
+    "tags": [
+      "oscar_winners"
+    ],
+    "verified": true,
+    "label": "Academy Award Best Picture winner · 2008",
+    "source_url": "https://www.oscars.org/oscars/ceremonies/2008"
+  },
+  {
+    "imdb_id": "tt0407887",
+    "type": "movie",
+    "tags": [
+      "oscar_winners"
+    ],
+    "verified": true,
+    "label": "Academy Award Best Picture winner · 2007",
+    "source_url": "https://www.oscars.org/oscars/ceremonies/2007"
+  },
+  {
+    "imdb_id": "tt0375679",
+    "type": "movie",
+    "tags": [
+      "oscar_winners"
+    ],
+    "verified": true,
+    "label": "Academy Award Best Picture winner · 2006",
+    "source_url": "https://www.oscars.org/oscars/ceremonies/2006"
+  },
+  {
+    "imdb_id": "tt0405159",
+    "type": "movie",
+    "tags": [
+      "oscar_winners"
+    ],
+    "verified": true,
+    "label": "Academy Award Best Picture winner · 2005",
+    "source_url": "https://www.oscars.org/oscars/ceremonies/2005"
+  },
+  {
+    "imdb_id": "tt0167260",
+    "type": "movie",
+    "tags": [
+      "oscar_winners"
+    ],
+    "verified": true,
+    "label": "Academy Award Best Picture winner · 2004",
+    "source_url": "https://www.oscars.org/oscars/ceremonies/2004"
+  },
+  {
+    "imdb_id": "tt0299658",
+    "type": "movie",
+    "tags": [
+      "oscar_winners"
+    ],
+    "verified": true,
+    "label": "Academy Award Best Picture winner · 2003",
+    "source_url": "https://www.oscars.org/oscars/ceremonies/2003"
+  },
+  {
+    "imdb_id": "tt0268978",
+    "type": "movie",
+    "tags": [
+      "oscar_winners"
+    ],
+    "verified": true,
+    "label": "Academy Award Best Picture winner · 2002",
+    "source_url": "https://www.oscars.org/oscars/ceremonies/2002"
+  },
+  {
+    "imdb_id": "tt0172495",
+    "type": "movie",
+    "tags": [
+      "oscar_winners"
+    ],
+    "verified": true,
+    "label": "Academy Award Best Picture winner · 2001",
+    "source_url": "https://www.oscars.org/oscars/ceremonies/2001"
+  },
+  {
+    "imdb_id": "tt0169547",
+    "type": "movie",
+    "tags": [
+      "oscar_winners"
+    ],
+    "verified": true,
+    "label": "Academy Award Best Picture winner · 2000",
+    "source_url": "https://www.oscars.org/oscars/ceremonies/2000"
+  },
+  {
+    "imdb_id": "tt7660850",
+    "type": "series",
+    "tags": [
+      "emmy_winners"
+    ],
+    "verified": true,
+    "label": "Primetime Emmy Outstanding Drama Series winner · 2023",
+    "source_url": "https://www.televisionacademy.com/awards/nominees-winners/2023/outstanding-drama-series"
+  },
+  {
+    "imdb_id": "tt4786824",
+    "type": "series",
+    "tags": [
+      "emmy_winners"
+    ],
+    "verified": true,
+    "label": "Primetime Emmy Outstanding Drama Series winner · 2021",
+    "source_url": "https://www.televisionacademy.com/awards/nominees-winners/2021/outstanding-drama-series"
+  },
+  {
+    "imdb_id": "tt0944947",
+    "type": "series",
+    "tags": [
+      "emmy_winners"
+    ],
+    "verified": true,
+    "label": "Primetime Emmy Outstanding Drama Series winner · 2019",
+    "source_url": "https://www.televisionacademy.com/awards/nominees-winners/2019/outstanding-drama-series"
+  },
+  {
+    "imdb_id": "tt5834204",
+    "type": "series",
+    "tags": [
+      "emmy_winners"
+    ],
+    "verified": true,
+    "label": "Primetime Emmy Outstanding Drama Series winner · 2017",
+    "source_url": "https://www.televisionacademy.com/awards/nominees-winners/2017/outstanding-drama-series"
+  },
+  {
+    "imdb_id": "tt0903747",
+    "type": "series",
+    "tags": [
+      "emmy_winners"
+    ],
+    "verified": true,
+    "label": "Primetime Emmy Outstanding Drama Series winner · 2014",
+    "source_url": "https://www.televisionacademy.com/awards/nominees-winners/2014/outstanding-drama-series"
+  },
+  {
+    "imdb_id": "tt1796960",
+    "type": "series",
+    "tags": [
+      "emmy_winners"
+    ],
+    "verified": true,
+    "label": "Primetime Emmy Outstanding Drama Series winner · 2012",
+    "source_url": "https://www.televisionacademy.com/awards/nominees-winners/2012/outstanding-drama-series"
+  },
+  {
+    "imdb_id": "tt0804503",
+    "type": "series",
+    "tags": [
+      "emmy_winners"
+    ],
+    "verified": true,
+    "label": "Primetime Emmy Outstanding Drama Series winner · 2011",
+    "source_url": "https://www.televisionacademy.com/awards/nominees-winners/2011/outstanding-drama-series"
+  },
+  {
+    "imdb_id": "tt0141842",
+    "type": "series",
+    "tags": [
+      "emmy_winners"
+    ],
+    "verified": true,
+    "label": "Primetime Emmy Outstanding Drama Series winner · 2007",
+    "source_url": "https://www.televisionacademy.com/awards/nominees-winners/2007/outstanding-drama-series"
+  },
+  {
+    "imdb_id": "tt0285331",
+    "type": "series",
+    "tags": [
+      "emmy_winners"
+    ],
+    "verified": true,
+    "label": "Primetime Emmy Outstanding Drama Series winner · 2006",
+    "source_url": "https://www.televisionacademy.com/awards/nominees-winners/2006/outstanding-drama-series"
+  },
+  {
+    "imdb_id": "tt0411008",
+    "type": "series",
+    "tags": [
+      "emmy_winners"
+    ],
+    "verified": true,
+    "label": "Primetime Emmy Outstanding Drama Series winner · 2005",
+    "source_url": "https://www.televisionacademy.com/awards/nominees-winners/2005/outstanding-drama-series"
+  },
+  {
+    "imdb_id": "tt0200276",
+    "type": "series",
+    "tags": [
+      "emmy_winners"
+    ],
+    "verified": true,
+    "label": "Primetime Emmy Outstanding Drama Series winner · 2003",
+    "source_url": "https://www.televisionacademy.com/awards/nominees-winners/2003/outstanding-drama-series"
+  },
+  {
+    "imdb_id": "tt0118437",
+    "type": "series",
+    "tags": [
+      "emmy_winners"
+    ],
+    "verified": true,
+    "label": "Primetime Emmy Outstanding Drama Series winner · 2001",
+    "source_url": "https://www.televisionacademy.com/awards/nominees-winners/2001/outstanding-drama-series"
+  },
+  {
+    "imdb_id": "tt11815682",
+    "type": "series",
+    "tags": [
+      "emmy_winners"
+    ],
+    "verified": true,
+    "label": "Primetime Emmy Outstanding Comedy Series winner · 2024",
+    "source_url": "https://www.televisionacademy.com/awards/nominees-winners/2024/outstanding-comedy-series"
+  },
+  {
+    "imdb_id": "tt14452776",
+    "type": "series",
+    "tags": [
+      "emmy_winners"
+    ],
+    "verified": true,
+    "label": "Primetime Emmy Outstanding Comedy Series winner · 2023",
+    "source_url": "https://www.televisionacademy.com/awards/nominees-winners/2023/outstanding-comedy-series"
+  },
+  {
+    "imdb_id": "tt10986410",
+    "type": "series",
+    "tags": [
+      "emmy_winners"
+    ],
+    "verified": true,
+    "label": "Primetime Emmy Outstanding Comedy Series winner · 2022",
+    "source_url": "https://www.televisionacademy.com/awards/nominees-winners/2022/outstanding-comedy-series"
+  },
+  {
+    "imdb_id": "tt3526078",
+    "type": "series",
+    "tags": [
+      "emmy_winners"
+    ],
+    "verified": true,
+    "label": "Primetime Emmy Outstanding Comedy Series winner · 2020",
+    "source_url": "https://www.televisionacademy.com/awards/nominees-winners/2020/outstanding-comedy-series"
+  },
+  {
+    "imdb_id": "tt5687612",
+    "type": "series",
+    "tags": [
+      "emmy_winners"
+    ],
+    "verified": true,
+    "label": "Primetime Emmy Outstanding Comedy Series winner · 2019",
+    "source_url": "https://www.televisionacademy.com/awards/nominees-winners/2019/outstanding-comedy-series"
+  },
+  {
+    "imdb_id": "tt5788792",
+    "type": "series",
+    "tags": [
+      "emmy_winners"
+    ],
+    "verified": true,
+    "label": "Primetime Emmy Outstanding Comedy Series winner · 2018",
+    "source_url": "https://www.televisionacademy.com/awards/nominees-winners/2018/outstanding-comedy-series"
+  },
+  {
+    "imdb_id": "tt1759761",
+    "type": "series",
+    "tags": [
+      "emmy_winners"
+    ],
+    "verified": true,
+    "label": "Primetime Emmy Outstanding Comedy Series winner · 2017",
+    "source_url": "https://www.televisionacademy.com/awards/nominees-winners/2017/outstanding-comedy-series"
+  },
+  {
+    "imdb_id": "tt1442437",
+    "type": "series",
+    "tags": [
+      "emmy_winners"
+    ],
+    "verified": true,
+    "label": "Primetime Emmy Outstanding Comedy Series winner · 2014",
+    "source_url": "https://www.televisionacademy.com/awards/nominees-winners/2014/outstanding-comedy-series"
+  },
+  {
+    "imdb_id": "tt0496424",
+    "type": "series",
+    "tags": [
+      "emmy_winners"
+    ],
+    "verified": true,
+    "label": "Primetime Emmy Outstanding Comedy Series winner · 2009",
+    "source_url": "https://www.televisionacademy.com/awards/nominees-winners/2009/outstanding-comedy-series"
+  },
+  {
+    "imdb_id": "tt0386676",
+    "type": "series",
+    "tags": [
+      "emmy_winners"
+    ],
+    "verified": true,
+    "label": "Primetime Emmy Outstanding Comedy Series winner · 2006",
+    "source_url": "https://www.televisionacademy.com/awards/nominees-winners/2006/outstanding-comedy-series"
+  },
+  {
+    "imdb_id": "tt0367279",
+    "type": "series",
+    "tags": [
+      "emmy_winners"
+    ],
+    "verified": true,
+    "label": "Primetime Emmy Outstanding Comedy Series winner · 2004",
+    "source_url": "https://www.televisionacademy.com/awards/nominees-winners/2004/outstanding-comedy-series"
+  },
+  {
+    "imdb_id": "tt0212671",
+    "type": "series",
+    "tags": [
+      "emmy_winners"
+    ],
+    "verified": true,
+    "label": "Primetime Emmy Outstanding Comedy Series winner · 2002",
+    "source_url": "https://www.televisionacademy.com/awards/nominees-winners/2002/outstanding-comedy-series"
+  },
+  {
+    "imdb_id": "tt0157246",
+    "type": "series",
+    "tags": [
+      "emmy_winners"
+    ],
+    "verified": true,
+    "label": "Primetime Emmy Outstanding Comedy Series winner · 2000",
+    "source_url": "https://www.televisionacademy.com/awards/nominees-winners/2000/outstanding-comedy-series"
+  },
+  {
+    "imdb_id": "tt28607951",
+    "type": "movie",
+    "tags": [
+      "cannes_winners"
+    ],
+    "verified": true,
+    "label": "Cannes Palme d'Or winner · 2024",
+    "source_url": "https://www.festival-cannes.com/en/retrospective/2024/awards/"
+  },
+  {
+    "imdb_id": "tt17009710",
+    "type": "movie",
+    "tags": [
+      "cannes_winners"
+    ],
+    "verified": true,
+    "label": "Cannes Palme d'Or winner · 2023",
+    "source_url": "https://www.festival-cannes.com/en/retrospective/2023/awards/"
+  },
+  {
+    "imdb_id": "tt7322224",
+    "type": "movie",
+    "tags": [
+      "cannes_winners"
+    ],
+    "verified": true,
+    "label": "Cannes Palme d'Or winner · 2022",
+    "source_url": "https://www.festival-cannes.com/en/retrospective/2022/awards/"
+  },
+  {
+    "imdb_id": "tt10944760",
+    "type": "movie",
+    "tags": [
+      "cannes_winners"
+    ],
+    "verified": true,
+    "label": "Cannes Palme d'Or winner · 2021",
+    "source_url": "https://www.festival-cannes.com/en/retrospective/2021/awards/"
+  },
+  {
+    "imdb_id": "tt8075192",
+    "type": "movie",
+    "tags": [
+      "cannes_winners"
+    ],
+    "verified": true,
+    "label": "Cannes Palme d'Or winner · 2018",
+    "source_url": "https://www.festival-cannes.com/en/retrospective/2018/awards/"
+  },
+  {
+    "imdb_id": "tt4995790",
+    "type": "movie",
+    "tags": [
+      "cannes_winners"
+    ],
+    "verified": true,
+    "label": "Cannes Palme d'Or winner · 2017",
+    "source_url": "https://www.festival-cannes.com/en/retrospective/2017/awards/"
+  },
+  {
+    "imdb_id": "tt5168192",
+    "type": "movie",
+    "tags": [
+      "cannes_winners"
+    ],
+    "verified": true,
+    "label": "Cannes Palme d'Or winner · 2016",
+    "source_url": "https://www.festival-cannes.com/en/retrospective/2016/awards/"
+  },
+  {
+    "imdb_id": "tt4082068",
+    "type": "movie",
+    "tags": [
+      "cannes_winners"
+    ],
+    "verified": true,
+    "label": "Cannes Palme d'Or winner · 2015",
+    "source_url": "https://www.festival-cannes.com/en/retrospective/2015/awards/"
+  },
+  {
+    "imdb_id": "tt2758880",
+    "type": "movie",
+    "tags": [
+      "cannes_winners"
+    ],
+    "verified": true,
+    "label": "Cannes Palme d'Or winner · 2014",
+    "source_url": "https://www.festival-cannes.com/en/retrospective/2014/awards/"
+  },
+  {
+    "imdb_id": "tt2278871",
+    "type": "movie",
+    "tags": [
+      "cannes_winners"
+    ],
+    "verified": true,
+    "label": "Cannes Palme d'Or winner · 2013",
+    "source_url": "https://www.festival-cannes.com/en/retrospective/2013/awards/"
+  },
+  {
+    "imdb_id": "tt1602620",
+    "type": "movie",
+    "tags": [
+      "cannes_winners"
+    ],
+    "verified": true,
+    "label": "Cannes Palme d'Or winner · 2012",
+    "source_url": "https://www.festival-cannes.com/en/retrospective/2012/awards/"
+  },
+  {
+    "imdb_id": "tt0478304",
+    "type": "movie",
+    "tags": [
+      "cannes_winners"
+    ],
+    "verified": true,
+    "label": "Cannes Palme d'Or winner · 2011",
+    "source_url": "https://www.festival-cannes.com/en/retrospective/2011/awards/"
+  },
+  {
+    "imdb_id": "tt1588895",
+    "type": "movie",
+    "tags": [
+      "cannes_winners"
+    ],
+    "verified": true,
+    "label": "Cannes Palme d'Or winner · 2010",
+    "source_url": "https://www.festival-cannes.com/en/retrospective/2010/awards/"
+  },
+  {
+    "imdb_id": "tt1149362",
+    "type": "movie",
+    "tags": [
+      "cannes_winners"
+    ],
+    "verified": true,
+    "label": "Cannes Palme d'Or winner · 2009",
+    "source_url": "https://www.festival-cannes.com/en/retrospective/2009/awards/"
+  },
+  {
+    "imdb_id": "tt1068646",
+    "type": "movie",
+    "tags": [
+      "cannes_winners"
+    ],
+    "verified": true,
+    "label": "Cannes Palme d'Or winner · 2008",
+    "source_url": "https://www.festival-cannes.com/en/retrospective/2008/awards/"
+  },
+  {
+    "imdb_id": "tt1032846",
+    "type": "movie",
+    "tags": [
+      "cannes_winners"
+    ],
+    "verified": true,
+    "label": "Cannes Palme d'Or winner · 2007",
+    "source_url": "https://www.festival-cannes.com/en/retrospective/2007/awards/"
+  },
+  {
+    "imdb_id": "tt0460989",
+    "type": "movie",
+    "tags": [
+      "cannes_winners"
+    ],
+    "verified": true,
+    "label": "Cannes Palme d'Or winner · 2006",
+    "source_url": "https://www.festival-cannes.com/en/retrospective/2006/awards/"
+  },
+  {
+    "imdb_id": "tt0456396",
+    "type": "movie",
+    "tags": [
+      "cannes_winners"
+    ],
+    "verified": true,
+    "label": "Cannes Palme d'Or winner · 2005",
+    "source_url": "https://www.festival-cannes.com/en/retrospective/2005/awards/"
+  },
+  {
+    "imdb_id": "tt0361596",
+    "type": "movie",
+    "tags": [
+      "cannes_winners"
+    ],
+    "verified": true,
+    "label": "Cannes Palme d'Or winner · 2004",
+    "source_url": "https://www.festival-cannes.com/en/retrospective/2004/awards/"
+  },
+  {
+    "imdb_id": "tt0363589",
+    "type": "movie",
+    "tags": [
+      "cannes_winners"
+    ],
+    "verified": true,
+    "label": "Cannes Palme d'Or winner · 2003",
+    "source_url": "https://www.festival-cannes.com/en/retrospective/2003/awards/"
+  },
+  {
+    "imdb_id": "tt0253474",
+    "type": "movie",
+    "tags": [
+      "cannes_winners"
+    ],
+    "verified": true,
+    "label": "Cannes Palme d'Or winner · 2002",
+    "source_url": "https://www.festival-cannes.com/en/retrospective/2002/awards/"
+  },
+  {
+    "imdb_id": "tt0208990",
+    "type": "movie",
+    "tags": [
+      "cannes_winners"
+    ],
+    "verified": true,
+    "label": "Cannes Palme d'Or winner · 2001",
+    "source_url": "https://www.festival-cannes.com/en/retrospective/2001/awards/"
+  },
+  {
+    "imdb_id": "tt0168629",
+    "type": "movie",
+    "tags": [
+      "cannes_winners"
+    ],
+    "verified": true,
+    "label": "Cannes Palme d'Or winner · 2000",
+    "source_url": "https://www.festival-cannes.com/en/retrospective/2000/awards/"
+  },
+  {
+    "imdb_id": "tt20215234",
+    "type": "movie",
+    "tags": [
+      "golden_bafta"
+    ],
+    "verified": true,
+    "label": "BAFTA Best Film winner · 2025",
+    "source_url": "https://www.bafta.org/awards/film/?award-year=2025"
+  },
+  {
+    "imdb_id": "tt1016150",
+    "type": "movie",
+    "tags": [
+      "golden_bafta"
+    ],
+    "verified": true,
+    "label": "BAFTA Best Film winner · 2023",
+    "source_url": "https://www.bafta.org/awards/film/?award-year=2023"
+  },
+  {
+    "imdb_id": "tt10293406",
+    "type": "movie",
+    "tags": [
+      "golden_bafta"
+    ],
+    "verified": true,
+    "label": "BAFTA Best Film winner · 2022",
+    "source_url": "https://www.bafta.org/awards/film/?award-year=2022"
+  },
+  {
+    "imdb_id": "tt9770150",
+    "type": "movie",
+    "tags": [
+      "golden_bafta"
+    ],
+    "verified": true,
+    "label": "BAFTA Best Film winner · 2021",
+    "source_url": "https://www.bafta.org/awards/film/?award-year=2021"
+  },
+  {
+    "imdb_id": "tt8579674",
+    "type": "movie",
+    "tags": [
+      "golden_bafta"
+    ],
+    "verified": true,
+    "label": "BAFTA Best Film winner · 2020",
+    "source_url": "https://www.bafta.org/awards/film/?award-year=2020"
+  },
+  {
+    "imdb_id": "tt6155172",
+    "type": "movie",
+    "tags": [
+      "golden_bafta"
+    ],
+    "verified": true,
+    "label": "BAFTA Best Film winner · 2019",
+    "source_url": "https://www.bafta.org/awards/film/?award-year=2019"
+  },
+  {
+    "imdb_id": "tt5027774",
+    "type": "movie",
+    "tags": [
+      "golden_bafta"
+    ],
+    "verified": true,
+    "label": "BAFTA Best Film winner · 2018",
+    "source_url": "https://www.bafta.org/awards/film/?award-year=2018"
+  },
+  {
+    "imdb_id": "tt3783958",
+    "type": "movie",
+    "tags": [
+      "golden_bafta"
+    ],
+    "verified": true,
+    "label": "BAFTA Best Film winner · 2017",
+    "source_url": "https://www.bafta.org/awards/film/?award-year=2017"
+  },
+  {
+    "imdb_id": "tt1663202",
+    "type": "movie",
+    "tags": [
+      "golden_bafta"
+    ],
+    "verified": true,
+    "label": "BAFTA Best Film winner · 2016",
+    "source_url": "https://www.bafta.org/awards/film/?award-year=2016"
+  },
+  {
+    "imdb_id": "tt1065073",
+    "type": "movie",
+    "tags": [
+      "golden_bafta"
+    ],
+    "verified": true,
+    "label": "BAFTA Best Film winner · 2015",
+    "source_url": "https://www.bafta.org/awards/film/?award-year=2015"
+  },
+  {
+    "imdb_id": "tt2024544",
+    "type": "movie",
+    "tags": [
+      "golden_bafta"
+    ],
+    "verified": true,
+    "label": "BAFTA Best Film winner · 2014",
+    "source_url": "https://www.bafta.org/awards/film/?award-year=2014"
+  },
+  {
+    "imdb_id": "tt1024648",
+    "type": "movie",
+    "tags": [
+      "golden_bafta"
+    ],
+    "verified": true,
+    "label": "BAFTA Best Film winner · 2013",
+    "source_url": "https://www.bafta.org/awards/film/?award-year=2013"
+  },
+  {
+    "imdb_id": "tt1655442",
+    "type": "movie",
+    "tags": [
+      "golden_bafta"
+    ],
+    "verified": true,
+    "label": "BAFTA Best Film winner · 2012",
+    "source_url": "https://www.bafta.org/awards/film/?award-year=2012"
+  },
+  {
+    "imdb_id": "tt1504320",
+    "type": "movie",
+    "tags": [
+      "golden_bafta"
+    ],
+    "verified": true,
+    "label": "BAFTA Best Film winner · 2011",
+    "source_url": "https://www.bafta.org/awards/film/?award-year=2011"
+  },
+  {
+    "imdb_id": "tt0887912",
+    "type": "movie",
+    "tags": [
+      "golden_bafta"
+    ],
+    "verified": true,
+    "label": "BAFTA Best Film winner · 2010",
+    "source_url": "https://www.bafta.org/awards/film/?award-year=2010"
+  },
+  {
+    "imdb_id": "tt1010048",
+    "type": "movie",
+    "tags": [
+      "golden_bafta"
+    ],
+    "verified": true,
+    "label": "BAFTA Best Film winner · 2009",
+    "source_url": "https://www.bafta.org/awards/film/?award-year=2009"
+  },
+  {
+    "imdb_id": "tt0783233",
+    "type": "movie",
+    "tags": [
+      "golden_bafta"
+    ],
+    "verified": true,
+    "label": "BAFTA Best Film winner · 2008",
+    "source_url": "https://www.bafta.org/awards/film/?award-year=2008"
+  },
+  {
+    "imdb_id": "tt0436697",
+    "type": "movie",
+    "tags": [
+      "golden_bafta"
+    ],
+    "verified": true,
+    "label": "BAFTA Best Film winner · 2007",
+    "source_url": "https://www.bafta.org/awards/film/?award-year=2007"
+  },
+  {
+    "imdb_id": "tt0388795",
+    "type": "movie",
+    "tags": [
+      "golden_bafta"
+    ],
+    "verified": true,
+    "label": "BAFTA Best Film winner · 2006",
+    "source_url": "https://www.bafta.org/awards/film/?award-year=2006"
+  },
+  {
+    "imdb_id": "tt0338751",
+    "type": "movie",
+    "tags": [
+      "golden_bafta"
+    ],
+    "verified": true,
+    "label": "BAFTA Best Film winner · 2005",
+    "source_url": "https://www.bafta.org/awards/film/?award-year=2005"
+  },
+  {
+    "imdb_id": "tt0167260",
+    "type": "movie",
+    "tags": [
+      "golden_bafta"
+    ],
+    "verified": true,
+    "label": "BAFTA Best Film winner · 2004",
+    "source_url": "https://www.bafta.org/awards/film/?award-year=2004"
+  },
+  {
+    "imdb_id": "tt0299658",
+    "type": "movie",
+    "tags": [
+      "golden_bafta"
+    ],
+    "verified": true,
+    "label": "BAFTA Best Film winner · 2003",
+    "source_url": "https://www.bafta.org/awards/film/?award-year=2003"
+  },
+  {
+    "imdb_id": "tt0120737",
+    "type": "movie",
+    "tags": [
+      "golden_bafta"
+    ],
+    "verified": true,
+    "label": "BAFTA Best Film winner · 2002",
+    "source_url": "https://www.bafta.org/awards/film/?award-year=2002"
+  },
+  {
+    "imdb_id": "tt0172495",
+    "type": "movie",
+    "tags": [
+      "golden_bafta"
+    ],
+    "verified": true,
+    "label": "BAFTA Best Film winner · 2001",
+    "source_url": "https://www.bafta.org/awards/film/?award-year=2001"
+  },
+  {
+    "imdb_id": "tt0169547",
+    "type": "movie",
+    "tags": [
+      "golden_bafta"
+    ],
+    "verified": true,
+    "label": "BAFTA Best Film winner · 2000",
+    "source_url": "https://www.bafta.org/awards/film/?award-year=2000"
+  },
+  {
+    "imdb_id": "tt8999762",
+    "type": "movie",
+    "tags": [
+      "golden_bafta"
+    ],
+    "verified": true,
+    "label": "Golden Globe Best Motion Picture winner (Drama or Musical/Comedy) · 2025",
+    "source_url": "https://goldenglobes.com/winners-nominees/2025/"
+  },
+  {
+    "imdb_id": "tt14208870",
+    "type": "movie",
+    "tags": [
+      "golden_bafta"
+    ],
+    "verified": true,
+    "label": "Golden Globe Best Motion Picture winner (Drama or Musical/Comedy) · 2023",
+    "source_url": "https://goldenglobes.com/winners-nominees/2023/"
+  },
+  {
+    "imdb_id": "tt11813216",
+    "type": "movie",
+    "tags": [
+      "golden_bafta"
+    ],
+    "verified": true,
+    "label": "Golden Globe Best Motion Picture winner (Drama or Musical/Comedy) · 2023",
+    "source_url": "https://goldenglobes.com/winners-nominees/2023/"
+  },
+  {
+    "imdb_id": "tt3581652",
+    "type": "movie",
+    "tags": [
+      "golden_bafta"
+    ],
+    "verified": true,
+    "label": "Golden Globe Best Motion Picture winner (Drama or Musical/Comedy) · 2022",
+    "source_url": "https://goldenglobes.com/winners-nominees/2022/"
+  },
+  {
+    "imdb_id": "tt7131622",
+    "type": "movie",
+    "tags": [
+      "golden_bafta"
+    ],
+    "verified": true,
+    "label": "Golden Globe Best Motion Picture winner (Drama or Musical/Comedy) · 2020",
+    "source_url": "https://goldenglobes.com/winners-nominees/2020/"
+  },
+  {
+    "imdb_id": "tt1727824",
+    "type": "movie",
+    "tags": [
+      "golden_bafta"
+    ],
+    "verified": true,
+    "label": "Golden Globe Best Motion Picture winner (Drama or Musical/Comedy) · 2019",
+    "source_url": "https://goldenglobes.com/winners-nominees/2019/"
+  },
+  {
+    "imdb_id": "tt6966692",
+    "type": "movie",
+    "tags": [
+      "golden_bafta"
+    ],
+    "verified": true,
+    "label": "Golden Globe Best Motion Picture winner (Drama or Musical/Comedy) · 2019",
+    "source_url": "https://goldenglobes.com/winners-nominees/2019/"
   }
 ]
