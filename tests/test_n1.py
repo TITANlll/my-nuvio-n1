@@ -548,7 +548,8 @@ class BuildTests(unittest.TestCase):
         ids = ['golden_bafta', 'shahid_saudi_originals', 'shahid_gulf']
         with patch.object(g, 'TODAY', g.date(2026, 11, 15)), \
                 patch.object(g, 'enrich_from_imdb', side_effect=lambda imdb, kind: {
-                    'id': imdb, 'type': kind, 'name': 'Source-mapped title'}):
+                    'id': imdb, 'type': kind, 'name': 'Source-mapped title',
+                    'poster': 'https://image.tmdb.org/t/p/w500/p.jpg'}):
             for catalog_id in ids:
                 spec = next(s for s in g.ALL if s['id'] == catalog_id)
                 self.assertTrue(g.fetch_verified(spec), catalog_id)
