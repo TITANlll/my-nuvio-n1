@@ -55,7 +55,7 @@ TMDB_REQUEST_INTERVAL = 1 / 25
 TMDB_REQUEST_LOCK = Lock()
 tmdb_next_request = 0.0
 WATCHMODE_ID_MAP_URL = 'https://api.watchmode.com/datasets/title_id_map.csv'
-ADDON_VERSION = '1.10.8'
+ADDON_VERSION = '1.10.9'
 MDBLIST_AWARDS_LIMIT = 100
 MDBLIST_API_KEY = os.getenv('MDBLIST_API_KEY', '').strip()
 AWARDS_LIMIT = 30
@@ -1399,7 +1399,7 @@ def main():
         publish_collection_presets(stage, manifest)
         write_json(stage/'status.json',{'built_utc':datetime.now(timezone.utc).isoformat(),
             'planned':len(planned),'original_planned':len(ALL),
-            'browse_planned':40,'shahid_home_planned':len(build_shahid_home_rows()),
+            'browse_planned':sum(s['group'] in BROWSE_GROUPS for s in planned),'shahid_home_planned':len(build_shahid_home_rows()),
             'netflix_home_planned':len(build_netflix_home_rows()),
             'netflix_release_planned':len(build_netflix_release_rows()),
             'netflix_public_planned':len(build_public_netflix_rows()),

@@ -21,11 +21,11 @@ class BrowseCatalogTests(unittest.TestCase):
         self.rows = build_browse_catalogs(self.labels, self.today)
 
     def test_each_saved_label_has_unique_movie_and_series_routes(self):
-        self.assertEqual(len(self.labels['Genres']), 12)
+        self.assertEqual(len(self.labels['Genres']), 14)
         self.assertEqual(len(self.labels['Moods']), 8)
-        self.assertEqual(len(self.rows), 40)
-        self.assertEqual(len({(row['type'], row['id']) for row in self.rows}), 40)
-        self.assertEqual(len({row['id'] for row in self.rows}), 40)
+        self.assertEqual(len(self.rows), 44)
+        self.assertEqual(len({(row['type'], row['id']) for row in self.rows}), 44)
+        self.assertEqual(len({row['id'] for row in self.rows}), 44)
         actual = Counter((row['group'], row['browse_label'], row['type']) for row in self.rows)
         expected = Counter((group, label, kind)
                            for group in ('Genres', 'Moods')
@@ -44,8 +44,8 @@ class BrowseCatalogTests(unittest.TestCase):
         self.assertEqual(len(retained), 58)
         self.assertEqual({(row['type'], row['id']): row for row in retained}, original_by_route)
         self.assertEqual(g.ALL, frozen)
-        self.assertEqual(len(planned), 135)
-        self.assertEqual(len({(row['type'], row['id']) for row in planned}), 135)
+        self.assertEqual(len(planned), 139)
+        self.assertEqual(len({(row['type'], row['id']) for row in planned}), 139)
         self.assertEqual([row['group'] for row in planned[:10]], ['BetterPosters Discovery'] * 10)
         # The saved N1 order is retained after moving only BetterPosters first.
         self.assertEqual([row for row in retained if row['group'] != 'BetterPosters Discovery'],
@@ -66,7 +66,9 @@ class BrowseCatalogTests(unittest.TestCase):
         for label, movie_id, tv_id in [('Action', '28', '10759'),
                                        ('Adventure', '12', '10759'),
                                        ('Sci-Fi', '878', '10765'),
-                                       ('Fantasy', '14', '10765')]:
+                                       ('Fantasy', '14', '10765'),
+                                       ('Western', '37', '37'),
+                                       ('War', '10752', '10768')]:
             self.assertEqual(genre_rows[label, 'movie']['params']['with_genres'], movie_id)
             self.assertEqual(genre_rows[label, 'series']['params']['with_genres'], tv_id)
 
@@ -74,7 +76,7 @@ class BrowseCatalogTests(unittest.TestCase):
         tv = {row['browse_label']: row for row in self.rows
               if row['group'] == 'Genres' and row['type'] == 'series'}
         missing = {'Romance', 'Horror', 'Thriller', 'Music'}
-        combined = {'Action', 'Adventure', 'Sci-Fi', 'Fantasy'}
+        combined = {'Action', 'Adventure', 'Sci-Fi', 'Fantasy', 'War'}
         for label in missing | combined:
             self.assertEqual(tv[label]['mode'], 'discover_keyword', label)
             self.assertTrue(tv[label]['keyword'].strip(), label)
@@ -110,16 +112,16 @@ class BrowseCatalogTests(unittest.TestCase):
             grouping = json.loads((output / 'grouping-plan.json').read_text())
             self.assertEqual(next(iter(grouping)), 'BetterPosters Discovery')
             self.assertEqual(len(grouping['BetterPosters Discovery']), 10)
-            self.assertEqual(len(grouping['Genres']), 24)
+            self.assertEqual(len(grouping['Genres']), 28)
             self.assertEqual(len(grouping['Moods']), 16)
             status = json.loads((output / 'status.json').read_text())
             self.assertEqual(status['original_planned'], 58)
-            self.assertEqual(status['browse_planned'], 40)
+            self.assertEqual(status['browse_planned'], 44)
             self.assertEqual(status['shahid_home_planned'], 7)
             self.assertEqual(status['netflix_home_planned'], 6)
             self.assertEqual(status['netflix_release_planned'], 2)
             self.assertEqual(status['netflix_public_planned'], 13)
-            self.assertEqual(status['planned'], 135)
+            self.assertEqual(status['planned'], 139)
             manifest = json.loads((output / 'manifest.json').read_text())
             published = {(row['type'], row['id']) for row in manifest['catalogs']}
             for row in self.rows:

@@ -474,6 +474,84 @@
             "genre": null
           }
         ]
+      },
+      {
+        "id": "collections.my-nuvio-genre-western",
+        "title": "Western",
+        "tileShape": "LANDSCAPE",
+        "hideTitle": false,
+        "focusGifEnabled": false,
+        "coverImageUrl": "https://raw.githubusercontent.com/rrevanth/nuvio-assets/main/genres/westerns/westerns-landscape.png",
+        "coverEmoji": "🤠",
+        "catalogSources": [
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_genre_western_movie",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_genre_western_series",
+            "genre": null
+          }
+        ],
+        "sources": [
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_genre_western_movie",
+            "genre": null
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_genre_western_series",
+            "genre": null
+          }
+        ]
+      },
+      {
+        "id": "collections.my-nuvio-genre-war",
+        "title": "War",
+        "tileShape": "LANDSCAPE",
+        "hideTitle": false,
+        "focusGifEnabled": false,
+        "coverImageUrl": "https://raw.githubusercontent.com/rrevanth/nuvio-assets/main/genres/war-stories/war-stories-landscape.png",
+        "coverEmoji": "🪖",
+        "catalogSources": [
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_genre_war_movie",
+            "genre": null
+          },
+          {
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_genre_war_series",
+            "genre": null
+          }
+        ],
+        "sources": [
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "movie",
+            "catalogId": "browse_genre_war_movie",
+            "genre": null
+          },
+          {
+            "provider": "addon",
+            "addonId": "com.mynuvio.buildn1",
+            "type": "series",
+            "catalogId": "browse_genre_war_series",
+            "genre": null
+          }
+        ]
       }
     ]
   },

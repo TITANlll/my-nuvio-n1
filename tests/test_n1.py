@@ -59,15 +59,15 @@ class BuildTests(unittest.TestCase):
             self.assertEqual(json.loads(route.read_text())['metas'][0]['id'], 'tt1234567')
         status = json.loads((self.out / 'status.json').read_text())
         self.assertEqual(status['original_planned'], 58)
-        self.assertEqual(status['browse_planned'], 40)
+        self.assertEqual(status['browse_planned'], 44)
         self.assertEqual(status['shahid_home_planned'], 7)
         self.assertEqual(status['netflix_home_planned'], 6)
         self.assertEqual(status['netflix_release_planned'], 2)
         self.assertEqual(status['netflix_public_planned'], 13)
-        self.assertEqual(status['planned'], 135)
-        self.assertEqual(len(status['catalogs']), 135)
+        self.assertEqual(status['planned'], 139)
+        self.assertEqual(len(status['catalogs']), 139)
         groups = json.loads((self.out / 'grouping-plan.json').read_text())
-        self.assertEqual(sum(map(len, groups.values())), 135)
+        self.assertEqual(sum(map(len, groups.values())), 139)
         self.assertEqual(next(iter(groups)), 'BetterPosters Discovery')
         self.assertIn(g.BASE + '/manifest.json', (self.out / 'index.html').read_text())
 
@@ -130,8 +130,8 @@ class BuildTests(unittest.TestCase):
         originals = {(r['type'], r['id']) for r in g.ALL}
         self.assertFalse(originals & {(r['type'], r['id']) for r in rows})
         planned = g.catalog_plan()
-        self.assertEqual(len(planned), 135)
-        self.assertEqual(len({(r['type'], r['id']) for r in planned}), 135)
+        self.assertEqual(len(planned), 139)
+        self.assertEqual(len({(r['type'], r['id']) for r in planned}), 139)
         for r in rows:
             self.assertEqual(sum(p['id'] == r['id'] for p in planned), 1)
 
@@ -148,7 +148,7 @@ class BuildTests(unittest.TestCase):
                             for r in rows))
         self.assertTrue(all('TMDB' in r['name'] for r in rows))
         self.assertFalse(any('official' in r['name'].lower() for r in rows))
-        self.assertEqual(len(g.catalog_plan()), 135)
+        self.assertEqual(len(g.catalog_plan()), 139)
         self.assertFalse({(r['type'], r['id']) for r in rows} &
                          {(r['type'], r['id']) for r in g.ALL})
 

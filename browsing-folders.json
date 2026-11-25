@@ -1,5 +1,5 @@
 {
   "note":"Labels used to generate movie and series catalog rows. These do not automatically create native Nuvio folders.",
-  "Genres":["Action","Comedy","Romance","Horror","Mystery","Thriller","Sci-Fi","Fantasy","Adventure","Drama","Crime","Music"],
+  "Genres":["Action","Comedy","Romance","Horror","Mystery","Thriller","Sci-Fi","Fantasy","Adventure","Drama","Crime","Music","Western","War"],
   "Moods":["Feel-Good","Mind-Bending","Dark & Suspenseful","Light & Funny","Emotional Stories","High-Adrenaline","Easy Watching","Twists & Mysteries"]
 }

@@ -9,11 +9,12 @@ MOVIE_GENRES = {
     'Action': '28', 'Comedy': '35', 'Romance': '10749', 'Horror': '27',
     'Mystery': '9648', 'Thriller': '53', 'Sci-Fi': '878', 'Fantasy': '14',
     'Adventure': '12', 'Drama': '18', 'Crime': '80', 'Music': '10402',
+    'Western': '37', 'War': '10752',
 }
 TV_GENRES = {
     'Action': '10759', 'Comedy': '35', 'Mystery': '9648',
     'Sci-Fi': '10765', 'Fantasy': '10765', 'Adventure': '10759',
-    'Drama': '18', 'Crime': '80',
+    'Drama': '18', 'Crime': '80', 'Western': '37', 'War': '10768',
 }
 # TMDB combines some TV genres and has no TV genre for several movie labels.
 # Keywords narrow combined genres or supply the missing classification.
@@ -24,6 +25,7 @@ TV_KEYWORDS = {
     'Fantasy': 'fantasy|magic|supernatural',
     'Romance': 'romance|romantic comedy', 'Horror': 'horror|supernatural horror',
     'Thriller': 'thriller|psychological thriller', 'Music': 'music|musician|musical',
+    'War': 'war|world war ii|world war i|military|civil war',
 }
 
 
